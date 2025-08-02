@@ -83,7 +83,8 @@ class CuMcpPlugin extends BcPlugin
      */
     public function console(CommandCollection $commands): CommandCollection
     {
-        // Add your commands here
+        // MCPサーバーコマンドを追加
+        $commands->add('cu_mcp.server', \CuMcp\Command\McpServerCommand::class);
 
         $commands = parent::console($commands);
 

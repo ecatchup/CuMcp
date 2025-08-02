@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>baserCMS MCP SSE Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; }
+        .form-group { margin: 10px 0; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; }
+        .button { background: #007cba; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        .button:hover { background: #005a87; }
+        .log { background: #f4f4f4; padding: 10px; margin: 10px 0; height: 300px; overflow-y: scroll; border: 1px solid #ddd; }
+        .event { margin: 5px 0; padding: 5px; border-radius: 3px; }
+        .event.start { background: #e7f3ff; }
+        .event.progress { background: #fff3cd; }
+        .event.success { background: #d4edda; }
+        .event.error { background: #f8d7da; }
+        .progress-bar { width: 100%; height: 20px; background: #f0f0f0; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #007cba; transition: width 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>baserCMS MCP SSE Client</h1>
+
+        <h2>単一ブログ記事追加（SSE）</h2>
+        <form id="singleForm">
+            <div class="form-group">
+                <label>タイトル:</label>
+                <input type="text" id="title" value="SSEテスト記事" required>
+            </div>
+            <div class="form-group">
+                <label>詳細:</label>
+                <textarea id="detail" required>SSEで追加されたテスト記事です。</textarea>
+            </div>
+            <div class="form-group">
+                <label>カテゴリ:</label>
+                <input type="text" id="category" value="">
+            </div>
+            <button type="submit" class="button">SSEで追加開始</button>
+        </form>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div id="progressText">待機中...</div>
+
+        <h2>一括ブログ記事追加（SSE）</h2>
+        <form id="bulkForm">
+            <div class="form-group">
+                <label>記事データ（JSON形式）:</label>
+                <textarea id="bulkData" rows="10">[
+  {"title": "記事1", "detail": "詳細1"},
+  {"title": "記事2", "detail": "詳細2"},
+  {"title": "記事3", "detail": "詳細3"}
+]</textarea>
+            </div>
+            <button type="submit" class="button">一括追加開始</button>
+        </form>
+
+        <h2>イベントログ</h2>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()" class="button">ログクリア</button>
+    </div>
+
+    <script>
+        let eventSource = null;
+
+        // 単一記事追加フォーム
+        document.getElementById('singleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const detail = document.getElementById('detail').value;
+            const category = document.getElementById('category').value;
+
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            addLog('start', {message: 'ブログ記事を追加しています...'});
+            updateProgress(50, '処理中');
+
+            // baserCMS API経由でMCPツールを実行
+            fetch('/baser/api/admin/cu-mcp/mcp/add-blog-post.json', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    detail: detail,
+                    category: category || undefined
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    addLog('success', {message: 'ブログ記事が正常に追加されました', data: data});
+                    updateProgress(100, '完了');
+                } else {
+                    addLog('error', {message: 'エラー: ' + (data.message || '不明なエラー')});
+                    updateProgress(0, 'エラー');
+                }
+            })
+            .catch(error => {
+                addLog('error', {message: 'エラー: ' + error.message});
+                updateProgress(0, 'エラー');
+            });
+        });
+
+        // 一括追加フォーム
+        document.getElementById('bulkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            try {
+                const posts = JSON.parse(document.getElementById('bulkData').value);
+
+                if (eventSource) {
+                    eventSource.close();
+                }
+
+                // 一括追加の場合は1つずつ順次実行
+                addLog('start', {message: `${posts.length}件のブログ記事を順次追加します`});
+                updateProgress(0, '開始');
+
+                let completed = 0;
+                const total = posts.length;
+
+                function addNextPost(index) {
+                    if (index >= posts.length) {
+                        addLog('success', {message: '全ての記事の追加が完了しました'});
+                        updateProgress(100, '完了');
+                        return;
+                    }
+
+                    const post = posts[index];
+                    const mcpRequest = {
+                        jsonrpc: "2.0",
+                        id: Date.now() + index,
+                        method: "tools/call",
+                        params: {
+                            name: "addBlogPost",
+                            arguments: {
+                                title: post.title,
+                                detail: post.detail,
+                                category: post.category || undefined
+                            }
+                        }
+                    };
+
+                    fetch('/cu-mcp/mcp-proxy/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(mcpRequest)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        completed++;
+                        const progress = Math.round((completed / total) * 100);
+                        addLog('progress', {
+                            message: `${completed}/${total} 記事追加完了: ${post.title}`,
+                            progress: progress
+                        });
+                        updateProgress(progress, `${completed}/${total} 完了`);
+
+                        // 次の記事を処理
+                        setTimeout(() => addNextPost(index + 1), 500);
+                    })
+                    .catch(error => {
+                        addLog('error', {message: `記事追加エラー (${post.title}): ${error.message}`});
+                        // エラーでも次の記事を処理
+                        setTimeout(() => addNextPost(index + 1), 500);
+                    });
+                }
+
+                addNextPost(0);
+
+            } catch (error) {
+                addLog('error', {message: 'JSONパースエラー: ' + error.message});
+            }
+        });
+
+        function startSSE(url) {
+            eventSource = new EventSource(url);
+
+            eventSource.addEventListener('start', function(e) {
+                const data = JSON.parse(e.data);
+                addLog('start', data);
+                updateProgress(0, data.message || '開始');
+            });
+
+            eventSource.addEventListener('progress', function(e) {
+                const data = JSON.parse(e.data);
+                addLog('progress', data);
+                updateProgress(data.progress || 0, data.message || 'Progress');
+            });
+
+            eventSource.addEventListener('success', function(e) {
+                const data = JSON.parse(e.data);
+                addLog('success', data);
+                updateProgress(100, '完了');
+            });
+
+            eventSource.addEventListener('error', function(e) {
+                const data = JSON.parse(e.data);
+                addLog('error', data);
+            });
+
+            eventSource.addEventListener('end', function(e) {
+                const data = JSON.parse(e.data);
+                addLog('end', data);
+                eventSource.close();
+            });
+
+            eventSource.onerror = function(e) {
+                addLog('error', {message: 'SSE接続エラー'});
+                eventSource.close();
+            };
+        }
+
+        function processSSEResponse(reader) {
+            function read() {
+                return reader.read().then(({done, value}) => {
+                    if (done) return;
+
+                    const chunk = new TextDecoder().decode(value);
+                    const lines = chunk.split('\n');
+
+                    lines.forEach(line => {
+                        if (line.startsWith('event: ')) {
+                            const eventType = line.substring(7);
+                        } else if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.substring(6));
+                            addLog(eventType || 'data', data);
+
+                            if (data.progress) {
+                                updateProgress(data.progress, data.message || 'Progress');
+                            }
+                        }
+                    });
+
+                    return read();
+                });
+            }
+
+            return read();
+        }
+
+        function addLog(type, data) {
+            const log = document.getElementById('log');
+            const event = document.createElement('div');
+            event.className = `event ${type}`;
+            event.innerHTML = `
+                <strong>[${new Date().toLocaleTimeString()}] ${type.toUpperCase()}:</strong>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            log.appendChild(event);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateProgress(progress, message) {
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${progress}% - ${message}`;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            updateProgress(0, '待機中...');
+        }
+    </script>
+</body>
+</html>

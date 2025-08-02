@@ -15,20 +15,25 @@ return [
         /**
           * System Navigation
           */
-        /*'adminNavigation' => [
-            'CuMcp' => [
-                'title' => __d('baser_core', 'CuMcp'),
-                'type' => 'contents',
-                'menus' => [
-                    'CuMcpIndex' => [
-                        'title' => __d('baser_core', 'CuMcpIndex'),
-                        'url' => []
-                    ]
-                ]
+        'adminNavigation' => [
+            'Systems' => [
+                'CuMcpServerManager' => [
+                    'title' => 'MCPサーバー管理',
+                    'type' => 'system',
+                    'url' => [
+                        'prefix' => 'Admin',
+                        'plugin' => 'CuMcp',
+                        'controller' => 'McpServerManager',
+                        'action' => 'index'
+                    ],
+                    'currentRegex' => '/\/cu-mcp\/admin\/mcp-server-manager.*/',
+                    'icon' => 'bca-icon--custom'
+                ],
             ]
-        ]*/
+        ],
+        'skipCsrfUrl' => [
+            ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index', '_ext' => 'json'],
+            ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'options', '_ext' => 'json'],
+        ]
     ]
-
-    // Add your plugin's configuration here
-
 ];

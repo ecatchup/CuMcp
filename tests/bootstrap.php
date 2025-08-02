@@ -49,6 +49,14 @@ if (file_exists($root . '/config/bootstrap.php')) {
 \Cake\Core\Configure::load('install');
 \Cake\Datasource\ConnectionManager::setConfig(\Cake\Core\Configure::consume('Datasources'));
 
+// CuMcpプラグインをロード
+\Cake\Core\Plugin::getCollection()->add(new \CuMcp\CuMcpPlugin());
+
+// テスト用の設定
+\Cake\Core\Configure::write('CuMcp.logging.enabled', false);
+\Cake\Core\Configure::write('CuMcp.defaults.user_id', 1);
+\Cake\Core\Configure::write('CuMcp.defaults.blog_content_id', 1);
+
 /**
  * Load schema from a SQL dump file.
  *
