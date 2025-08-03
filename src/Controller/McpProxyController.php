@@ -92,6 +92,10 @@ class McpProxyController extends Controller
             $requestBody = file_get_contents('php://input');
             $this->log("MCP Proxy - Request Body: {$requestBody}", 'debug');
 
+			if(empty($requestBody)) {
+				return $this->response;
+			}
+			
             // JSONをパースしてMCPリクエストを検証
             $mcpRequest = json_decode($requestBody, true);
             if (!$mcpRequest || !isset($mcpRequest['jsonrpc']) || $mcpRequest['jsonrpc'] !== '2.0') {
