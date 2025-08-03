@@ -213,17 +213,17 @@ class BaserCmsMcpServer
                     ],
                     'required' => ['keyword']
                 ]
-            )
-            ->withTool(
-                handler: [self::class, 'getServerInfo'],
-                name: 'serverInfo',
-                description: 'サーバーのバージョンや環境情報を返します',
-                inputSchema: [
-                    'type' => 'object',
-                    'properties' => (Object)[]
-				]
-            )
-            ->build();
+            )->build();
+//            ->withTool(
+//                handler: [self::class, 'getServerInfo'],
+//                name: 'serverInfo',
+//                description: 'サーバーのバージョンや環境情報を返します',
+//                inputSchema: [
+//                    'type' => 'object',
+//                    'properties' => (Object)[]
+//				]
+//            )
+//            ->build();
     }
 
     public function runStdio(): void
