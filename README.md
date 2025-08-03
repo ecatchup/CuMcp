@@ -80,7 +80,7 @@ bin/cake cu_mcp.server --transport=stdio
 ./plugins/CuMcp/bin/start-mcp-server.sh -t sse -h localhost -p 3000
 
 # または直接cakeコマンドを使用
-bin/cake cu_mcp.server --transport=sse --host=localhost --port=3000
+bin/cake cu_mcp.server --transport=sse --host=127.0.0.1 --port=3000
 ```
 
 ### 利用可能なツール

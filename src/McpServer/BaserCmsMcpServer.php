@@ -98,6 +98,31 @@ class BaserCmsMcpServer
                 ]
             )
             ->withTool(
+                handler: [self::class, 'getBlogPost'],
+                name: 'getBlogPost',
+                description: '指定されたIDのブログ記事を取得します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
+                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                    ],
+                    'required' => ['id']
+                ]
+            )
+            ->withTool(
+                handler: [self::class, 'fetch'],
+                name: 'fetch',
+                description: 'searchの結果のBlogPostのIDを使用してブログ記事を取得します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'number', 'description' => 'BlogPostのID（必須）']
+                    ],
+                    'required' => ['id']
+                ]
+            )
+            ->withTool(
                 handler: [self::class, 'editBlogPost'],
                 name: 'editBlogPost',
                 description: 'ブログ記事を編集します',
@@ -174,6 +199,22 @@ class BaserCmsMcpServer
                 ]
             )
             ->withTool(
+                handler: [self::class, 'search'],
+                name: 'search',
+                description: 'ブログ記事を検索します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'keyword' => ['type' => 'string', 'description' => '検索キーワード（必須）'],
+                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'limit' => ['type' => 'number', 'description' => '取得件数（省略時は10件）'],
+                        'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）']
+                    ],
+                    'required' => ['keyword']
+                ]
+            )
+            ->withTool(
                 handler: [self::class, 'getServerInfo'],
                 name: 'serverInfo',
                 description: 'サーバーのバージョンや環境情報を返します'
@@ -242,7 +283,7 @@ class BaserCmsMcpServer
         }
     }
 
-    public function getBlogPosts(array $arguments): array
+    public function getBlogPosts($keyword, $blogContentId = null, $limit = 10, $page = 1, $status = 1): array
     {
         try {
             $blogPostsTable = TableRegistry::getTableLocator()->get('BcBlog.BlogPosts');
@@ -281,6 +322,121 @@ class BaserCmsMcpServer
                     'count' => count($results)
                 ]
             ];
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ];
+        }
+    }
+
+    public function search($keyword, $blogContentId = null, $limit = 10, $page = 1, $status = 1): array
+    {
+        try {
+            // 必須パラメータのキーワードを検証
+            if (empty($arguments['keyword'])) {
+                return [
+                    'error' => true,
+                    'message' => '検索キーワードが指定されていません'
+                ];
+            }
+
+            // getBlogPostsメソッドを利用して検索を実行
+            $searchResults = $this->getBlogPosts($keyword, $blogContentId, $limit, $page, $status);
+
+            if ($searchResults['success']) {
+                // 結果にid（BlogPostのid）が含まれていることを確認
+                $results = array_map(function ($post) {
+                    return [
+                        'id' => $post['id'],
+                        'title' => $post['title'],
+                        'detail' => $post['detail'] ?? '',
+                        'content' => $post['content'] ?? '',
+                        'blog_content_id' => $post['blog_content_id'],
+                        'blog_category_id' => $post['blog_category_id'] ?? null,
+                        'status' => $post['status'],
+                        'posted' => $post['posted'] ?? null,
+                        'created' => $post['created'] ?? null,
+                        'modified' => $post['modified'] ?? null
+                    ];
+                }, $searchResults['data']);
+
+                return [
+                    'success' => true,
+                    'data' => $results,
+                    'pagination' => $searchResults['pagination'],
+                    'search_keyword' => $arguments['keyword']
+                ];
+            } else {
+                return $searchResults;
+            }
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ];
+        }
+    }
+
+    public function getBlogPost($id, $blogContentId): array
+    {
+        try {
+            $blogPostsTable = TableRegistry::getTableLocator()->get('BcBlog.BlogPosts');
+
+            $query = $blogPostsTable->find()->where(['id' => $id]);
+
+            // ブログコンテンツIDが指定されている場合は条件に追加
+            if (!empty($blogContentId)) {
+                $query->where(['blog_content_id' => $blogContentId]);
+            }
+
+            $result = $query->first();
+
+            if ($result) {
+                return [
+                    'success' => true,
+                    'data' => $result->toArray()
+                ];
+            } else {
+                return [
+                    'error' => true,
+                    'message' => '指定されたIDのブログ記事が見つかりません'
+                ];
+            }
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ];
+        }
+    }
+
+    public function fetch($id, $blogContentId): array
+    {
+        try {
+            // 必須パラメータのIDを検証
+            if (empty($id)) {
+                return [
+                    'error' => true,
+                    'message' => 'BlogPostのIDが指定されていません'
+                ];
+            }
+
+            // getBlogPostメソッドを利用して記事を取得
+            $blogPostResult = $this->getBlogPost($id, $blogContentId);
+
+            if ($blogPostResult['success']) {
+                return [
+                    'success' => true,
+                    'data' => $blogPostResult['data'],
+                    'fetched_id' => $id
+                ];
+            } else {
+                return $blogPostResult;
+            }
         } catch (\Exception $e) {
             return [
                 'error' => true,
