@@ -104,21 +104,15 @@ class McpProxyController extends Controller
 
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
             $response = $this->sendMcpRequest($config, $mcpRequest);
-			if($response) {
-				$response = json_encode($response);
-			}
-			
+
             // MCP応答をHTTPレスポンスとして返す
             $this->response = $this->response
                 ->withHeader('Content-Type', 'application/json')
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
-                ->withHeader('Access-Control-Allow-Credentials', 'true');
-			
-			if($response) {
-				$this->response = $this->response->withStringBody($response);
-			}
+                ->withHeader('Access-Control-Allow-Credentials', 'true')
+                ->withStringBody(json_encode($response));
 
         } catch (ServiceUnavailableException $e) {
             throw $e;
@@ -161,7 +155,10 @@ class McpProxyController extends Controller
             $this->log("MCP Proxy - Response: " . json_encode($responseData), 'debug');
 
             if (!$responseData) {
-                return [];
+                return [
+                	"jsonrpc" => "2.0",
+  					"result" => []
+				];
             }
 
             return $responseData;
