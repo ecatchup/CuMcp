@@ -217,7 +217,11 @@ class BaserCmsMcpServer
             ->withTool(
                 handler: [self::class, 'getServerInfo'],
                 name: 'serverInfo',
-                description: 'サーバーのバージョンや環境情報を返します'
+                description: 'サーバーのバージョンや環境情報を返します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => (Object)[]
+				]
             )
             ->build();
     }
