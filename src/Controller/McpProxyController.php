@@ -155,7 +155,7 @@ class McpProxyController extends Controller
             $this->log("MCP Proxy - Response: " . json_encode($responseData), 'debug');
 
             if (!$responseData) {
-                throw new \Exception('Invalid JSON response from MCP server');
+                return [];
             }
 
             return $responseData;
