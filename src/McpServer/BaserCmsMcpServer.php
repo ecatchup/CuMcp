@@ -607,7 +607,7 @@ class BaserCmsMcpServer
         }
     }
 
-    public function getServerInfo(array $arguments = []): array
+    public function getServerInfo(): array
     {
         try {
             return [
