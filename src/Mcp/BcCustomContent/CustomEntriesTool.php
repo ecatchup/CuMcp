@@ -14,6 +14,7 @@ namespace CuMcp\Mcp\BcCustomContent;
 
 use BcCustomContent\Service\CustomEntriesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
+use BaserCore\Utility\BcContainerTrait;
 
 /**
  * カスタムエントリーツールクラス
@@ -22,6 +23,7 @@ use PhpMcp\Server\ServerBuilder;
  */
 class CustomEntriesTool
 {
+    use BcContainerTrait;
     /**
      * カスタムエントリー関連のツールを ServerBuilder に追加
      */
@@ -123,25 +125,25 @@ class CustomEntriesTool
     /**
      * カスタムエントリーを追加
      */
-    public function addCustomEntry(array $arguments): array
+    public function addCustomEntry(int $custom_table_id, string $title, ?string $name = '', ?bool $status = false, ?string $published = null, ?string $publish_begin = null, ?string $publish_end = null, ?int $creator_id = 1, ?array $custom_fields = null): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
 
             $data = [
-                'custom_table_id' => $arguments['custom_table_id'],
-                'title' => $arguments['title'],
-                'name' => $arguments['name'] ?? '',
-                'status' => $arguments['status'] ?? false,
-                'published' => $arguments['published'] ?? date('Y-m-d H:i:s'),
-                'publish_begin' => $arguments['publish_begin'] ?? null,
-                'publish_end' => $arguments['publish_end'] ?? null,
-                'creator_id' => $arguments['creator_id'] ?? 1
+                'custom_table_id' => $custom_table_id,
+                'title' => $title,
+                'name' => $name ?? '',
+                'status' => $status ?? false,
+                'published' => $published ?? date('Y-m-d H:i:s'),
+                'publish_begin' => $publish_begin ?? null,
+                'publish_end' => $publish_end ?? null,
+                'creator_id' => $creator_id ?? 1
             ];
 
             // カスタムフィールドの値を追加
-            if (!empty($arguments['custom_fields'])) {
-                $data = array_merge($data, $arguments['custom_fields']);
+            if (!empty($custom_fields)) {
+                $data = array_merge($data, $custom_fields);
             }
 
             $result = $customEntriesService->create($data);
@@ -169,19 +171,19 @@ class CustomEntriesTool
     /**
      * カスタムエントリー一覧を取得
      */
-    public function getCustomEntries(array $arguments): array
+    public function getCustomEntries(int $custom_table_id, ?int $limit = 20, ?int $page = 1, ?int $status = null): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
 
             $conditions = [
-                'custom_table_id' => $arguments['custom_table_id'],
-                'limit' => $arguments['limit'] ?? 20,
-                'page' => $arguments['page'] ?? 1
+                'custom_table_id' => $custom_table_id,
+                'limit' => $limit ?? 20,
+                'page' => $page ?? 1
             ];
 
-            if (isset($arguments['status'])) {
-                $conditions['status'] = $arguments['status'];
+            if (isset($status)) {
+                $conditions['status'] = $status;
             }
 
             $results = $customEntriesService->getIndex($conditions)->toArray();
@@ -207,13 +209,13 @@ class CustomEntriesTool
     /**
      * カスタムエントリーを取得
      */
-    public function getCustomEntry(array $arguments): array
+    public function getCustomEntry(int $custom_table_id, int $id): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
 
-            $result = $customEntriesService->get($arguments['id'], [
-                'custom_table_id' => $arguments['custom_table_id']
+            $result = $customEntriesService->get($id, [
+                'custom_table_id' => $custom_table_id
             ]);
 
             if ($result) {
@@ -239,13 +241,13 @@ class CustomEntriesTool
     /**
      * カスタムエントリーを編集
      */
-    public function editCustomEntry(array $arguments): array
+    public function editCustomEntry(int $custom_table_id, int $id, ?string $title = null, ?string $name = null, ?bool $status = null, ?string $published = null, ?string $publish_begin = null, ?string $publish_end = null, ?int $creator_id = null, ?array $custom_fields = null): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
 
-            $entity = $customEntriesService->get($arguments['id'], [
-                'custom_table_id' => $arguments['custom_table_id']
+            $entity = $customEntriesService->get($id, [
+                'custom_table_id' => $custom_table_id
             ]);
 
             if (!$entity) {
@@ -255,13 +257,18 @@ class CustomEntriesTool
                 ];
             }
 
-            $data = array_intersect_key($arguments, array_flip([
-                'title', 'name', 'status', 'published', 'publish_begin', 'publish_end', 'creator_id'
-            ]));
+            $data = [];
+            if ($title !== null) $data['title'] = $title;
+            if ($name !== null) $data['name'] = $name;
+            if ($status !== null) $data['status'] = $status;
+            if ($published !== null) $data['published'] = $published;
+            if ($publish_begin !== null) $data['publish_begin'] = $publish_begin;
+            if ($publish_end !== null) $data['publish_end'] = $publish_end;
+            if ($creator_id !== null) $data['creator_id'] = $creator_id;
 
             // カスタムフィールドの値を追加
-            if (!empty($arguments['custom_fields'])) {
-                $data = array_merge($data, $arguments['custom_fields']);
+            if (!empty($custom_fields)) {
+                $data = array_merge($data, $custom_fields);
             }
 
             $result = $customEntriesService->update($entity, $data);
@@ -289,12 +296,12 @@ class CustomEntriesTool
     /**
      * カスタムエントリーを削除
      */
-    public function deleteCustomEntry(array $arguments): array
+    public function deleteCustomEntry(int $custom_table_id, int $id): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
 
-            $result = $customEntriesService->delete($arguments['id']);
+            $result = $customEntriesService->delete($id);
 
             if ($result) {
                 return [

@@ -119,17 +119,32 @@ class BlogPostsTool
     /**
      * ブログ記事を追加
      */
-    public function addBlogPost(array $arguments): array
+    public function addBlogPost(string $title, string $detail, ?string $blog_content = null, ?string $category = null, ?string $email = null): array
     {
         try {
+            // 必須パラメータのチェック
+            if (empty($title)) {
+                return [
+                    'error' => true,
+                    'message' => 'タイトルは必須です'
+                ];
+            }
+
+            if (empty($detail)) {
+                return [
+                    'error' => true,
+                    'message' => '詳細は必須です'
+                ];
+            }
+
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
             // ユーザーIDを取得
             $userId = 1; // デフォルトユーザー
-            if (!empty($arguments['email'])) {
+            if (!empty($email)) {
                 try {
                     $usersService = $this->getService(UsersServiceInterface::class);
-                    $conditions = ['email' => $arguments['email']];
+                    $conditions = ['email' => $email];
                     $user = $usersService->getIndex($conditions)->first();
                     $userId = $user ? $user->id : 1;
                 } catch (\Exception $e) {
@@ -138,17 +153,17 @@ class BlogPostsTool
             }
 
             $data = [
-                'title' => $arguments['title'],
-                'detail' => $arguments['detail'],
-                'blog_content_id' => $this->getBlogContentId($arguments['blog_content'] ?? null),
+                'title' => $title,
+                'detail' => $detail,
+                'blog_content_id' => $this->getBlogContentId($blog_content),
                 'user_id' => $userId,
                 'status' => 1, // 公開
                 'posted' => date('Y-m-d H:i:s')
             ];
 
             // カテゴリ設定
-            if (!empty($arguments['category'])) {
-                $data['blog_category_id'] = $this->getBlogCategoryId($arguments['category'], $data['blog_content_id']);
+            if (!empty($category)) {
+                $data['blog_category_id'] = $this->getBlogCategoryId($category, $data['blog_content_id']);
             }
 
             $result = $blogPostsService->create($data);
@@ -176,29 +191,26 @@ class BlogPostsTool
     /**
      * ブログ記事一覧を取得
      */
-    public function getBlogPosts(array $arguments): array
+    public function getBlogPosts(?int $blog_content_id = null, ?string $keyword = null, ?int $status = null, ?int $limit = 10, ?int $page = 1): array
     {
         try {
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
             $conditions = [];
-            if (!empty($arguments['blog_content_id'])) {
-                $conditions['blog_content_id'] = $arguments['blog_content_id'];
+            if (!empty($blog_content_id)) {
+                $conditions['blog_content_id'] = $blog_content_id;
             }
 
-            if (!empty($arguments['keyword'])) {
-                $conditions['keyword'] = $arguments['keyword'];
+            if (!empty($keyword)) {
+                $conditions['keyword'] = $keyword;
             }
 
-            if (isset($arguments['status'])) {
-                $conditions['status'] = $arguments['status'];
+            if (isset($status)) {
+                $conditions['status'] = $status;
             }
 
-            $limit = $arguments['limit'] ?? 10;
-            $page = $arguments['page'] ?? 1;
-
-            $conditions['limit'] = $limit;
-            $conditions['page'] = $page;
+            $conditions['limit'] = $limit ?? 10;
+            $conditions['page'] = $page ?? 1;
 
             $results = $blogPostsService->getIndex($conditions)->toArray();
 
@@ -206,8 +218,8 @@ class BlogPostsTool
                 'success' => true,
                 'data' => $results,
                 'pagination' => [
-                    'page' => $page,
-                    'limit' => $limit,
+                    'page' => $page ?? 1,
+                    'limit' => $limit ?? 10,
                     'count' => count($results)
                 ]
             ];
@@ -223,17 +235,25 @@ class BlogPostsTool
     /**
      * ブログ記事を取得
      */
-    public function getBlogPost(array $arguments): array
+    public function getBlogPost(int $id, ?int $blog_content_id = null): array
     {
         try {
+            // 必須パラメータのチェック
+            if (empty($id)) {
+                return [
+                    'error' => true,
+                    'message' => 'IDは必須です'
+                ];
+            }
+
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
-            $result = $blogPostsService->get($arguments['id']);
+            $result = $blogPostsService->get($id);
 
             if ($result) {
                 // ブログコンテンツIDが指定されている場合は条件をチェック
-                if (!empty($arguments['blog_content_id']) &&
-                    $result->blog_content_id != $arguments['blog_content_id']) {
+                if (!empty($blog_content_id) &&
+                    $result->blog_content_id != $blog_content_id) {
                     return [
                         'error' => true,
                         'message' => '指定されたIDのブログ記事が見つかりません'
@@ -262,33 +282,55 @@ class BlogPostsTool
     /**
      * ブログ記事を編集
      */
-    public function editBlogPost(array $arguments): array
+    public function editBlogPost(int $id, ?string $title = null, ?string $detail = null, ?string $content = null, ?int $status = null, ?string $name = null, ?string $eye_catch = null, ?string $category = null, ?int $blog_content_id = null, ?string $email = null, ?int $user_id = null): array
     {
         try {
+            // 必須パラメータのチェック
+            if (empty($id)) {
+                return [
+                    'error' => true,
+                    'message' => 'IDは必須です'
+                ];
+            }
+
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
-            $entity = $blogPostsService->get($arguments['id']);
+            $entity = $blogPostsService->get($id);
 
-            $data = array_intersect_key($arguments, array_flip([
-                'title', 'detail', 'content', 'status', 'name', 'eye_catch'
-            ]));
+            if (!$entity) {
+                return [
+                    'error' => true,
+                    'message' => '指定されたIDのブログ記事が見つかりません'
+                ];
+            }
 
-            if (!empty($arguments['category'])) {
+            // 更新データを構築（null以外の値のみ）
+            $data = [];
+            if ($title !== null) $data['title'] = $title;
+            if ($detail !== null) $data['detail'] = $detail;
+            if ($content !== null) $data['content'] = $content;
+            if ($status !== null) $data['status'] = $status;
+            if ($name !== null) $data['name'] = $name;
+            if ($eye_catch !== null) $data['eye_catch'] = $eye_catch;
+
+            if (!empty($category)) {
                 $data['blog_category_id'] = $this->getBlogCategoryId(
-                    $arguments['category'],
-                    $arguments['blog_content_id'] ?? $entity->blog_content_id
+                    $category,
+                    $blog_content_id ?? $entity->blog_content_id
                 );
             }
 
-            if (!empty($arguments['email'])) {
+            if (!empty($email)) {
                 try {
                     $usersService = $this->getService(UsersServiceInterface::class);
-                    $conditions = ['email' => $arguments['email']];
+                    $conditions = ['email' => $email];
                     $user = $usersService->getIndex($conditions)->first();
                     $data['user_id'] = $user ? $user->id : 1;
                 } catch (\Exception $e) {
                     $data['user_id'] = 1; // エラー時はデフォルト
                 }
+            } elseif ($user_id !== null) {
+                $data['user_id'] = $user_id;
             }
 
             $result = $blogPostsService->update($entity, $data);
@@ -316,12 +358,20 @@ class BlogPostsTool
     /**
      * ブログ記事を削除
      */
-    public function deleteBlogPost(array $arguments): array
+    public function deleteBlogPost(int $id, ?int $blog_content_id = null): array
     {
         try {
+            // 必須パラメータのチェック
+            if (empty($id)) {
+                return [
+                    'error' => true,
+                    'message' => 'IDは必須です'
+                ];
+            }
+
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
-            $result = $blogPostsService->delete($arguments['id']);
+            $result = $blogPostsService->delete($id);
 
             if ($result) {
                 return [

@@ -1,7 +1,16 @@
 <?php
 declare(strict_types=1);
 /**
- * baserCMS :  Based Website Development Project <https://basercms.net>
+ * baserCMS :  Base            // JSON をパースしてMCPリクエストを検証
+            $mcpRequest = json_decode($requestBody, true);
+            if (!$mcpRequest || !isset($mcpRequest['jsonrpc']) || $mcpRequest['jsonrpc'] !== '2.0') {
+                throw new BadRequestException('Invalid MCP request format');
+            }
+
+            // MCPリクエストの詳細をログに出力
+            error_log("MCP Request: " . json_encode($mcpRequest, JSON_PRETTY_PRINT));
+
+            // SSE クライアントとしてMCPサーバーに接続してリクエストを処理te Development Project <https://basercms.net>
  * Copyright (c) NPO baser foundation <https://baserfoundation.org/>
  *
  * @copyright     Copyright (c) NPO baser foundation
@@ -17,7 +26,6 @@ use Cake\Controller\Controller;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
 use Cake\Event\EventInterface;
-use CuMcp\McpServer\BaserCmsMcpServer;
 
 /**
  * MCPサーバーへのプロキシコントローラー

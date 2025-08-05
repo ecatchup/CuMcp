@@ -115,21 +115,21 @@ class CustomTablesTool
     /**
      * カスタムテーブルを追加
      */
-    public function addCustomTable(array $arguments): array
+    public function addCustomTable(string $name, string $title, ?array $custom_field_names = null): array
     {
         try {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $data = [
-                'name' => $arguments['name'],
-                'title' => $arguments['title']
+                'name' => $name,
+                'title' => $title
             ];
 
             $result = $customTablesService->create($data);
 
-            if ($result && !empty($arguments['custom_field_names'])) {
+            if ($result && !empty($custom_field_names)) {
                 // カスタムフィールドとの関連付け
-                foreach ($arguments['custom_field_names'] as $fieldName) {
+                foreach ($custom_field_names as $fieldName) {
                     $customTablesService->addCustomFieldLink($result->id, $fieldName);
                 }
             }
@@ -157,31 +157,31 @@ class CustomTablesTool
     /**
      * カスタムテーブル一覧を取得
      */
-    public function getCustomTables(array $arguments): array
+    public function getCustomTables(?string $keyword = null, ?int $status = null, ?string $type = null, ?int $limit = null, ?int $page = 1): array
     {
         try {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($arguments['keyword'])) {
-                $conditions['keyword'] = $arguments['keyword'];
+            if (!empty($keyword)) {
+                $conditions['keyword'] = $keyword;
             }
 
-            if (isset($arguments['status'])) {
-                $conditions['status'] = $arguments['status'];
+            if (isset($status)) {
+                $conditions['status'] = $status;
             }
 
-            if (!empty($arguments['type'])) {
-                $conditions['type'] = $arguments['type'];
+            if (!empty($type)) {
+                $conditions['type'] = $type;
             }
 
-            if (!empty($arguments['limit'])) {
-                $conditions['limit'] = $arguments['limit'];
+            if (!empty($limit)) {
+                $conditions['limit'] = $limit;
             }
 
-            if (!empty($arguments['page'])) {
-                $conditions['page'] = $arguments['page'];
+            if (!empty($page)) {
+                $conditions['page'] = $page;
             }
 
             $results = $customTablesService->getIndex($conditions)->toArray();
@@ -190,8 +190,8 @@ class CustomTablesTool
                 'success' => true,
                 'data' => $results,
                 'pagination' => [
-                    'page' => $arguments['page'] ?? 1,
-                    'limit' => $arguments['limit'] ?? null,
+                    'page' => $page ?? 1,
+                    'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
             ];
@@ -207,12 +207,12 @@ class CustomTablesTool
     /**
      * カスタムテーブルを取得
      */
-    public function getCustomTable(array $arguments): array
+    public function getCustomTable(int $id): array
     {
         try {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
-            $result = $customTablesService->get($arguments['id']);
+            $result = $customTablesService->get($id);
 
             if ($result) {
                 return [
@@ -237,12 +237,12 @@ class CustomTablesTool
     /**
      * カスタムテーブルを編集
      */
-    public function editCustomTable(array $arguments): array
+    public function editCustomTable(int $id, ?string $name = null, ?string $title = null, ?string $type = null, ?string $display_field = null, ?int $has_child = null, ?array $custom_field_names = null): array
     {
         try {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
-            $entity = $customTablesService->get($arguments['id']);
+            $entity = $customTablesService->get($id);
 
             if (!$entity) {
                 return [
@@ -251,19 +251,22 @@ class CustomTablesTool
                 ];
             }
 
-            $data = array_intersect_key($arguments, array_flip([
-                'name', 'title', 'type', 'display_field', 'has_child'
-            ]));
+            $data = [];
+            if ($name !== null) $data['name'] = $name;
+            if ($title !== null) $data['title'] = $title;
+            if ($type !== null) $data['type'] = $type;
+            if ($display_field !== null) $data['display_field'] = $display_field;
+            if ($has_child !== null) $data['has_child'] = $has_child;
 
             $result = $customTablesService->update($entity, $data);
 
             // カスタムフィールドとの関連付けを更新
-            if (!empty($arguments['custom_field_names'])) {
+            if (!empty($custom_field_names)) {
                 // 既存の関連を削除
-                $customTablesService->removeAllCustomFieldLinks($arguments['id']);
+                $customTablesService->removeAllCustomFieldLinks($id);
                 // 新しい関連を追加
-                foreach ($arguments['custom_field_names'] as $fieldName) {
-                    $customTablesService->addCustomFieldLink($arguments['id'], $fieldName);
+                foreach ($custom_field_names as $fieldName) {
+                    $customTablesService->addCustomFieldLink($id, $fieldName);
                 }
             }
 
@@ -290,12 +293,12 @@ class CustomTablesTool
     /**
      * カスタムテーブルを削除
      */
-    public function deleteCustomTable(array $arguments): array
+    public function deleteCustomTable(int $id): array
     {
         try {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
-            $result = $customTablesService->delete($arguments['id']);
+            $result = $customTablesService->delete($id);
 
             if ($result) {
                 return [

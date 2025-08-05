@@ -118,16 +118,42 @@ class CustomContentsTool
     /**
      * カスタムコンテンツを追加
      */
-    public function addCustomContent(array $arguments): array
+    public function addCustomContent(string $name, string $title, int $custom_table_id, ?int $site_id = 1, ?int $parent_id = 1, ?string $description = null, ?string $template = 'default', ?int $list_count = 10, ?string $list_direction = 'DESC', ?string $list_order = 'id', ?int $status = null): array
     {
         try {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
-            $data = array_intersect_key($arguments, array_flip([
-                'name', 'title', 'custom_table_id', 'site_id', 'parent_id',
-                'description', 'template', 'list_count', 'list_direction',
-                'list_order', 'status'
-            ]));
+            // Content entity data structure required by baserCMS
+            $data = [
+                'name' => $name,
+                'title' => $title,
+                'custom_table_id' => $custom_table_id,
+                'site_id' => $site_id,
+                'parent_id' => $parent_id,
+                'description' => $description,
+                'template' => $template,
+                'list_count' => $list_count,
+                'list_direction' => $list_direction,
+                'list_order' => $list_order,
+                'status' => $status,
+                'content' => [
+                    'name' => $name,
+                    'plugin' => 'BcCustomContent',
+                    'type' => 'CustomContent',
+                    'title' => $title,
+                    'description' => $description ?? '',
+                    'site_id' => $site_id,
+                    'parent_id' => $parent_id,
+                    'status' => $status ?? true,
+                    'author_id' => 1,
+                    'layout_template' => '',
+                    'exclude_search' => false,
+                    'self_status' => true,
+                    'site_root' => false,
+                    'exclude_menu' => false,
+                    'blank_link' => false
+                ]
+            ];
 
             $result = $customContentsService->create($data);
 
@@ -154,35 +180,35 @@ class CustomContentsTool
     /**
      * カスタムコンテンツ一覧を取得
      */
-    public function getCustomContents(array $arguments): array
+    public function getCustomContents(?int $custom_table_id = null, ?int $site_id = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = 1): array
     {
         try {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($arguments['custom_table_id'])) {
-                $conditions['custom_table_id'] = $arguments['custom_table_id'];
+            if (!empty($custom_table_id)) {
+                $conditions['custom_table_id'] = $custom_table_id;
             }
 
-            if (!empty($arguments['site_id'])) {
-                $conditions['site_id'] = $arguments['site_id'];
+            if (!empty($site_id)) {
+                $conditions['site_id'] = $site_id;
             }
 
-            if (!empty($arguments['keyword'])) {
-                $conditions['keyword'] = $arguments['keyword'];
+            if (!empty($keyword)) {
+                $conditions['keyword'] = $keyword;
             }
 
-            if (isset($arguments['status'])) {
-                $conditions['status'] = $arguments['status'];
+            if (isset($status)) {
+                $conditions['status'] = $status;
             }
 
-            if (!empty($arguments['limit'])) {
-                $conditions['limit'] = $arguments['limit'];
+            if (!empty($limit)) {
+                $conditions['limit'] = $limit;
             }
 
-            if (!empty($arguments['page'])) {
-                $conditions['page'] = $arguments['page'];
+            if (!empty($page)) {
+                $conditions['page'] = $page;
             }
 
             $results = $customContentsService->getIndex($conditions)->toArray();
@@ -191,8 +217,8 @@ class CustomContentsTool
                 'success' => true,
                 'data' => $results,
                 'pagination' => [
-                    'page' => $arguments['page'] ?? 1,
-                    'limit' => $arguments['limit'] ?? null,
+                    'page' => $page ?? 1,
+                    'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
             ];
@@ -208,12 +234,12 @@ class CustomContentsTool
     /**
      * カスタムコンテンツを取得
      */
-    public function getCustomContent(array $arguments): array
+    public function getCustomContent(int $id): array
     {
         try {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
-            $result = $customContentsService->get($arguments['id']);
+            $result = $customContentsService->get($id);
 
             if ($result) {
                 return [
@@ -238,12 +264,12 @@ class CustomContentsTool
     /**
      * カスタムコンテンツを編集
      */
-    public function editCustomContent(array $arguments): array
+    public function editCustomContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $list_count = null, ?string $list_direction = null, ?string $list_order = null, ?int $status = null): array
     {
         try {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
-            $entity = $customContentsService->get($arguments['id']);
+            $entity = $customContentsService->get($id);
 
             if (!$entity) {
                 return [
@@ -252,10 +278,26 @@ class CustomContentsTool
                 ];
             }
 
-            $data = array_intersect_key($arguments, array_flip([
-                'name', 'title', 'description', 'template', 'list_count',
-                'list_direction', 'list_order', 'status'
-            ]));
+            $data = [];
+            if ($name !== null) $data['name'] = $name;
+            if ($title !== null) $data['title'] = $title;
+            if ($description !== null) $data['description'] = $description;
+            if ($template !== null) $data['template'] = $template;
+            if ($list_count !== null) $data['list_count'] = $list_count;
+            if ($list_direction !== null) $data['list_direction'] = $list_direction;
+            if ($list_order !== null) $data['list_order'] = $list_order;
+            if ($status !== null) $data['status'] = $status;
+
+            // Include Content entity updates when necessary
+            if ($name !== null || $title !== null || $description !== null || $status !== null) {
+                $contentData = [];
+                if ($name !== null) $contentData['name'] = $name;
+                if ($title !== null) $contentData['title'] = $title;
+                if ($description !== null) $contentData['description'] = $description;
+                if ($status !== null) $contentData['status'] = $status;
+                
+                $data['content'] = $contentData;
+            }
 
             $result = $customContentsService->update($entity, $data);
 
@@ -282,12 +324,12 @@ class CustomContentsTool
     /**
      * カスタムコンテンツを削除
      */
-    public function deleteCustomContent(array $arguments): array
+    public function deleteCustomContent(int $id): array
     {
         try {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
-            $result = $customContentsService->delete($arguments['id']);
+            $result = $customContentsService->delete($id);
 
             if ($result) {
                 return [

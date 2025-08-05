@@ -99,13 +99,13 @@ class BlogTagsTool
     /**
      * ブログタグを追加
      */
-    public function addBlogTag(array $arguments): array
+    public function addBlogTag(string $name): array
     {
         try {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $data = [
-                'name' => $arguments['name']
+                'name' => $name
             ];
 
             $result = $blogTagsService->create($data);
@@ -133,27 +133,27 @@ class BlogTagsTool
     /**
      * ブログタグ一覧を取得
      */
-    public function getBlogTags(array $arguments): array
+    public function getBlogTags(?string $keyword = null, ?string $name = null, ?int $limit = null, ?int $page = 1): array
     {
         try {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($arguments['keyword'])) {
-                $conditions['keyword'] = $arguments['keyword'];
+            if (!empty($keyword)) {
+                $conditions['keyword'] = $keyword;
             }
 
-            if (!empty($arguments['name'])) {
-                $conditions['name'] = $arguments['name'];
+            if (!empty($name)) {
+                $conditions['name'] = $name;
             }
 
-            if (!empty($arguments['limit'])) {
-                $conditions['limit'] = $arguments['limit'];
+            if (!empty($limit)) {
+                $conditions['limit'] = $limit;
             }
 
-            if (!empty($arguments['page'])) {
-                $conditions['page'] = $arguments['page'];
+            if (!empty($page)) {
+                $conditions['page'] = $page;
             }
 
             $results = $blogTagsService->getIndex($conditions)->toArray();
@@ -162,8 +162,8 @@ class BlogTagsTool
                 'success' => true,
                 'data' => $results,
                 'pagination' => [
-                    'page' => $arguments['page'] ?? 1,
-                    'limit' => $arguments['limit'] ?? null,
+                    'page' => $page ?? 1,
+                    'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
             ];
@@ -179,12 +179,12 @@ class BlogTagsTool
     /**
      * ブログタグを取得
      */
-    public function getBlogTag(array $arguments): array
+    public function getBlogTag(int $id): array
     {
         try {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
-            $result = $blogTagsService->get($arguments['id']);
+            $result = $blogTagsService->get($id);
 
             if ($result) {
                 return [
@@ -209,12 +209,12 @@ class BlogTagsTool
     /**
      * ブログタグを編集
      */
-    public function editBlogTag(array $arguments): array
+    public function editBlogTag(int $id, string $name): array
     {
         try {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
-            $entity = $blogTagsService->get($arguments['id']);
+            $entity = $blogTagsService->get($id);
 
             if (!$entity) {
                 return [
@@ -224,7 +224,7 @@ class BlogTagsTool
             }
 
             $data = [
-                'name' => $arguments['name']
+                'name' => $name
             ];
 
             $result = $blogTagsService->update($entity, $data);
@@ -252,12 +252,12 @@ class BlogTagsTool
     /**
      * ブログタグを削除
      */
-    public function deleteBlogTag(array $arguments): array
+    public function deleteBlogTag(int $id): array
     {
         try {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
-            $result = $blogTagsService->delete($arguments['id']);
+            $result = $blogTagsService->delete($id);
 
             if ($result) {
                 return [

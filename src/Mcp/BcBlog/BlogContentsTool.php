@@ -128,17 +128,50 @@ class BlogContentsTool
     /**
      * ブログコンテンツを追加
      */
-    public function addBlogContent(array $arguments): array
+    public function addBlogContent(string $name, string $title, ?int $site_id = 1, ?int $parent_id = 1, ?string $description = null, ?string $template = 'default', ?int $list_count = 10, ?string $list_direction = 'DESC', ?int $feed_count = 10, ?bool $comment_use = false, ?bool $comment_approve = false, ?bool $tag_use = false, ?string $eye_catch_size = null, ?bool $use_content = false, ?int $status = 1, ?int $widget_area = null): array
     {
         try {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
-            $data = array_intersect_key($arguments, array_flip([
-                'name', 'title', 'site_id', 'parent_id', 'description', 'template',
-                'list_count', 'list_direction', 'feed_count', 'comment_use',
-                'comment_approve', 'tag_use', 'eye_catch_size', 'use_content',
-                'status', 'widget_area'
-            ]));
+            // baserCMSでは、BlogContentとContentの両方を作成する必要があります
+            // Contentエンティティの基本データ
+            $contentData = [
+                'name' => $name,
+                'plugin' => 'BcBlog',
+                'type' => 'BlogContent',
+                'title' => $title,
+                'description' => $description ?? '',
+                'site_id' => $site_id,
+                'parent_id' => $parent_id,
+                'status' => (bool)$status,
+                'author_id' => 1, // デフォルトユーザー
+                'layout_template' => '',
+                'exclude_search' => false,
+                'self_status' => true,
+                'site_root' => false,
+                'exclude_menu' => false,
+                'blank_link' => false
+            ];
+
+            // BlogContentエンティティの基本データ
+            $blogContentData = [
+                'description' => $description ?? '',
+                'template' => $template,
+                'list_count' => $list_count,
+                'list_direction' => $list_direction,
+                'feed_count' => $feed_count,
+                'comment_use' => $comment_use,
+                'comment_approve' => $comment_approve,
+                'tag_use' => $tag_use,
+                'eye_catch_size' => $eye_catch_size,
+                'use_content' => $use_content,
+                'widget_area' => $widget_area
+            ];
+
+            // Contentデータを含めた統合データ構造
+            $data = array_merge($blogContentData, [
+                'content' => $contentData
+            ]);
 
             $result = $blogContentsService->create($data);
 
@@ -165,31 +198,31 @@ class BlogContentsTool
     /**
      * ブログコンテンツ一覧を取得
      */
-    public function getBlogContents(array $arguments): array
+    public function getBlogContents(?int $site_id = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = null): array
     {
         try {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($arguments['site_id'])) {
-                $conditions['site_id'] = $arguments['site_id'];
+            if (!empty($site_id)) {
+                $conditions['site_id'] = $site_id;
             }
 
-            if (!empty($arguments['keyword'])) {
-                $conditions['keyword'] = $arguments['keyword'];
+            if (!empty($keyword)) {
+                $conditions['keyword'] = $keyword;
             }
 
-            if (isset($arguments['status'])) {
-                $conditions['status'] = $arguments['status'];
+            if (isset($status)) {
+                $conditions['status'] = $status;
             }
 
-            if (!empty($arguments['limit'])) {
-                $conditions['limit'] = $arguments['limit'];
+            if (!empty($limit)) {
+                $conditions['limit'] = $limit;
             }
 
-            if (!empty($arguments['page'])) {
-                $conditions['page'] = $arguments['page'];
+            if (!empty($page)) {
+                $conditions['page'] = $page;
             }
 
             $results = $blogContentsService->getIndex($conditions)->toArray();
@@ -198,8 +231,8 @@ class BlogContentsTool
                 'success' => true,
                 'data' => $results,
                 'pagination' => [
-                    'page' => $arguments['page'] ?? 1,
-                    'limit' => $arguments['limit'] ?? null,
+                    'page' => $page ?? 1,
+                    'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
             ];
@@ -215,12 +248,20 @@ class BlogContentsTool
     /**
      * ブログコンテンツを取得
      */
-    public function getBlogContent(array $arguments): array
+    public function getBlogContent(int $id): array
     {
         try {
+            // 必須パラメータのチェック
+            if (empty($id)) {
+                return [
+                    'error' => true,
+                    'message' => 'IDは必須です'
+                ];
+            }
+
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
-            $result = $blogContentsService->get($arguments['id']);
+            $result = $blogContentsService->get($id);
 
             if ($result) {
                 return [
@@ -245,12 +286,20 @@ class BlogContentsTool
     /**
      * ブログコンテンツを編集
      */
-    public function editBlogContent(array $arguments): array
+    public function editBlogContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $list_count = null, ?string $list_direction = null, ?int $feed_count = null, ?bool $comment_use = null, ?bool $comment_approve = null, ?bool $tag_use = null, ?string $eye_catch_size = null, ?bool $use_content = null, ?int $status = null, ?int $widget_area = null): array
     {
         try {
+            // 必須パラメータのチェック
+            if (empty($id)) {
+                return [
+                    'error' => true,
+                    'message' => 'IDは必須です'
+                ];
+            }
+
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
-            $entity = $blogContentsService->get($arguments['id']);
+            $entity = $blogContentsService->get($id);
 
             if (!$entity) {
                 return [
@@ -259,11 +308,30 @@ class BlogContentsTool
                 ];
             }
 
-            $data = array_intersect_key($arguments, array_flip([
-                'name', 'title', 'description', 'template', 'list_count',
-                'list_direction', 'feed_count', 'comment_use', 'comment_approve',
-                'tag_use', 'eye_catch_size', 'use_content', 'status', 'widget_area'
-            ]));
+            // 更新データを構築（null以外の値のみ）
+            $data = [];
+            if ($description !== null) $data['description'] = $description;
+            if ($template !== null) $data['template'] = $template;
+            if ($list_count !== null) $data['list_count'] = $list_count;
+            if ($list_direction !== null) $data['list_direction'] = $list_direction;
+            if ($feed_count !== null) $data['feed_count'] = $feed_count;
+            if ($comment_use !== null) $data['comment_use'] = $comment_use;
+            if ($comment_approve !== null) $data['comment_approve'] = $comment_approve;
+            if ($tag_use !== null) $data['tag_use'] = $tag_use;
+            if ($eye_catch_size !== null) $data['eye_catch_size'] = $eye_catch_size;
+            if ($use_content !== null) $data['use_content'] = $use_content;
+            if ($widget_area !== null) $data['widget_area'] = $widget_area;
+
+            // Contentエンティティの更新データも含める（もし関連するContentフィールドが変更される場合）
+            $contentData = [];
+            if ($name !== null) $contentData['name'] = $name;
+            if ($title !== null) $contentData['title'] = $title;
+            if ($description !== null) $contentData['description'] = $description;
+            if ($status !== null) $contentData['status'] = (bool)$status;
+
+            if (!empty($contentData)) {
+                $data['content'] = $contentData;
+            }
 
             $result = $blogContentsService->update($entity, $data);
 
@@ -290,12 +358,20 @@ class BlogContentsTool
     /**
      * ブログコンテンツを削除
      */
-    public function deleteBlogContent(array $arguments): array
+    public function deleteBlogContent(int $id): array
     {
         try {
+            // 必須パラメータのチェック
+            if (empty($id)) {
+                return [
+                    'error' => true,
+                    'message' => 'IDは必須です'
+                ];
+            }
+
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
-            $result = $blogContentsService->delete($arguments['id']);
+            $result = $blogContentsService->delete($id);
 
             if ($result) {
                 return [

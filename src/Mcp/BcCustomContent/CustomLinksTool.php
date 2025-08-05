@@ -120,16 +120,23 @@ class CustomLinksTool
     /**
      * カスタムリンクを追加
      */
-    public function addCustomLink(array $arguments): array
+    public function addCustomLink(string $name, string $title, int $custom_table_id, int $custom_field_id, ?bool $status = null, ?bool $use_api = null, ?bool $search_target_front = null, ?bool $search_target_admin = null, ?bool $display_front = null, ?string $type = null): array
     {
         try {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
-            $data = array_intersect_key($arguments, array_flip([
-                'name', 'title', 'custom_table_id', 'custom_field_id', 'status',
-                'use_api', 'search_target_front', 'search_target_admin',
-                'display_front', 'type'
-            ]));
+            $data = [
+                'name' => $name,
+                'title' => $title,
+                'custom_table_id' => $custom_table_id,
+                'custom_field_id' => $custom_field_id,
+                'status' => $status,
+                'use_api' => $use_api,
+                'search_target_front' => $search_target_front,
+                'search_target_admin' => $search_target_admin,
+                'display_front' => $display_front,
+                'type' => $type
+            ];
 
             $result = $customLinksService->create($data);
 
@@ -156,49 +163,46 @@ class CustomLinksTool
     /**
      * カスタムリンク一覧を取得
      */
-    public function getCustomLinks(array $arguments): array
+    public function getCustomLinks(?int $custom_table_id = null, ?int $custom_field_id = null, ?string $keyword = null, ?int $status = null, ?string $type = null, ?int $limit = null, ?int $page = 1): array
     {
         try {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($arguments['custom_table_id'])) {
-                $conditions['custom_table_id'] = $arguments['custom_table_id'];
+            if (!empty($custom_field_id)) {
+                $conditions['custom_field_id'] = $custom_field_id;
             }
 
-            if (!empty($arguments['custom_field_id'])) {
-                $conditions['custom_field_id'] = $arguments['custom_field_id'];
+            if (!empty($keyword)) {
+                $conditions['keyword'] = $keyword;
             }
 
-            if (!empty($arguments['keyword'])) {
-                $conditions['keyword'] = $arguments['keyword'];
+            if (isset($status)) {
+                $conditions['status'] = $status;
             }
 
-            if (isset($arguments['status'])) {
-                $conditions['status'] = $arguments['status'];
+            if (!empty($type)) {
+                $conditions['type'] = $type;
             }
 
-            if (!empty($arguments['type'])) {
-                $conditions['type'] = $arguments['type'];
+            if (!empty($limit)) {
+                $conditions['limit'] = $limit;
             }
 
-            if (!empty($arguments['limit'])) {
-                $conditions['limit'] = $arguments['limit'];
+            if (!empty($page)) {
+                $conditions['page'] = $page;
             }
 
-            if (!empty($arguments['page'])) {
-                $conditions['page'] = $arguments['page'];
-            }
-
-            $results = $customLinksService->getIndex($conditions)->toArray();
+            // CustomLinksService::getIndex() は custom_table_id を最初の引数として期待している
+            $results = $customLinksService->getIndex($custom_table_id ?? 1, $conditions)->toArray();
 
             return [
                 'success' => true,
                 'data' => $results,
                 'pagination' => [
-                    'page' => $arguments['page'] ?? 1,
-                    'limit' => $arguments['limit'] ?? null,
+                    'page' => $page ?? 1,
+                    'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
             ];
@@ -214,12 +218,12 @@ class CustomLinksTool
     /**
      * カスタムリンクを取得
      */
-    public function getCustomLink(array $arguments): array
+    public function getCustomLink(int $id): array
     {
         try {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
-            $result = $customLinksService->get($arguments['id']);
+            $result = $customLinksService->get($id);
 
             if ($result) {
                 return [
@@ -244,12 +248,12 @@ class CustomLinksTool
     /**
      * カスタムリンクを編集
      */
-    public function editCustomLink(array $arguments): array
+    public function editCustomLink(int $id, ?string $name = null, ?string $title = null, ?int $custom_table_id = null, ?int $custom_field_id = null, ?bool $status = null, ?bool $use_api = null, ?bool $search_target_front = null, ?bool $search_target_admin = null, ?bool $display_front = null, ?string $type = null): array
     {
         try {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
-            $entity = $customLinksService->get($arguments['id']);
+            $entity = $customLinksService->get($id);
 
             if (!$entity) {
                 return [
@@ -258,11 +262,17 @@ class CustomLinksTool
                 ];
             }
 
-            $data = array_intersect_key($arguments, array_flip([
-                'name', 'title', 'custom_table_id', 'custom_field_id', 'status',
-                'use_api', 'search_target_front', 'search_target_admin',
-                'display_front', 'type'
-            ]));
+            $data = [];
+            if ($name !== null) $data['name'] = $name;
+            if ($title !== null) $data['title'] = $title;
+            if ($custom_table_id !== null) $data['custom_table_id'] = $custom_table_id;
+            if ($custom_field_id !== null) $data['custom_field_id'] = $custom_field_id;
+            if ($status !== null) $data['status'] = $status;
+            if ($use_api !== null) $data['use_api'] = $use_api;
+            if ($search_target_front !== null) $data['search_target_front'] = $search_target_front;
+            if ($search_target_admin !== null) $data['search_target_admin'] = $search_target_admin;
+            if ($display_front !== null) $data['display_front'] = $display_front;
+            if ($type !== null) $data['type'] = $type;
 
             $result = $customLinksService->update($entity, $data);
 
@@ -289,12 +299,12 @@ class CustomLinksTool
     /**
      * カスタムリンクを削除
      */
-    public function deleteCustomLink(array $arguments): array
+    public function deleteCustomLink(int $id): array
     {
         try {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
-            $result = $customLinksService->delete($arguments['id']);
+            $result = $customLinksService->delete($id);
 
             if ($result) {
                 return [

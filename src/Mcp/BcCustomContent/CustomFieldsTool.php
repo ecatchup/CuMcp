@@ -125,16 +125,16 @@ class CustomFieldsTool
     /**
      * カスタムフィールドを追加
      */
-    public function addCustomField(array $arguments): array
+    public function addCustomField(string $name, string $title, string $type, ?string $source = null): array
     {
         try {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
             $data = [
-                'name' => $arguments['name'],
-                'title' => $arguments['title'],
-                'type' => $arguments['type'],
-                'source' => $arguments['source'] ?? null
+                'name' => $name,
+                'title' => $title,
+                'type' => $type,
+                'source' => $source ?? null
             ];
 
             $result = $customFieldsService->create($data);
@@ -162,23 +162,23 @@ class CustomFieldsTool
     /**
      * カスタムフィールド一覧を取得
      */
-    public function getCustomFields(array $arguments): array
+    public function getCustomFields(?string $name = null, ?string $type = null, ?int $status = null): array
     {
         try {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($arguments['name'])) {
-                $conditions['name'] = $arguments['name'];
+            if (!empty($name)) {
+                $conditions['name'] = $name;
             }
 
-            if (!empty($arguments['type'])) {
-                $conditions['type'] = $arguments['type'];
+            if (!empty($type)) {
+                $conditions['type'] = $type;
             }
 
-            if (isset($arguments['status'])) {
-                $conditions['status'] = $arguments['status'];
+            if (isset($status)) {
+                $conditions['status'] = $status;
             }
 
             $results = $customFieldsService->getIndex($conditions)->toArray();
@@ -199,12 +199,12 @@ class CustomFieldsTool
     /**
      * カスタムフィールドを取得
      */
-    public function getCustomField(array $arguments): array
+    public function getCustomField(int $id): array
     {
         try {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
-            $result = $customFieldsService->get($arguments['id']);
+            $result = $customFieldsService->get($id);
 
             if ($result) {
                 return [
@@ -229,12 +229,12 @@ class CustomFieldsTool
     /**
      * カスタムフィールドを編集
      */
-    public function editCustomField(array $arguments): array
+    public function editCustomField(int $id, ?string $name = null, ?string $title = null, ?string $type = null, ?string $source = null, ?int $status = null): array
     {
         try {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
-            $entity = $customFieldsService->get($arguments['id']);
+            $entity = $customFieldsService->get($id);
 
             if (!$entity) {
                 return [
@@ -243,9 +243,12 @@ class CustomFieldsTool
                 ];
             }
 
-            $data = array_intersect_key($arguments, array_flip([
-                'name', 'title', 'type', 'source', 'status'
-            ]));
+            $data = [];
+            if ($name !== null) $data['name'] = $name;
+            if ($title !== null) $data['title'] = $title;
+            if ($type !== null) $data['type'] = $type;
+            if ($source !== null) $data['source'] = $source;
+            if ($status !== null) $data['status'] = $status;
 
             $result = $customFieldsService->update($entity, $data);
 
@@ -272,12 +275,12 @@ class CustomFieldsTool
     /**
      * カスタムフィールドを削除
      */
-    public function deleteCustomField(array $arguments): array
+    public function deleteCustomField(int $id): array
     {
         try {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
-            $result = $customFieldsService->delete($arguments['id']);
+            $result = $customFieldsService->delete($id);
 
             if ($result) {
                 return [

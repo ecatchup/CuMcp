@@ -41,7 +41,7 @@ class McpServerCommand extends Command
             ->addOption('host', [
                 'short' => 'h',
                 'help' => 'SSEモード時のホスト名',
-                'default' => 'localhost'
+                'default' => '127.0.0.1'
             ])
             ->addOption('port', [
                 'short' => 'p',
