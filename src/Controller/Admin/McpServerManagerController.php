@@ -239,16 +239,14 @@ class McpServerManagerController extends BcAdminAppController
 
         $isRunning = $this->isServerRunning();
         $pid = file_exists($pidFile) ? trim(file_get_contents($pidFile)) : null;
-
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $protocol = ($this->request->is('https')) ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
         return [
             'running' => $isRunning,
             'pid' => $pid,
-            'proxy_url' => "{$protocol}://{$host}/cu-mcp/mcp-proxy",
+            'proxy_url' => "{$protocol}://{$host}/cu-mcp/mcp-proxy.json",
             'internal_url' => "http://{$config['host']}:{$config['port']}",
-            'chatgpt_url' => "{$protocol}://{$host}/cu-mcp/mcp-proxy",
             'config' => $config
         ];
     }

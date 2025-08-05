@@ -16,7 +16,7 @@ use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
-use CuMcp\McpServer\BaserCmsMcpServer;
+use CuMcp\Mcp\McpServer;
 
 /**
  * MCPサーバー起動コマンド
@@ -75,7 +75,7 @@ class McpServerCommand extends Command
 
         try {
             // MCPサーバーのインスタンス作成
-            $server = new BaserCmsMcpServer();
+            $server = new McpServer();
 
             // 設定ファイルがある場合は読み込み
             if ($configPath && file_exists($configPath)) {

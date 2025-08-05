@@ -39,10 +39,10 @@
                         </div>
 
                         <div class="bca-data-list__item">
-                            <div class="bca-data-list__item-label">ChatGPT設定用URL</div>
+                            <div class="bca-data-list__item-label">AIエージェント設定用URL</div>
                             <div class="bca-data-list__item-value">
-                                <code><?= h($status['chatgpt_url']) ?></code>
-                                <button type="button" class="bca-btn bca-btn--sm" onclick="copyToClipboard('<?= h($status['chatgpt_url']) ?>')">
+                                <code><?= h($status['proxy_url']) ?></code>
+                                <button type="button" class="bca-btn bca-btn--sm" onclick="copyToClipboard('<?= h($status['proxy_url']) ?>')">
                                     コピー
                                 </button>
                             </div>
@@ -105,7 +105,7 @@
 
             <!-- 使用方法 -->
             <div class="bca-panel-box">
-                <div class="bca-panel-box__title">ChatGPTでの設定方法</div>
+                <div class="bca-panel-box__title">AIエージェントでの設定方法</div>
                 <div class="bca-panel-box__body">
 
                     <div class="bca-data-list">
@@ -119,14 +119,14 @@
                         <div class="bca-data-list__item">
                             <div class="bca-data-list__item-label">手順2</div>
                             <div class="bca-data-list__item-value">
-                                ChatGPTの設定画面で「MCPサーバー」を追加し、上記のURLを設定してください
+                                AIエージェントの設定ファイルで上記AIエージェント設定用URLを設定してください
                             </div>
                         </div>
 
                         <div class="bca-data-list__item">
                             <div class="bca-data-list__item-label">手順3</div>
                             <div class="bca-data-list__item-value">
-                                ChatGPTから「ブログ記事を追加して」などの指示でbaserCMSを操作できます
+                                AIエージェントから「ブログ記事を追加して」などの指示でbaserCMSを操作できます
                             </div>
                         </div>
                     </div>
@@ -134,8 +134,8 @@
                     <div class="bca-section">
                         <h4>利用可能な機能</h4>
                         <ul>
-                            <li>ブログ記事の追加・編集・削除</li>
-                            <li>カスタムエントリーの追加・取得</li>
+                            <li>ブログ記事の、単一取得・一覧取得・追加・編集・削除</li>
+                            <li>カスタムエントリーの、単一取得・一覧取得・追加・編集・削除</li>
                             <li>サーバー情報の取得</li>
                         </ul>
                     </div>
