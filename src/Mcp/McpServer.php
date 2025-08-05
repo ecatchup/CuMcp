@@ -63,15 +63,15 @@ class McpServer
         ), $builder);
 
         // サーバー情報ツールを追加
-        $builder = $builder->withTool(
-            handler: [self::class, 'serverInfo'],
-            name: 'serverInfo',
-            description: 'サーバーのバージョンや環境情報を返します',
-            inputSchema: [
-                'type' => 'object',
-                'properties' => []
-            ]
-        );
+        // $builder = $builder->withTool(
+        //     handler: [self::class, 'serverInfo'],
+        //     name: 'serverInfo',
+        //     description: 'サーバーのバージョンや環境情報を返します',
+        //     inputSchema: [
+        //         'type' => 'object',
+        //         'properties' => []
+        //     ]
+        // );
 
         $this->server = $builder->build();
     }
