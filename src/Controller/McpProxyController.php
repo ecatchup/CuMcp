@@ -25,37 +25,6 @@ use CuMcp\McpServer\BaserCmsMcpServer;
  */
 class McpProxyController extends Controller
 {
-    /**
-     * 使用しないコンポーネント
-     */
-    public $components = [];
-
-    /**
-     * 使用しないヘルパー
-     */
-    public $helpers = [];
-
-    /**
-     * 初期化
-     */
-    public function initialize(): void
-    {
-        parent::initialize();
-    }
-
-    /**
-     * beforeFilter - CSRF保護を無効化
-     */
-    public function beforeFilter(EventInterface $event)
-    {
-        // CSRF保護をスキップ
-        if ($this->components()->has('Security')) {
-            $this->components()->unload('Security');
-        }
-
-        // 親のbeforeFilterを呼ばずにスキップ
-        return null;
-    }
 
     /**
      * MCPサーバーへのプロキシ処理
@@ -213,4 +182,5 @@ class McpProxyController extends Controller
             return false;
         }
     }
+
 }
