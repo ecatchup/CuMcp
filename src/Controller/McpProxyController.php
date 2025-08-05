@@ -64,9 +64,6 @@ class McpProxyController extends Controller
      */
     public function index()
     {
-        // リクエストがコントローラーに到達したことを確認
-        $this->log("MCP Proxy - Controller reached!", 'debug');
-
         // OPTIONSリクエストの場合はCORSレスポンスを返す
         if ($this->request->getMethod() === 'OPTIONS') {
             return $this->_handleOptionsRequest();
@@ -75,22 +72,16 @@ class McpProxyController extends Controller
         try {
             // MCPサーバーの設定を取得
             $config = $this->getMcpServerConfig();
-            $mcpServerUrl = "http://baserplugin.localhost:{$config['port']}";
-            $this->log("MCP Proxy - MCP Server URL: {$mcpServerUrl}", 'debug');
 
             // MCPサーバーが起動しているかチェック
             if (!$this->isMcpServerRunning($config)) {
-                $this->log("MCP Proxy - MCP Server is not running!", 'error');
                 throw new ServiceUnavailableException(
                     'MCPサーバーが起動していません。管理画面からMCPサーバーを起動してください。'
                 );
             }
 
-            $this->log("MCP Proxy - MCP Server is running", 'debug');
-
             // JSONボディを直接取得してMCPリクエストとしてパース
             $requestBody = file_get_contents('php://input');
-            $this->log("MCP Proxy - Request Body: {$requestBody}", 'debug');
 
             // JSONをパースしてMCPリクエストを検証
             $mcpRequest = json_decode($requestBody, true);
@@ -115,9 +106,6 @@ class McpProxyController extends Controller
         } catch (BadRequestException $e) {
             throw $e;
         } catch (\Exception $e) {
-            // 詳細なエラー情報をログに記録
-            $this->log('MCP Proxy Error: ' . $e->getMessage(), 'error');
-
             throw new ServiceUnavailableException(
                 'MCPサーバーとの通信に失敗しました: ' . $e->getMessage()
             );
@@ -132,11 +120,8 @@ class McpProxyController extends Controller
      */
     private function sendMcpRequest(array $config, array $mcpRequest): array
     {
-        $this->log("MCP Proxy - Sending MCP request: " . json_encode($mcpRequest), 'debug');
-
         // StreamableHttpServerTransportの場合はルートパス（/）を使用
         $jsonUrl = "http://127.0.0.1:{$config['port']}/";
-        $this->log("MCP Proxy - Connecting to JSON endpoint: {$jsonUrl}", 'debug');
 
         try {
             $client = new Client(['timeout' => 10]);
@@ -148,7 +133,6 @@ class McpProxyController extends Controller
             ]);
 
             $responseData = json_decode($response->getBody()->getContents(), true);
-            $this->log("MCP Proxy - Response: " . json_encode($responseData), 'debug');
 
             if (!$responseData) {
                 throw new \Exception('Invalid JSON response from MCP server');
@@ -157,7 +141,6 @@ class McpProxyController extends Controller
             return $responseData;
 
         } catch (\Exception $e) {
-            $this->log("MCP Proxy - Error: " . $e->getMessage(), 'error');
             throw new \Exception('MCPサーバーとの通信に失敗しました: ' . $e->getMessage());
         }
     }
