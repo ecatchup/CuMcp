@@ -10,9 +10,8 @@ declare(strict_types=1);
  * @license       https://basercms.net/license/index.html MIT License
  */
 
-namespace CuMcp\McpServer\BcCustomContent;
+namespace CuMcp\Mcp\BcCustomContent;
 
-use CuMcp\McpServer\BaseServer;
 use BcCustomContent\Service\CustomEntriesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 
@@ -21,7 +20,7 @@ use PhpMcp\Server\ServerBuilder;
  *
  * カスタムエントリーのCRUD操作を提供
  */
-class CustomEntriesTool extends BaseServer
+class CustomEntriesTool
 {
     /**
      * カスタムエントリー関連のツールを ServerBuilder に追加

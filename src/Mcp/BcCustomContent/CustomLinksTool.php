@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license       https://basercms.net/license/index.html MIT License
  */
 
-namespace CuMcp\McpServer\BcCustomContent;
+namespace CuMcp\Mcp\BcCustomContent;
 
 use BaserCore\Utility\BcContainerTrait;
 use BcCustomContent\Service\CustomLinksServiceInterface;

@@ -10,13 +10,13 @@ declare(strict_types=1);
  * @license       https://basercms.net/license/index.html MIT License
  */
 
-namespace CuMcp\Mcp;
+namespace CuMcp\Mcp\BcCustomContent;
 
 use CuMcp\Mcp\BcCustomContent\CustomContentsTool;
-use CuMcp\Mcp\CustomEntriesTool;
-use CuMcp\Mcp\CustomTablesTool;
-use CuMcp\Mcp\CustomFieldsTool;
-use CuMcp\Mcp\CustomLinksTool;
+use CuMcp\Mcp\BcCustomContent\CustomEntriesTool;
+use CuMcp\Mcp\BcCustomContent\CustomTablesTool;
+use CuMcp\Mcp\BcCustomContent\CustomFieldsTool;
+use CuMcp\Mcp\BcCustomContent\CustomLinksTool;
 
 /**
  * カスタムコンテンツ機能用MCPサーバー

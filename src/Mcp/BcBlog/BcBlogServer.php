@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license       https://basercms.net/license/index.html MIT License
  */
 
-namespace CuMcp\Mcp;
+namespace CuMcp\Mcp\BcBlog;
 
 use CuMcp\Mcp\BcBlog\BlogPostsTool;
 use CuMcp\Mcp\BcBlog\BlogCategoriesTool;

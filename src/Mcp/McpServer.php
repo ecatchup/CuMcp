@@ -57,14 +57,10 @@ class McpServer
                 prompts: true
             ));
 
-        $toolClasses = array_merge(
+        $this->registerToolsFromServer(array_merge(
             BcBlogServer::getToolClasses(),
             BcCustomContentServer::getToolClasses()
-        );
-
-        foreach ($toolClasses as $toolClass) {
-            $this->registerToolsFromServer($toolClass, $builder);
-        }
+        ), $builder);
 
         // サーバー情報ツールを追加
         $builder = $builder->withTool(
