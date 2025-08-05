@@ -52,6 +52,10 @@ class McpProxyController extends Controller
             // JSONボディを直接取得してMCPリクエストとしてパース
             $requestBody = file_get_contents('php://input');
 
+			if(empty($requestBody)) {
+				return $this->response;
+			}
+			
             // JSONをパースしてMCPリクエストを検証
             $mcpRequest = json_decode($requestBody, true);
             if (!$mcpRequest || !isset($mcpRequest['jsonrpc']) || $mcpRequest['jsonrpc'] !== '2.0') {
@@ -104,7 +108,10 @@ class McpProxyController extends Controller
             $responseData = json_decode($response->getBody()->getContents(), true);
 
             if (!$responseData) {
-                throw new \Exception('Invalid JSON response from MCP server');
+                return [
+                	"jsonrpc" => "2.0",
+  					"result" => []
+				];
             }
 
             return $responseData;
