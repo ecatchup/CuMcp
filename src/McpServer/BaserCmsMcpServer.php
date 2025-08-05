@@ -74,12 +74,12 @@ class BaserCmsMcpServer
                     'type' => 'object',
                     'properties' => [
                         'title' => ['type' => 'string', 'description' => '記事タイトル（必須）'],
-                        'detail' => ['type' => 'string', 'description' => '記事詳細（省略時はAIで生成）'],
+                        'detail' => ['type' => 'string', 'description' => '記事詳細（必須）'],
                         'category' => ['type' => 'string', 'description' => 'カテゴリ名（省略時はカテゴリなし）'],
                         'blog_content' => ['type' => 'string', 'description' => 'ブログコンテンツ名（省略時はデフォルト）'],
                         'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス（省略時はデフォルトユーザー）']
                     ],
-                    'required' => ['title']
+                    'required' => ['title', 'detail']
                 ]
             )
             ->withTool(
@@ -106,18 +106,6 @@ class BaserCmsMcpServer
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
                         'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
-                    ],
-                    'required' => ['id']
-                ]
-            )
-            ->withTool(
-                handler: [self::class, 'fetch'],
-                name: 'fetch',
-                description: 'searchの結果のBlogPostのIDを使用してブログ記事を取得します',
-                inputSchema: [
-                    'type' => 'object',
-                    'properties' => [
-                        'id' => ['type' => 'number', 'description' => 'BlogPostのID（必須）']
                     ],
                     'required' => ['id']
                 ]
@@ -199,21 +187,66 @@ class BaserCmsMcpServer
                 ]
             )
             ->withTool(
-                handler: [self::class, 'search'],
-                name: 'search',
-                description: 'ブログ記事を検索します',
+                handler: [self::class, 'getCustomEntry'],
+                name: 'getCustomEntry',
+                description: '指定されたIDのカスタムエントリーを取得します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード（必須）'],
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
-                        'limit' => ['type' => 'number', 'description' => '取得件数（省略時は10件）'],
-                        'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）']
+                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）']
                     ],
-                    'required' => ['keyword']
+                    'required' => ['custom_table_id', 'id']
                 ]
-            )->build();
+            )
+            ->withTool(
+                handler: [self::class, 'editCustomEntry'],
+                name: 'editCustomEntry',
+                description: '指定されたIDのカスタムエントリーを編集します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）'],
+                        'title' => ['type' => 'string', 'description' => 'タイトル'],
+                        'name' => ['type' => 'string', 'description' => 'スラッグ'],
+                        'status' => ['type' => 'boolean', 'description' => '公開状態'],
+                        'publish_begin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式）'],
+                        'publish_end' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式）'],
+                        'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式）'],
+                        'creator_id' => ['type' => 'number', 'description' => '投稿者ID'],
+                        'custom_fields' => [
+                            'type' => 'object',
+                            'additionalProperties' => true,
+                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）'
+                        ]
+                    ],
+                    'required' => ['custom_table_id', 'id']
+                ]
+            )
+            ->withTool(
+                handler: [self::class, 'deleteCustomEntry'],
+                name: 'deleteCustomEntry',
+                description: '指定されたIDのカスタムエントリーを削除します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）']
+                    ],
+                    'required' => ['custom_table_id', 'id']
+                ]
+            )
+            ->withTool(
+                handler: [self::class, 'serverInfo'],
+                name: 'serverInfo',
+                description: 'サーバーのバージョンや環境情報を返します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => []
+                ]
+            )
+            ->build();
 //            ->withTool(
 //                handler: [self::class, 'getServerInfo'],
 //                name: 'serverInfo',
@@ -251,7 +284,7 @@ class BaserCmsMcpServer
 
             $data = [
                 'title' => $arguments['title'],
-                'detail' => $arguments['detail'] ?? $this->generateContentByAI($arguments['title']),
+                'detail' => $arguments['detail'],
                 'blog_content_id' => $this->getBlogContentId($arguments['blog_content'] ?? null),
                 'user_id' => $this->getUserId($arguments['email'] ?? null),
                 'status' => 1, // 公開
@@ -287,7 +320,7 @@ class BaserCmsMcpServer
         }
     }
 
-    public function getBlogPosts($keyword, $blogContentId = null, $limit = 10, $page = 1, $status = 1): array
+    public function getBlogPosts(array $arguments): array
     {
         try {
             $blogPostsTable = TableRegistry::getTableLocator()->get('BcBlog.BlogPosts');
@@ -335,65 +368,16 @@ class BaserCmsMcpServer
         }
     }
 
-    public function search($keyword, $blogContentId = null, $limit = 10, $page = 1, $status = 1): array
-    {
-        try {
-            // 必須パラメータのキーワードを検証
-            if (empty($arguments['keyword'])) {
-                return [
-                    'error' => true,
-                    'message' => '検索キーワードが指定されていません'
-                ];
-            }
-
-            // getBlogPostsメソッドを利用して検索を実行
-            $searchResults = $this->getBlogPosts($keyword, $blogContentId, $limit, $page, $status);
-
-            if ($searchResults['success']) {
-                // 結果にid（BlogPostのid）が含まれていることを確認
-                $results = array_map(function ($post) {
-                    return [
-                        'id' => $post['id'],
-                        'title' => $post['title'],
-                        'detail' => $post['detail'] ?? '',
-                        'content' => $post['content'] ?? '',
-                        'blog_content_id' => $post['blog_content_id'],
-                        'blog_category_id' => $post['blog_category_id'] ?? null,
-                        'status' => $post['status'],
-                        'posted' => $post['posted'] ?? null,
-                        'created' => $post['created'] ?? null,
-                        'modified' => $post['modified'] ?? null
-                    ];
-                }, $searchResults['data']);
-
-                return [
-                    'success' => true,
-                    'data' => $results,
-                    'pagination' => $searchResults['pagination'],
-                    'search_keyword' => $arguments['keyword']
-                ];
-            } else {
-                return $searchResults;
-            }
-        } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
-    }
-
-    public function getBlogPost($id, $blogContentId): array
+    public function getBlogPost(array $arguments): array
     {
         try {
             $blogPostsTable = TableRegistry::getTableLocator()->get('BcBlog.BlogPosts');
 
-            $query = $blogPostsTable->find()->where(['id' => $id]);
+            $query = $blogPostsTable->find()->where(['id' => $arguments['id']]);
 
             // ブログコンテンツIDが指定されている場合は条件に追加
-            if (!empty($blogContentId)) {
-                $query->where(['blog_content_id' => $blogContentId]);
+            if (!empty($arguments['blog_content_id'])) {
+                $query->where(['blog_content_id' => $arguments['blog_content_id']]);
             }
 
             $result = $query->first();
@@ -408,38 +392,6 @@ class BaserCmsMcpServer
                     'error' => true,
                     'message' => '指定されたIDのブログ記事が見つかりません'
                 ];
-            }
-        } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
-    }
-
-    public function fetch($id, $blogContentId): array
-    {
-        try {
-            // 必須パラメータのIDを検証
-            if (empty($id)) {
-                return [
-                    'error' => true,
-                    'message' => 'BlogPostのIDが指定されていません'
-                ];
-            }
-
-            // getBlogPostメソッドを利用して記事を取得
-            $blogPostResult = $this->getBlogPost($id, $blogContentId);
-
-            if ($blogPostResult['success']) {
-                return [
-                    'success' => true,
-                    'data' => $blogPostResult['data'],
-                    'fetched_id' => $id
-                ];
-            } else {
-                return $blogPostResult;
             }
         } catch (\Exception $e) {
             return [
@@ -611,7 +563,133 @@ class BaserCmsMcpServer
         }
     }
 
-    public function getServerInfo(): array
+    public function getCustomEntry(array $arguments): array
+    {
+        try {
+            $customEntriesTable = TableRegistry::getTableLocator()->get('BcCustomContent.CustomEntries');
+
+            $query = $customEntriesTable->find()
+                ->where([
+                    'custom_table_id' => $arguments['custom_table_id'],
+                    'id' => $arguments['id']
+                ]);
+
+            $result = $query->first();
+
+            if ($result) {
+                return [
+                    'success' => true,
+                    'data' => $result->toArray()
+                ];
+            } else {
+                return [
+                    'error' => true,
+                    'message' => '指定されたIDのカスタムエントリーが見つかりません'
+                ];
+            }
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ];
+        }
+    }
+
+    public function editCustomEntry(array $arguments): array
+    {
+        try {
+            $customEntriesTable = TableRegistry::getTableLocator()->get('BcCustomContent.CustomEntries');
+
+            $entity = $customEntriesTable->find()
+                ->where([
+                    'custom_table_id' => $arguments['custom_table_id'],
+                    'id' => $arguments['id']
+                ])
+                ->first();
+
+            if (!$entity) {
+                return [
+                    'error' => true,
+                    'message' => '指定されたIDのカスタムエントリーが見つかりません'
+                ];
+            }
+
+            $data = array_intersect_key($arguments, array_flip([
+                'title', 'name', 'status', 'publish_begin', 'publish_end', 'published', 'creator_id'
+            ]));
+
+            // カスタムフィールドの値を追加
+            if (!empty($arguments['custom_fields'])) {
+                $data = array_merge($data, $arguments['custom_fields']);
+            }
+
+            $entity = $customEntriesTable->patchEntity($entity, $data);
+            $result = $customEntriesTable->save($entity);
+
+            if ($result) {
+                return [
+                    'success' => true,
+                    'data' => $result->toArray()
+                ];
+            } else {
+                return [
+                    'error' => true,
+                    'message' => 'カスタムエントリーの更新に失敗しました',
+                    'errors' => $entity->getErrors()
+                ];
+            }
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ];
+        }
+    }
+
+    public function deleteCustomEntry(array $arguments): array
+    {
+        try {
+            $customEntriesTable = TableRegistry::getTableLocator()->get('BcCustomContent.CustomEntries');
+
+            $entity = $customEntriesTable->find()
+                ->where([
+                    'custom_table_id' => $arguments['custom_table_id'],
+                    'id' => $arguments['id']
+                ])
+                ->first();
+
+            if (!$entity) {
+                return [
+                    'error' => true,
+                    'message' => '指定されたIDのカスタムエントリーが見つかりません'
+                ];
+            }
+
+            $result = $customEntriesTable->delete($entity);
+
+            if ($result) {
+                return [
+                    'success' => true,
+                    'message' => 'カスタムエントリーを削除しました'
+                ];
+            } else {
+                return [
+                    'error' => true,
+                    'message' => 'カスタムエントリーの削除に失敗しました'
+                ];
+            }
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ];
+        }
+    }
+
+    public function serverInfo(array $arguments = []): array
     {
         try {
             return [
@@ -766,13 +844,6 @@ class BaserCmsMcpServer
             ->first();
 
         return $user ? $user->id : 1;
-    }
-
-    private function generateContentByAI(string $title): string
-    {
-        // AIによるコンテンツ生成のプレースホルダー
-        // 実際の実装では、OpenAI API などを使用
-        return "『{$title}』についての記事内容をここに生成します。";
     }
 
     private function saveCustomFieldValues(int $entryId, array $customFields): void
