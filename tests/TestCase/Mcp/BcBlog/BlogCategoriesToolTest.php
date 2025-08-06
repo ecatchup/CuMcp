@@ -64,12 +64,12 @@ class BlogCategoriesToolTest extends BcTestCase
     {
         $title = 'テストカテゴリ';
         $blogContentId = 1;
-        
+
         $result = $this->BlogCategoriesTool->addBlogCategory(
             title: $title,
             blog_content_id: $blogContentId
         );
-        
+
         $this->assertIsArray($result);
         $this->assertArrayHasKey('success', $result);
     }
@@ -89,9 +89,9 @@ class BlogCategoriesToolTest extends BcTestCase
             'name' => 'test-category-1',
             'status' => 1
         ])->persist();
-        
+
         $result = $this->BlogCategoriesTool->getBlogCategories(1);
-        
+
         $this->assertIsArray($result);
         $this->assertArrayHasKey('success', $result);
         if ($result['success']) {
@@ -114,9 +114,9 @@ class BlogCategoriesToolTest extends BcTestCase
             'name' => 'test-category',
             'status' => 1
         ])->persist();
-        
+
         $result = $this->BlogCategoriesTool->getBlogCategory(1);
-        
+
         $this->assertIsArray($result);
         // IDが存在する場合は成功を想定
         if ($result['success']) {
@@ -140,14 +140,14 @@ class BlogCategoriesToolTest extends BcTestCase
             'name' => 'test-category',
             'status' => 1
         ])->persist();
-        
+
         $newTitle = '編集テストカテゴリ';
-        
+
         $result = $this->BlogCategoriesTool->editBlogCategory(
             id: 1,
             title: $newTitle
         );
-        
+
         $this->assertIsArray($result);
         if ($result['success']) {
             $this->assertArrayHasKey('data', $result);
@@ -170,9 +170,9 @@ class BlogCategoriesToolTest extends BcTestCase
             'name' => 'test-category',
             'status' => 1
         ])->persist();
-        
+
         $result = $this->BlogCategoriesTool->deleteBlogCategory(1);
-        
+
         $this->assertIsArray($result);
         if ($result['success']) {
             $this->assertArrayHasKey('message', $result);
@@ -187,7 +187,7 @@ class BlogCategoriesToolTest extends BcTestCase
     public function testAddBlogCategoryWithEmptyTitle()
     {
         $result = $this->BlogCategoriesTool->addBlogCategory('');
-        
+
         $this->assertIsArray($result);
         $this->assertTrue($result['error']);
         $this->assertArrayHasKey('message', $result);
@@ -201,9 +201,9 @@ class BlogCategoriesToolTest extends BcTestCase
     public function testGetBlogCategoryNotFound()
     {
         $nonExistentId = 999999;
-        
+
         $result = $this->BlogCategoriesTool->getBlogCategory($nonExistentId);
-        
+
         $this->assertIsArray($result);
         $this->assertTrue($result['error']);
         $this->assertArrayHasKey('message', $result);
