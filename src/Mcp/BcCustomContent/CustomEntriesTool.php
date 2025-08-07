@@ -37,21 +37,21 @@ class CustomEntriesTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'title' => ['type' => 'string', 'description' => 'タイトル（必須）'],
                         'name' => ['type' => 'string', 'default' => '', 'description' => 'スラッグ（初期値空文字）'],
                         'status' => ['type' => 'boolean', 'default' => false, 'description' => '公開状態（デフォルト：false）'],
                         'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'],
-                        'publish_begin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
-                        'publish_end' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
-                        'creator_id' => ['type' => 'number', 'default' => 1, 'description' => '投稿者ID（デフォルト初期ユーザー）'],
-                        'custom_fields' => [
+                        'publishBegin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
+                        'publishEnd' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
+                        'creatorId' => ['type' => 'number', 'default' => 1, 'description' => '投稿者ID（デフォルト初期ユーザー）'],
+                        'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
                             'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、参照が可能なファイルのパスを指定します'
                         ]
                     ],
-                    'required' => ['custom_table_id', 'title']
+                    'required' => ['customTableId']
                 ]
             )
             ->withTool(
@@ -61,12 +61,12 @@ class CustomEntriesTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'limit' => ['type' => 'number', 'default' => 20, 'description' => '取得件数（デフォルト: 20）'],
                         'page' => ['type' => 'number', 'default' => 1, 'description' => 'ページ番号（デフォルト: 1）'],
                         'status' => ['type' => 'number', 'description' => 'ステータス（0: 非公開, 1: 公開）']
                     ],
-                    'required' => ['custom_table_id']
+                    'required' => ['customTableId']
                 ]
             )
             ->withTool(
@@ -76,10 +76,10 @@ class CustomEntriesTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）']
                     ],
-                    'required' => ['custom_table_id', 'id']
+                    'required' => ['customTableId']
                 ]
             )
             ->withTool(
@@ -89,22 +89,22 @@ class CustomEntriesTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）'],
                         'title' => ['type' => 'string', 'description' => 'タイトル'],
                         'name' => ['type' => 'string', 'description' => 'スラッグ'],
                         'status' => ['type' => 'boolean', 'description' => '公開状態'],
                         'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式）'],
-                        'publish_begin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式）'],
-                        'publish_end' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式）'],
-                        'creator_id' => ['type' => 'number', 'description' => '投稿者ID'],
-                        'custom_fields' => [
+                        'publishBegin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式）'],
+                        'publishEnd' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式）'],
+                        'creatorId' => ['type' => 'number', 'description' => '投稿者ID'],
+                        'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
                             'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）'
                         ]
                     ],
-                    'required' => ['custom_table_id', 'id']
+                    'required' => ['customTableId']
                 ]
             )
             ->withTool(
@@ -114,10 +114,10 @@ class CustomEntriesTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）']
                     ],
-                    'required' => ['custom_table_id', 'id']
+                    'required' => ['customTableId']
                 ]
             );
     }
@@ -125,25 +125,25 @@ class CustomEntriesTool
     /**
      * カスタムエントリーを追加
      */
-    public function addCustomEntry(int $custom_table_id, string $title, ?string $name = '', ?bool $status = false, ?string $published = null, ?string $publish_begin = null, ?string $publish_end = null, ?int $creator_id = 1, ?array $custom_fields = null): array
+    public function addCustomEntry(int $customTableId, string $title, ?string $name = '', ?bool $status = false, ?string $published = null, ?string $publishBegin = null, ?string $publishEnd = null, ?int $creatorId = 1, ?array $customFields = null): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-            $customEntriesService->setup($custom_table_id);
+            $customEntriesService->setup($customTableId);
             $data = [
-                'custom_table_id' => $custom_table_id,
+                'customTableId' => $customTableId,
                 'title' => $title,
                 'name' => $name ?? '',
                 'status' => $status ?? false,
                 'published' => $published ?? date('Y-m-d H:i:s'),
-                'publish_begin' => $publish_begin ?? null,
-                'publish_end' => $publish_end ?? null,
-                'creator_id' => $creator_id ?? 1
+                'publishBegin' => $publishBegin ?? null,
+                'publishEnd' => $publishEnd ?? null,
+                'creatorId' => $creatorId ?? 1
             ];
 
             // カスタムフィールドの値を追加
-            if (!empty($custom_fields)) {
-                $data = array_merge($data, $custom_fields);
+            if (!empty($customFields)) {
+                $data = array_merge($data, $customFields);
             }
 
             $result = $customEntriesService->create($data);
@@ -171,13 +171,13 @@ class CustomEntriesTool
     /**
      * カスタムエントリー一覧を取得
      */
-    public function getCustomEntries(int $custom_table_id, ?int $limit = 20, ?int $page = 1, ?int $status = null): array
+    public function getCustomEntries(int $customTableId, ?int $limit = 20, ?int $page = 1, ?int $status = null): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-            $customEntriesService->setup($custom_table_id);
+            $customEntriesService->setup($customTableId);
             $conditions = [
-                'custom_table_id' => $custom_table_id,
+                'customTableId' => $customTableId,
                 'limit' => $limit ?? 20,
                 'page' => $page ?? 1
             ];
@@ -209,13 +209,13 @@ class CustomEntriesTool
     /**
      * カスタムエントリーを取得
      */
-    public function getCustomEntry(int $custom_table_id, int $id): array
+    public function getCustomEntry(int $customTableId, int $id): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-            $customEntriesService->setup($custom_table_id);
+            $customEntriesService->setup($customTableId);
             $result = $customEntriesService->get($id, [
-                'custom_table_id' => $custom_table_id
+                'customTableId' => $customTableId
             ]);
 
             if ($result) {
@@ -241,13 +241,13 @@ class CustomEntriesTool
     /**
      * カスタムエントリーを編集
      */
-    public function editCustomEntry(int $custom_table_id, int $id, ?string $title = null, ?string $name = null, ?bool $status = null, ?string $published = null, ?string $publish_begin = null, ?string $publish_end = null, ?int $creator_id = null, ?array $custom_fields = null): array
+    public function editCustomEntry(int $customTableId, int $id, ?string $title = null, ?string $name = null, ?bool $status = null, ?string $published = null, ?string $publishBegin = null, ?string $publishEnd = null, ?int $creatorId = null, ?array $customFields = null): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-            $customEntriesService->setup($custom_table_id);
+            $customEntriesService->setup($customTableId);
             $entity = $customEntriesService->get($id, [
-                'custom_table_id' => $custom_table_id
+                'customTableId' => $customTableId
             ]);
 
             if (!$entity) {
@@ -262,13 +262,13 @@ class CustomEntriesTool
             if ($name !== null) $data['name'] = $name;
             if ($status !== null) $data['status'] = $status;
             if ($published !== null) $data['published'] = $published;
-            if ($publish_begin !== null) $data['publish_begin'] = $publish_begin;
-            if ($publish_end !== null) $data['publish_end'] = $publish_end;
-            if ($creator_id !== null) $data['creator_id'] = $creator_id;
+            if ($publishBegin !== null) $data['publishBegin'] = $publishBegin;
+            if ($publishEnd !== null) $data['publishEnd'] = $publishEnd;
+            if ($creatorId !== null) $data['creatorId'] = $creatorId;
 
             // カスタムフィールドの値を追加
-            if (!empty($custom_fields)) {
-                $data = array_merge($data, $custom_fields);
+            if (!empty($customFields)) {
+                $data = array_merge($data, $customFields);
             }
 
             $result = $customEntriesService->update($entity, $data);
@@ -296,11 +296,11 @@ class CustomEntriesTool
     /**
      * カスタムエントリーを削除
      */
-    public function deleteCustomEntry(int $custom_table_id, int $id): array
+    public function deleteCustomEntry(int $customTableId, int $id): array
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-            $customEntriesService->setup($custom_table_id);
+            $customEntriesService->setup($customTableId);
             $result = $customEntriesService->delete($id);
 
             if ($result) {

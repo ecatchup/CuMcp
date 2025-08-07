@@ -88,7 +88,7 @@ class CustomEntriesToolTest extends BcTestCase
         ]);
 
         $result = $this->CustomEntriesTool->addCustomEntry(
-            custom_table_id: $customTableId,
+            customTableId: $customTableId,
             title: $title,
             name: 'test_entry',
             status: true,
@@ -136,7 +136,7 @@ class CustomEntriesToolTest extends BcTestCase
         ]);
 
         $result = $this->CustomEntriesTool->addCustomEntry(
-            custom_table_id: $customTableId,
+            customTableId: $customTableId,
             title: $title,
             custom_fields: $customFields
         );
@@ -163,7 +163,7 @@ class CustomEntriesToolTest extends BcTestCase
     public function testAddCustomEntryWithEmptyTitle()
     {
         $result = $this->CustomEntriesTool->addCustomEntry(
-            custom_table_id: 1,
+            customTableId: 1,
             title: ''
         );
 
@@ -190,7 +190,7 @@ class CustomEntriesToolTest extends BcTestCase
         $this->loadFixtureScenario(CustomContentsScenario::class);
 
         $result = $this->CustomEntriesTool->getCustomEntries(
-            custom_table_id: 1,
+            customTableId: 1,
             limit: 10,
             page: 1
         );
@@ -226,7 +226,7 @@ class CustomEntriesToolTest extends BcTestCase
         $this->loadFixtureScenario(CustomContentsScenario::class);
 
             $result = $this->CustomEntriesTool->getCustomEntries(
-                custom_table_id: 1,
+                customTableId: 1,
                 status: 1,
                 limit: 5
             );
@@ -250,7 +250,7 @@ class CustomEntriesToolTest extends BcTestCase
     public function testGetCustomEntryById()
     {
         $result = $this->CustomEntriesTool->getCustomEntry(
-            custom_table_id: 1,
+            customTableId: 1,
             id: 1
         );
 
@@ -274,7 +274,7 @@ class CustomEntriesToolTest extends BcTestCase
         $nonExistentId = 999999;
 
         $result = $this->CustomEntriesTool->getCustomEntry(
-            custom_table_id: 1,
+            customTableId: 1,
             id: $nonExistentId
         );
 
@@ -294,7 +294,7 @@ class CustomEntriesToolTest extends BcTestCase
         $newStatus = true;
 
         $result = $this->CustomEntriesTool->editCustomEntry(
-            custom_table_id: 1,
+            customTableId: 1,
             id: 1,
             title: $newTitle,
             status: $newStatus
@@ -323,7 +323,7 @@ class CustomEntriesToolTest extends BcTestCase
         ];
 
         $result = $this->CustomEntriesTool->editCustomEntry(
-            custom_table_id: 1,
+            customTableId: 1,
             id: 1,
             custom_fields: $customFields
         );
@@ -347,7 +347,7 @@ class CustomEntriesToolTest extends BcTestCase
         $nonExistentId = 999999;
 
         $result = $this->CustomEntriesTool->editCustomEntry(
-            custom_table_id: 1,
+            customTableId: 1,
             id: $nonExistentId,
             title: '新しいタイトル'
         );
@@ -365,7 +365,7 @@ class CustomEntriesToolTest extends BcTestCase
     public function testDeleteCustomEntryBasic()
     {
         $result = $this->CustomEntriesTool->deleteCustomEntry(
-            custom_table_id: 1,
+            customTableId: 1,
             id: 1
         );
 
@@ -388,7 +388,7 @@ class CustomEntriesToolTest extends BcTestCase
         $nonExistentId = 999999;
 
         $result = $this->CustomEntriesTool->deleteCustomEntry(
-            custom_table_id: 1,
+            customTableId: 1,
             id: $nonExistentId
         );
 

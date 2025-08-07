@@ -40,7 +40,7 @@ class CustomTablesTool
                     'properties' => [
                         'name' => ['type' => 'string', 'description' => 'テーブル名（必須）'],
                         'title' => ['type' => 'string', 'description' => 'テーブルタイトル（必須）'],
-                        'custom_field_names' => [
+                        'customFieldNames' => [
                             'type' => 'array',
                             'items' => ['type' => 'string'],
                             'description' => '関連付けるカスタムフィールドの名前配列'
@@ -87,9 +87,9 @@ class CustomTablesTool
                         'name' => ['type' => 'string', 'description' => 'テーブル名'],
                         'title' => ['type' => 'string', 'description' => 'テーブルタイトル'],
                         'type' => ['type' => 'string', 'description' => 'テーブルタイプ'],
-                        'display_field' => ['type' => 'string', 'description' => '表示フィールド'],
-                        'has_child' => ['type' => 'number', 'description' => '子テーブルを持つかどうか（0: 持たない, 1: 持つ）'],
-                        'custom_field_names' => [
+                        'displayField' => ['type' => 'string', 'description' => '表示フィールド'],
+                        'hasChild' => ['type' => 'number', 'description' => '子テーブルを持つかどうか（0: 持たない, 1: 持つ）'],
+                        'customFieldNames' => [
                             'type' => 'array',
                             'items' => ['type' => 'string'],
                             'description' => '関連付けるカスタムフィールドの名前配列'
@@ -115,7 +115,7 @@ class CustomTablesTool
     /**
      * カスタムテーブルを追加
      */
-    public function addCustomTable(string $name, string $title, ?array $custom_field_names = null): array
+    public function addCustomTable(string $name, string $title, ?array $customFieldNames = null): array
     {
         try {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
@@ -127,9 +127,9 @@ class CustomTablesTool
 
             $result = $customTablesService->create($data);
 
-            if ($result && !empty($custom_field_names)) {
+            if ($result && !empty($customFieldNames)) {
                 // カスタムフィールドとの関連付け
-                foreach ($custom_field_names as $fieldName) {
+                foreach ($customFieldNames as $fieldName) {
                     $customTablesService->addCustomFieldLink($result->id, $fieldName);
                 }
             }
@@ -237,7 +237,7 @@ class CustomTablesTool
     /**
      * カスタムテーブルを編集
      */
-    public function editCustomTable(int $id, ?string $name = null, ?string $title = null, ?string $type = null, ?string $display_field = null, ?int $has_child = null, ?array $custom_field_names = null): array
+    public function editCustomTable(int $id, ?string $name = null, ?string $title = null, ?string $type = null, ?string $displayField = null, ?int $hasChild = null, ?array $customFieldNames = null): array
     {
         try {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
@@ -255,17 +255,17 @@ class CustomTablesTool
             if ($name !== null) $data['name'] = $name;
             if ($title !== null) $data['title'] = $title;
             if ($type !== null) $data['type'] = $type;
-            if ($display_field !== null) $data['display_field'] = $display_field;
-            if ($has_child !== null) $data['has_child'] = $has_child;
+            if ($displayField !== null) $data['displayField'] = $displayField;
+            if ($hasChild !== null) $data['hasChild'] = $hasChild;
 
             $result = $customTablesService->update($entity, $data);
 
             // カスタムフィールドとの関連付けを更新
-            if (!empty($custom_field_names)) {
+            if (!empty($customFieldNames)) {
                 // 既存の関連を削除
                 $customTablesService->removeAllCustomFieldLinks($id);
                 // 新しい関連を追加
-                foreach ($custom_field_names as $fieldName) {
+                foreach ($customFieldNames as $fieldName) {
                     $customTablesService->addCustomFieldLink($id, $fieldName);
                 }
             }

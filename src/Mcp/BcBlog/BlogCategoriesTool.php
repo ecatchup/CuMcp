@@ -40,8 +40,8 @@ class BlogCategoriesTool
                     'properties' => [
                         'title' => ['type' => 'string', 'description' => 'カテゴリタイトル（必須）'],
                         'name' => ['type' => 'string', 'description' => 'カテゴリ名（省略時はタイトルから自動生成）'],
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
-                        'parent_id' => ['type' => 'number', 'description' => '親カテゴリID（省略時はルートカテゴリ）'],
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'parentId' => ['type' => 'number', 'description' => '親カテゴリID（省略時はルートカテゴリ）'],
                         'status' => ['type' => 'number', 'default' => 1, 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
                         'lft' => ['type' => 'number', 'description' => '左値（省略時は自動設定）'],
                         'rght' => ['type' => 'number', 'description' => '右値（省略時は自動設定）']
@@ -56,7 +56,7 @@ class BlogCategoriesTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
                         'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
@@ -72,7 +72,7 @@ class BlogCategoriesTool
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => 'カテゴリID（必須）'],
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
                     ],
                     'required' => ['id']
                 ]
@@ -87,8 +87,8 @@ class BlogCategoriesTool
                         'id' => ['type' => 'number', 'description' => 'カテゴリID（必須）'],
                         'title' => ['type' => 'string', 'description' => 'カテゴリタイトル'],
                         'name' => ['type' => 'string', 'description' => 'カテゴリ名'],
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
-                        'parent_id' => ['type' => 'number', 'description' => '親カテゴリID'],
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'parentId' => ['type' => 'number', 'description' => '親カテゴリID（省略時はルートカテゴリ）'],
                         'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
                         'lft' => ['type' => 'number', 'description' => '左値'],
                         'rght' => ['type' => 'number', 'description' => '右値']
@@ -104,18 +104,18 @@ class BlogCategoriesTool
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => 'カテゴリID（必須）'],
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
                     ],
                     'required' => ['id']
                 ]
             );
     }
 
-    public function addBlogCategory(string $title, ?string $name = null, ?int $blog_content_id = 1, ?int $parent_id = null, ?int $status = 1, ?int $lft = null, ?int $rght = null): array
+    public function addBlogCategory(string $title, ?string $name = null, ?int $blogContentId = 1, ?int $parentId = null, ?int $status = 1, ?int $lft = null, ?int $rght = null): array
     {
         // デバッグ情報をログに出力
-        error_log("addBlogCategory called with title: $title, blog_content_id: $blog_content_id");
-        
+        error_log("addBlogCategory called with title: $title, blogContentId: $blogContentId");
+
         try {
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
 
@@ -135,14 +135,14 @@ class BlogCategoriesTool
             $data = [
                 'title' => $title,
                 'name' => $name,
-                'parent_id' => $parent_id,
+                'parent_id' => $parentId,
                 'status' => $status,
                 'lft' => $lft,
                 'rght' => $rght
             ];
 
             // BlogCategoriesService::create() は blog_content_id を最初の引数として期待している
-            $result = $blogCategoriesService->create($blog_content_id, $data);
+            $result = $blogCategoriesService->create($blogContentId, $data);
 
             if ($result) {
                 return [
@@ -164,7 +164,7 @@ class BlogCategoriesTool
         }
     }
 
-    public function getBlogCategories(?int $blog_content_id = 1, ?int $limit = null, ?int $page = null, ?string $keyword = null, ?int $status = null): array
+    public function getBlogCategories(?int $blogContentId = 1, ?int $limit = null, ?int $page = null, ?string $keyword = null, ?int $status = null): array
     {
         try {
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
@@ -187,7 +187,7 @@ class BlogCategoriesTool
             }
 
             // BlogCategoriesService::getIndex() は blog_content_id を最初の引数として期待している
-            $results = $blogCategoriesService->getIndex($blog_content_id ?? 1, $conditions)->toArray();
+            $results = $blogCategoriesService->getIndex($blogContentId ?? 1, $conditions)->toArray();
 
             return [
                 'success' => true,
@@ -207,7 +207,7 @@ class BlogCategoriesTool
         }
     }
 
-    public function getBlogCategory(int $id, ?int $blog_content_id = null): array
+    public function getBlogCategory(int $id, ?int $blogContentId = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -224,8 +224,8 @@ class BlogCategoriesTool
 
             if ($result) {
                 // ブログコンテンツIDが指定されている場合は条件をチェック
-                if (!empty($blog_content_id) &&
-                    $result->blog_content_id != $blog_content_id) {
+                if (!empty($blogContentId) &&
+                    $result->blog_content_id != $blogContentId) {
                     return [
                         'error' => true,
                         'message' => '指定されたIDのブログカテゴリが見つかりません'
@@ -251,7 +251,7 @@ class BlogCategoriesTool
         }
     }
 
-    public function editBlogCategory(int $id, ?string $title = null, ?string $name = null, ?int $blog_content_id = null, ?int $parent_id = null, ?int $status = null, ?int $lft = null, ?int $rght = null): array
+    public function editBlogCategory(int $id, ?string $title = null, ?string $name = null, ?int $blogContentId = null, ?int $parentId = null, ?int $status = null, ?int $lft = null, ?int $rght = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -277,8 +277,8 @@ class BlogCategoriesTool
             $data = [];
             if ($title !== null) $data['title'] = $title;
             if ($name !== null) $data['name'] = $name;
-            if ($blog_content_id !== null) $data['blog_content_id'] = $blog_content_id;
-            if ($parent_id !== null) $data['parent_id'] = $parent_id;
+            if ($blogContentId !== null) $data['blog_content_id'] = $blogContentId;
+            if ($parentId !== null) $data['parent_id'] = $parentId;
             if ($status !== null) $data['status'] = $status;
             if ($lft !== null) $data['lft'] = $lft;
             if ($rght !== null) $data['rght'] = $rght;
@@ -301,7 +301,7 @@ class BlogCategoriesTool
                 $existingCategory = $blogCategoriesService->getIndex($entity->blog_content_id, [
                     'name' => $data['name']
                 ])->first();
-                
+
                 if ($existingCategory && $existingCategory->id !== $id) {
                     return [
                         'error' => true,
@@ -332,7 +332,7 @@ class BlogCategoriesTool
         }
     }
 
-    public function deleteBlogCategory(int $id, ?int $blog_content_id = null): array
+    public function deleteBlogCategory(int $id, ?int $blogContentId = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -355,7 +355,7 @@ class BlogCategoriesTool
             }
 
             // ブログコンテンツIDが指定されている場合は条件をチェック
-            if (!empty($blog_content_id) && $entity->blog_content_id != $blog_content_id) {
+            if (!empty($blogContentId) && $entity->blog_content_id != $blogContentId) {
                 return [
                     'error' => true,
                     'message' => '指定されたIDのブログカテゴリが見つかりません'
@@ -392,7 +392,7 @@ class BlogCategoriesTool
     {
         // 日本語文字を英数字に変換（簡易版）
         $slug = mb_convert_kana($title, 'a', 'UTF-8'); // ひらがなをカタカナに
-        
+
         // 一般的な日本語をローマ字に変換（基本的なもののみ）
         $replacements = [
             'テスト' => 'test',
@@ -402,21 +402,21 @@ class BlogCategoriesTool
             'ニュース' => 'news',
             '記事' => 'article'
         ];
-        
+
         foreach ($replacements as $japanese => $english) {
             $slug = str_replace($japanese, $english, $slug);
         }
-        
+
         // 日本語が残っている場合は、ランダムな文字列を生成
         if (preg_match('/[^\x00-\x7F]/', $slug)) {
             $slug = 'category_' . uniqid();
         }
-        
+
         // 英数字、ハイフン、アンダースコアのみにする
         $slug = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $slug);
         $slug = preg_replace('/_{2,}/', '_', $slug); // 連続するアンダースコアを1つに
         $slug = trim($slug, '_'); // 前後のアンダースコアを削除
-        
+
         return $slug ?: 'category_' . uniqid();
     }
 }

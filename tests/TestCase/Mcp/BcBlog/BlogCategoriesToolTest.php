@@ -67,7 +67,7 @@ class BlogCategoriesToolTest extends BcTestCase
 
         $result = $this->BlogCategoriesTool->addBlogCategory(
             title: $title,
-            blog_content_id: $blogContentId
+            blogContentId: $blogContentId
         );
 
         $this->assertIsArray($result);

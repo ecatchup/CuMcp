@@ -40,17 +40,17 @@ class CustomContentsTool
                     'properties' => [
                         'name' => ['type' => 'string', 'description' => 'カスタムコンテンツ名、URLに影響します（必須）'],
                         'title' => ['type' => 'string', 'description' => 'カスタムコンテンツのタイトル（必須）'],
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
-                        'site_id' => ['type' => 'number', 'default' => 1, 'description' => 'サイトID（初期値: 1）'],
-                        'parent_id' => ['type' => 'number', 'default' => 1, 'description' => '親フォルダID（初期値: 1）'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'siteId' => ['type' => 'number', 'default' => 1, 'description' => 'サイトID（初期値: 1）'],
+                        'parentId' => ['type' => 'number', 'default' => 1, 'description' => '親フォルダID（初期値: 1）'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
                         'template' => ['type' => 'string', 'default' => 'default', 'description' => 'テンプレート名（初期値: default）'],
-                        'list_count' => ['type' => 'number', 'default' => 10, 'description' => 'リスト表示件数（初期値: 10）'],
-                        'list_direction' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'default' => 'DESC', 'description' => 'リスト表示方向（ASC|DESC、初期値: DESC）'],
-                        'list_order' => ['type' => 'string', 'default' => 'id', 'description' => 'リスト表示順序（初期値: id）'],
+                        'listCount' => ['type' => 'number', 'default' => 10, 'description' => 'リスト表示件数（初期値: 10）'],
+                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'default' => 'DESC', 'description' => 'リスト表示方向（ASC|DESC、初期値: DESC）'],
+                        'listOrder' => ['type' => 'string', 'default' => 'id', 'description' => 'リスト表示順序（初期値: id）'],
                         'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）']
                     ],
-                    'required' => ['name', 'title', 'custom_table_id']
+                    'required' => ['name', 'title', 'customTableId']
                 ]
             )
             ->withTool(
@@ -60,8 +60,8 @@ class CustomContentsTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID'],
-                        'site_id' => ['type' => 'number', 'description' => 'サイトID'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID'],
+                        'siteId' => ['type' => 'number', 'description' => 'サイトID'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
                         'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
@@ -93,9 +93,9 @@ class CustomContentsTool
                         'title' => ['type' => 'string', 'description' => 'カスタムコンテンツのタイトル'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
                         'template' => ['type' => 'string', 'description' => 'テンプレート名'],
-                        'list_count' => ['type' => 'number', 'description' => 'リスト表示件数'],
-                        'list_direction' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
-                        'list_order' => ['type' => 'string', 'description' => 'リスト表示順序'],
+                        'listCount' => ['type' => 'number', 'description' => 'リスト表示件数'],
+                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
+                        'listOrder' => ['type' => 'string', 'description' => 'リスト表示順序'],
                         'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）']
                     ],
                     'required' => ['id']
@@ -118,7 +118,7 @@ class CustomContentsTool
     /**
      * カスタムコンテンツを追加
      */
-    public function addCustomContent(string $name, string $title, int $custom_table_id, ?int $site_id = 1, ?int $parent_id = 1, ?string $description = null, ?string $template = 'default', ?int $list_count = 10, ?string $list_direction = 'DESC', ?string $list_order = 'id', ?int $status = null): array
+    public function addCustomContent(string $name, string $title, int $customTableId, ?int $siteId = 1, ?int $parentId = 1, ?string $description = null, ?string $template = 'default', ?int $listCount = 10, ?string $listDirection = 'DESC', ?string $listOrder = 'id', ?int $status = null): array
     {
         try {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
@@ -127,14 +127,14 @@ class CustomContentsTool
             $data = [
                 'name' => $name,
                 'title' => $title,
-                'custom_table_id' => $custom_table_id,
-                'site_id' => $site_id,
-                'parent_id' => $parent_id,
+                'customTableId' => $customTableId,
+                'siteId' => $siteId,
+                'parentId' => $parentId,
                 'description' => $description,
                 'template' => $template,
-                'list_count' => $list_count,
-                'list_direction' => $list_direction,
-                'list_order' => $list_order,
+                'listCount' => $listCount,
+                'listDirection' => $listDirection,
+                'listOrder' => $listOrder,
                 'status' => $status,
                 'content' => [
                     'name' => $name,
@@ -142,16 +142,16 @@ class CustomContentsTool
                     'type' => 'CustomContent',
                     'title' => $title,
                     'description' => $description ?? '',
-                    'site_id' => $site_id,
-                    'parent_id' => $parent_id,
+                    'siteId' => $siteId,
+                    'parentId' => $parentId,
                     'status' => $status ?? true,
-                    'author_id' => 1,
-                    'layout_template' => '',
-                    'exclude_search' => false,
-                    'self_status' => true,
-                    'site_root' => false,
-                    'exclude_menu' => false,
-                    'blank_link' => false
+                    'authorId' => 1,
+                    'layoutTemplate' => '',
+                    'excludeSearch' => false,
+                    'selfStatus' => true,
+                    'siteRoot' => false,
+                    'excludeMenu' => false,
+                    'blankLink' => false
                 ]
             ];
 
@@ -180,19 +180,19 @@ class CustomContentsTool
     /**
      * カスタムコンテンツ一覧を取得
      */
-    public function getCustomContents(?int $custom_table_id = null, ?int $site_id = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = 1): array
+    public function getCustomContents(?int $customTableId = null, ?int $siteId = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = 1): array
     {
         try {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($custom_table_id)) {
-                $conditions['custom_table_id'] = $custom_table_id;
+            if (!empty($customTableId)) {
+                $conditions['customTableId'] = $customTableId;
             }
 
-            if (!empty($site_id)) {
-                $conditions['site_id'] = $site_id;
+            if (!empty($siteId)) {
+                $conditions['siteId'] = $siteId;
             }
 
             if (!empty($keyword)) {
@@ -264,7 +264,7 @@ class CustomContentsTool
     /**
      * カスタムコンテンツを編集
      */
-    public function editCustomContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $list_count = null, ?string $list_direction = null, ?string $list_order = null, ?int $status = null): array
+    public function editCustomContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $listCount = null, ?string $listDirection = null, ?string $listOrder = null, ?int $status = null): array
     {
         try {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
@@ -283,9 +283,9 @@ class CustomContentsTool
             if ($title !== null) $data['title'] = $title;
             if ($description !== null) $data['description'] = $description;
             if ($template !== null) $data['template'] = $template;
-            if ($list_count !== null) $data['list_count'] = $list_count;
-            if ($list_direction !== null) $data['list_direction'] = $list_direction;
-            if ($list_order !== null) $data['list_order'] = $list_order;
+            if ($listCount !== null) $data['listCount'] = $listCount;
+            if ($listDirection !== null) $data['listDirection'] = $listDirection;
+            if ($listOrder !== null) $data['listOrder'] = $listOrder;
             if ($status !== null) $data['status'] = $status;
 
             // Include Content entity updates when necessary

@@ -43,7 +43,7 @@ class BlogPostsTool
                         'title' => ['type' => 'string', 'description' => '記事タイトル（必須）'],
                         'detail' => ['type' => 'string', 'description' => '記事詳細（必須）'],
                         'category' => ['type' => 'string', 'description' => 'カテゴリ名（省略時はカテゴリなし）'],
-                        'blog_content' => ['type' => 'string', 'description' => 'ブログコンテンツ名（省略時はデフォルト）'],
+                        'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名（省略時はデフォルト）'],
                         'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス（省略時はデフォルトユーザー）']
                     ],
                     'required' => ['title', 'detail']
@@ -56,7 +56,7 @@ class BlogPostsTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は10件）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
                         'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
@@ -72,7 +72,7 @@ class BlogPostsTool
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
                     ],
                     'required' => ['id']
                 ]
@@ -89,13 +89,13 @@ class BlogPostsTool
                         'detail' => ['type' => 'string', 'description' => '記事詳細'],
                         'content' => ['type' => 'string', 'description' => '記事概要'],
                         'category' => ['type' => 'string', 'description' => 'カテゴリ名'],
-                        'blog_category_id' => ['type' => 'number', 'description' => 'カテゴリID（categoryと併用不可）'],
-                        'blog_content' => ['type' => 'string', 'description' => 'ブログコンテンツ名'],
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'blogCategoryId' => ['type' => 'number', 'description' => 'カテゴリID（categoryと併用不可）'],
+                        'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名'],
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
                         'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
                         'name' => ['type' => 'string', 'description' => '記事のスラッグ'],
-                        'eye_catch' => ['type' => 'string', 'description' => 'アイキャッチ画像（URL）'],
-                        'user_id' => ['type' => 'number', 'description' => 'ユーザーID（emailと併用不可）'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像（URL）'],
+                        'userId' => ['type' => 'number', 'description' => 'ユーザーID（emailと併用不可）'],
                         'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス']
                     ],
                     'required' => ['id']
@@ -109,7 +109,7 @@ class BlogPostsTool
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
-                        'blog_content_id' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
                     ],
                     'required' => ['id']
                 ]
@@ -119,7 +119,7 @@ class BlogPostsTool
     /**
      * ブログ記事を追加
      */
-    public function addBlogPost(string $title, string $detail, ?string $blog_content = null, ?string $category = null, ?string $email = null): array
+    public function addBlogPost(string $title, string $detail, ?string $blogContent = null, ?string $category = null, ?string $email = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -155,15 +155,15 @@ class BlogPostsTool
             $data = [
                 'title' => $title,
                 'detail' => $detail,
-                'blog_content_id' => $this->getBlogContentId($blog_content),
-                'user_id' => $userId,
+                'blogContentId' => $this->getBlogContentId($blogContent),
+                'userId' => $userId,
                 'status' => 1, // 公開
                 'posted' => date('Y-m-d H:i:s')
             ];
 
             // カテゴリ設定
             if (!empty($category)) {
-                $data['blog_category_id'] = $this->getBlogCategoryId($category, $data['blog_content_id']);
+                $data['blogCategoryId'] = $this->getBlogCategoryId($category, $data['blogContentId']);
             }
 
             $result = $blogPostsService->create($data);
@@ -191,14 +191,14 @@ class BlogPostsTool
     /**
      * ブログ記事一覧を取得
      */
-    public function getBlogPosts(?int $blog_content_id = null, ?string $keyword = null, ?int $status = null, ?int $limit = 10, ?int $page = 1): array
+    public function getBlogPosts(?int $blogContentId = null, ?string $keyword = null, ?int $status = null, ?int $limit = 10, ?int $page = 1): array
     {
         try {
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
             $conditions = [];
-            if (!empty($blog_content_id)) {
-                $conditions['blog_content_id'] = $blog_content_id;
+            if (!empty($blogContentId)) {
+                $conditions['blogContentId'] = $blogContentId;
             }
 
             if (!empty($keyword)) {
@@ -235,7 +235,7 @@ class BlogPostsTool
     /**
      * ブログ記事を取得
      */
-    public function getBlogPost(int $id, ?int $blog_content_id = null): array
+    public function getBlogPost(int $id, ?int $blogContentId = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -252,8 +252,8 @@ class BlogPostsTool
 
             if ($result) {
                 // ブログコンテンツIDが指定されている場合は条件をチェック
-                if (!empty($blog_content_id) &&
-                    $result->blog_content_id != $blog_content_id) {
+                if (!empty($blogContentId) &&
+                    $result->blog_content_id != $blogContentId) {
                     return [
                         'error' => true,
                         'message' => '指定されたIDのブログ記事が見つかりません'
@@ -282,7 +282,7 @@ class BlogPostsTool
     /**
      * ブログ記事を編集
      */
-    public function editBlogPost(int $id, ?string $title = null, ?string $detail = null, ?string $content = null, ?int $status = null, ?string $name = null, ?string $eye_catch = null, ?string $category = null, ?int $blog_content_id = null, ?string $email = null, ?int $user_id = null): array
+    public function editBlogPost(int $id, ?string $title = null, ?string $detail = null, ?string $content = null, ?int $status = null, ?string $name = null, ?string $eyeCatch = null, ?string $category = null, ?int $blogContentId = null, ?string $email = null, ?int $userId = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -311,12 +311,12 @@ class BlogPostsTool
             if ($content !== null) $data['content'] = $content;
             if ($status !== null) $data['status'] = $status;
             if ($name !== null) $data['name'] = $name;
-            if ($eye_catch !== null) $data['eye_catch'] = $eye_catch;
+            if ($eyeCatch !== null) $data['eyeCatch'] = $eyeCatch;
 
             if (!empty($category)) {
-                $data['blog_category_id'] = $this->getBlogCategoryId(
+                $data['blogCategoryId'] = $this->getBlogCategoryId(
                     $category,
-                    $blog_content_id ?? $entity->blog_content_id
+                    $blogContentId ?? $entity->blog_content_id
                 );
             }
 
@@ -325,12 +325,12 @@ class BlogPostsTool
                     $usersService = $this->getService(UsersServiceInterface::class);
                     $conditions = ['email' => $email];
                     $user = $usersService->getIndex($conditions)->first();
-                    $data['user_id'] = $user ? $user->id : 1;
+                    $data['userId'] = $user ? $user->id : 1;
                 } catch (\Exception $e) {
-                    $data['user_id'] = 1; // エラー時はデフォルト
+                    $data['userId'] = 1; // エラー時はデフォルト
                 }
-            } elseif ($user_id !== null) {
-                $data['user_id'] = $user_id;
+            } elseif ($userId !== null) {
+                $data['userId'] = $userId;
             }
 
             $result = $blogPostsService->update($entity, $data);
@@ -358,7 +358,7 @@ class BlogPostsTool
     /**
      * ブログ記事を削除
      */
-    public function deleteBlogPost(int $id, ?int $blog_content_id = null): array
+    public function deleteBlogPost(int $id, ?int $blogContentId = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -422,7 +422,7 @@ class BlogPostsTool
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
             $conditions = [
                 'name' => $categoryName,
-                'blog_content_id' => $blogContentId
+                'blogContentId' => $blogContentId
             ];
             $category = $blogCategoriesService->getIndex($conditions)->first();
 

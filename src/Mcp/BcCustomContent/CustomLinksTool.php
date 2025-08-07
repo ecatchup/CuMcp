@@ -40,16 +40,16 @@ class CustomLinksTool
                     'properties' => [
                         'name' => ['type' => 'string', 'description' => 'カスタムリンク名（必須）'],
                         'title' => ['type' => 'string', 'description' => 'カスタムリンクのタイトル（必須）'],
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
-                        'custom_field_id' => ['type' => 'number', 'description' => 'カスタムフィールドID（必須）'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'customFieldId' => ['type' => 'number', 'description' => 'カスタムフィールドID（必須）'],
                         'status' => ['type' => 'boolean', 'description' => '公開状態'],
-                        'use_api' => ['type' => 'boolean', 'description' => 'API使用'],
-                        'search_target_front' => ['type' => 'boolean', 'description' => 'フロント検索対象'],
-                        'search_target_admin' => ['type' => 'boolean', 'description' => '管理画面検索対象'],
-                        'display_front' => ['type' => 'boolean', 'description' => 'フロント表示'],
+                        'useApi' => ['type' => 'boolean', 'description' => 'API使用'],
+                        'searchTargetFront' => ['type' => 'boolean', 'description' => 'フロント検索対象'],
+                        'searchTargetAdmin' => ['type' => 'boolean', 'description' => '管理画面検索対象'],
+                        'displayFront' => ['type' => 'boolean', 'description' => 'フロント表示'],
                         'type' => ['type' => 'string', 'description' => 'タイプ']
                     ],
-                    'required' => ['name', 'title', 'custom_table_id', 'custom_field_id']
+                    'required' => ['name', 'title', 'customTableId', 'customFieldId']
                 ]
             )
             ->withTool(
@@ -59,8 +59,8 @@ class CustomLinksTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID'],
-                        'custom_field_id' => ['type' => 'number', 'description' => 'カスタムフィールドID'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'customFieldId' => ['type' => 'number', 'description' => 'カスタムフィールドID（必須）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
                         'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
@@ -91,13 +91,13 @@ class CustomLinksTool
                         'id' => ['type' => 'number', 'description' => 'カスタムリンクID（必須）'],
                         'name' => ['type' => 'string', 'description' => 'カスタムリンク名'],
                         'title' => ['type' => 'string', 'description' => 'カスタムリンクのタイトル'],
-                        'custom_table_id' => ['type' => 'number', 'description' => 'カスタムテーブルID'],
-                        'custom_field_id' => ['type' => 'number', 'description' => 'カスタムフィールドID'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'customFieldId' => ['type' => 'number', 'description' => 'カスタムフィールドID（必須）'],
                         'status' => ['type' => 'boolean', 'description' => '公開状態'],
-                        'use_api' => ['type' => 'boolean', 'description' => 'API使用'],
-                        'search_target_front' => ['type' => 'boolean', 'description' => 'フロント検索対象'],
-                        'search_target_admin' => ['type' => 'boolean', 'description' => '管理画面検索対象'],
-                        'display_front' => ['type' => 'boolean', 'description' => 'フロント表示'],
+                        'useApi' => ['type' => 'boolean', 'description' => 'API使用'],
+                        'searchTargetFront' => ['type' => 'boolean', 'description' => 'フロント検索対象'],
+                        'searchTargetAdmin' => ['type' => 'boolean', 'description' => '管理画面検索対象'],
+                        'displayFront' => ['type' => 'boolean', 'description' => 'フロント表示'],
                         'type' => ['type' => 'string', 'description' => 'タイプ']
                     ],
                     'required' => ['id']
@@ -120,7 +120,7 @@ class CustomLinksTool
     /**
      * カスタムリンクを追加
      */
-    public function addCustomLink(string $name, string $title, int $custom_table_id, int $custom_field_id, ?bool $status = null, ?bool $use_api = null, ?bool $search_target_front = null, ?bool $search_target_admin = null, ?bool $display_front = null, ?string $type = null): array
+    public function addCustomLink(string $name, string $title, int $customTableId, int $customFieldId, ?bool $status = null, ?bool $useApi = null, ?bool $searchTargetFront = null, ?bool $searchTargetAdmin = null, ?bool $displayFront = null, ?string $type = null): array
     {
         try {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
@@ -128,13 +128,13 @@ class CustomLinksTool
             $data = [
                 'name' => $name,
                 'title' => $title,
-                'custom_table_id' => $custom_table_id,
-                'custom_field_id' => $custom_field_id,
+                'customTableId' => $customTableId,
+                'customFieldId' => $customFieldId,
                 'status' => $status,
-                'use_api' => $use_api,
-                'search_target_front' => $search_target_front,
-                'search_target_admin' => $search_target_admin,
-                'display_front' => $display_front,
+                'useApi' => $useApi,
+                'searchTargetFront' => $searchTargetFront,
+                'searchTargetAdmin' => $searchTargetAdmin,
+                'displayFront' => $displayFront,
                 'type' => $type
             ];
 
@@ -163,15 +163,15 @@ class CustomLinksTool
     /**
      * カスタムリンク一覧を取得
      */
-    public function getCustomLinks(?int $custom_table_id = null, ?int $custom_field_id = null, ?string $keyword = null, ?int $status = null, ?string $type = null, ?int $limit = null, ?int $page = 1): array
+    public function getCustomLinks(?int $customTableId = null, ?int $customFieldId = null, ?string $keyword = null, ?int $status = null, ?string $type = null, ?int $limit = null, ?int $page = 1): array
     {
         try {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($custom_field_id)) {
-                $conditions['custom_field_id'] = $custom_field_id;
+            if (!empty($customFieldId)) {
+                $conditions['customFieldId'] = $customFieldId;
             }
 
             if (!empty($keyword)) {
@@ -195,7 +195,7 @@ class CustomLinksTool
             }
 
             // CustomLinksService::getIndex() は custom_table_id を最初の引数として期待している
-            $results = $customLinksService->getIndex($custom_table_id ?? 1, $conditions)->toArray();
+            $results = $customLinksService->getIndex($customTableId ?? 1, $conditions)->toArray();
 
             return [
                 'success' => true,
@@ -248,7 +248,7 @@ class CustomLinksTool
     /**
      * カスタムリンクを編集
      */
-    public function editCustomLink(int $id, ?string $name = null, ?string $title = null, ?int $custom_table_id = null, ?int $custom_field_id = null, ?bool $status = null, ?bool $use_api = null, ?bool $search_target_front = null, ?bool $search_target_admin = null, ?bool $display_front = null, ?string $type = null): array
+    public function editCustomLink(int $id, ?string $name = null, ?string $title = null, ?int $customTableId = null, ?int $customFieldId = null, ?bool $status = null, ?bool $useApi = null, ?bool $searchTargetFront = null, ?bool $searchTargetAdmin = null, ?bool $displayFront = null, ?string $type = null): array
     {
         try {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
@@ -265,13 +265,13 @@ class CustomLinksTool
             $data = [];
             if ($name !== null) $data['name'] = $name;
             if ($title !== null) $data['title'] = $title;
-            if ($custom_table_id !== null) $data['custom_table_id'] = $custom_table_id;
-            if ($custom_field_id !== null) $data['custom_field_id'] = $custom_field_id;
+            if ($customTableId !== null) $data['customTableId'] = $customTableId;
+            if ($customFieldId !== null) $data['customFieldId'] = $customFieldId;
             if ($status !== null) $data['status'] = $status;
-            if ($use_api !== null) $data['use_api'] = $use_api;
-            if ($search_target_front !== null) $data['search_target_front'] = $search_target_front;
-            if ($search_target_admin !== null) $data['search_target_admin'] = $search_target_admin;
-            if ($display_front !== null) $data['display_front'] = $display_front;
+            if ($useApi !== null) $data['useApi'] = $useApi;
+            if ($searchTargetFront !== null) $data['searchTargetFront'] = $searchTargetFront;
+            if ($searchTargetAdmin !== null) $data['searchTargetAdmin'] = $searchTargetAdmin;
+            if ($displayFront !== null) $data['displayFront'] = $displayFront;
             if ($type !== null) $data['type'] = $type;
 
             $result = $customLinksService->update($entity, $data);

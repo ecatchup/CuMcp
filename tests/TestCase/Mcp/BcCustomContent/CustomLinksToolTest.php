@@ -87,7 +87,7 @@ class CustomLinksToolTest extends BcTestCase
         $result = $this->CustomLinksTool->addCustomLink(
             name: $name,
             title: $title,
-            custom_table_id: $customTableId,
+            customTableId: $customTableId,
             custom_field_id: $customFieldId
         );
 
@@ -191,7 +191,7 @@ class CustomLinksToolTest extends BcTestCase
         $result = $this->CustomLinksTool->addCustomLink(
             name: '',
             title: 'テストタイトル',
-            custom_table_id: 1,
+            customTableId: 1,
             custom_field_id: 1
         );
 
@@ -234,7 +234,7 @@ class CustomLinksToolTest extends BcTestCase
 
         // ステータス1でフィルタリング
         $result = $this->CustomLinksTool->getCustomLinks(
-            custom_table_id: 1,
+            customTableId: 1,
             status: 1,
             limit: 10
         );

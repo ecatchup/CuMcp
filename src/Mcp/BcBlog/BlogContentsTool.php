@@ -40,20 +40,20 @@ class BlogContentsTool
                     'properties' => [
                         'name' => ['type' => 'string', 'description' => 'ブログコンテンツ名、URLに影響します（必須）'],
                         'title' => ['type' => 'string', 'description' => 'ブログコンテンツのタイトル（必須）'],
-                        'site_id' => ['type' => 'number', 'description' => 'サイトID'],
-                        'parent_id' => ['type' => 'number', 'description' => '親ID'],
+                        'siteId' => ['type' => 'number', 'description' => 'サイトID'],
+                        'parentId' => ['type' => 'number', 'description' => '親ID'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
                         'template' => ['type' => 'string', 'description' => 'テンプレート名'],
-                        'list_count' => ['type' => 'number', 'description' => 'リスト表示件数'],
-                        'list_direction' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
-                        'feed_count' => ['type' => 'number', 'description' => 'フィード件数'],
-                        'comment_use' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか'],
-                        'comment_approve' => ['type' => 'boolean', 'description' => 'コメント承認制にするか'],
-                        'tag_use' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか'],
-                        'eye_catch_size' => ['type' => 'string', 'description' => 'アイキャッチサイズ'],
-                        'use_content' => ['type' => 'boolean', 'description' => 'コンテンツを使用するか'],
+                        'listCount' => ['type' => 'number', 'description' => 'リスト表示件数'],
+                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
+                        'feedCount' => ['type' => 'number', 'description' => 'フィード件数'],
+                        'commentUse' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか'],
+                        'commentApprove' => ['type' => 'boolean', 'description' => 'コメント承認制にするか'],
+                        'tagUse' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか'],
+                        'eyeCatchSize' => ['type' => 'string', 'description' => 'アイキャッチサイズ'],
+                        'useContent' => ['type' => 'boolean', 'description' => 'コンテンツを使用するか'],
                         'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）'],
-                        'widget_area' => ['type' => 'number', 'description' => 'ウィジェットエリア']
+                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリア']
                     ],
                     'required' => ['name', 'title']
                 ]
@@ -65,7 +65,7 @@ class BlogContentsTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'site_id' => ['type' => 'number', 'description' => 'サイトID'],
+                        'siteId' => ['type' => 'number', 'description' => 'サイトID'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
                         'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
@@ -97,16 +97,16 @@ class BlogContentsTool
                         'title' => ['type' => 'string', 'description' => 'ブログコンテンツのタイトル'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
                         'template' => ['type' => 'string', 'description' => 'テンプレート名'],
-                        'list_count' => ['type' => 'number', 'description' => 'リスト表示件数'],
-                        'list_direction' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
-                        'feed_count' => ['type' => 'number', 'description' => 'フィード件数'],
-                        'comment_use' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか'],
-                        'comment_approve' => ['type' => 'boolean', 'description' => 'コメント承認制にするか'],
-                        'tag_use' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか'],
-                        'eye_catch_size' => ['type' => 'string', 'description' => 'アイキャッチサイズ'],
-                        'use_content' => ['type' => 'boolean', 'description' => 'コンテンツを使用するか'],
+                        'listCount' => ['type' => 'number', 'description' => 'リスト表示件数'],
+                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
+                        'feedCount' => ['type' => 'number', 'description' => 'フィード件数'],
+                        'commentUse' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか'],
+                        'commentApprove' => ['type' => 'boolean', 'description' => 'コメント承認制にするか'],
+                        'tagUse' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか'],
+                        'eyeCatchSize' => ['type' => 'string', 'description' => 'アイキャッチサイズ'],
+                        'useContent' => ['type' => 'boolean', 'description' => 'コンテンツを使用するか'],
                         'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）'],
-                        'widget_area' => ['type' => 'number', 'description' => 'ウィジェットエリア']
+                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリア']
                     ],
                     'required' => ['id']
                 ]
@@ -128,7 +128,7 @@ class BlogContentsTool
     /**
      * ブログコンテンツを追加
      */
-    public function addBlogContent(string $name, string $title, ?int $site_id = 1, ?int $parent_id = 1, ?string $description = null, ?string $template = 'default', ?int $list_count = 10, ?string $list_direction = 'DESC', ?int $feed_count = 10, ?bool $comment_use = false, ?bool $comment_approve = false, ?bool $tag_use = false, ?string $eye_catch_size = null, ?bool $use_content = false, ?int $status = 1, ?int $widget_area = null): array
+    public function addBlogContent(string $name, string $title, ?int $siteId = 1, ?int $parentId = 1, ?string $description = null, ?string $template = 'default', ?int $listCount = 10, ?string $listDirection = 'DESC', ?int $feedCount = 10, ?bool $commentUse = false, ?bool $commentApprove = false, ?bool $tagUse = false, ?string $eyeCatchSize = null, ?bool $useContent = false, ?int $status = 1, ?int $widgetArea = null): array
     {
         try {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
@@ -141,8 +141,8 @@ class BlogContentsTool
                 'type' => 'BlogContent',
                 'title' => $title,
                 'description' => $description ?? '',
-                'site_id' => $site_id,
-                'parent_id' => $parent_id,
+                'site_id' => $siteId,
+                'parent_id' => $parentId,
                 'status' => (bool)$status,
                 'author_id' => 1, // デフォルトユーザー
                 'layout_template' => '',
@@ -157,15 +157,15 @@ class BlogContentsTool
             $blogContentData = [
                 'description' => $description ?? '',
                 'template' => $template,
-                'list_count' => $list_count,
-                'list_direction' => $list_direction,
-                'feed_count' => $feed_count,
-                'comment_use' => $comment_use,
-                'comment_approve' => $comment_approve,
-                'tag_use' => $tag_use,
-                'eye_catch_size' => $eye_catch_size,
-                'use_content' => $use_content,
-                'widget_area' => $widget_area
+                'list_count' => $listCount,
+                'list_direction' => $listDirection,
+                'feed_count' => $feedCount,
+                'comment_use' => $commentUse,
+                'comment_approve' => $commentApprove,
+                'tag_use' => $tagUse,
+                'eye_catch_size' => $eyeCatchSize,
+                'use_content' => $useContent,
+                'widgetArea' => $widgetArea
             ];
 
             // Contentデータを含めた統合データ構造
@@ -198,15 +198,15 @@ class BlogContentsTool
     /**
      * ブログコンテンツ一覧を取得
      */
-    public function getBlogContents(?int $site_id = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = null): array
+    public function getBlogContents(?int $siteId = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = null): array
     {
         try {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($site_id)) {
-                $conditions['site_id'] = $site_id;
+            if (!empty($siteId)) {
+                $conditions['site_id'] = $siteId;
             }
 
             if (!empty($keyword)) {
@@ -286,7 +286,7 @@ class BlogContentsTool
     /**
      * ブログコンテンツを編集
      */
-    public function editBlogContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $list_count = null, ?string $list_direction = null, ?int $feed_count = null, ?bool $comment_use = null, ?bool $comment_approve = null, ?bool $tag_use = null, ?string $eye_catch_size = null, ?bool $use_content = null, ?int $status = null, ?int $widget_area = null): array
+    public function editBlogContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $listCount = null, ?string $listDirection = null, ?int $feedCount = null, ?bool $commentUse = null, ?bool $commentApprove = null, ?bool $tagUse = null, ?string $eyeCatchSize = null, ?bool $useContent = null, ?int $status = null, ?int $widgetArea = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -312,15 +312,15 @@ class BlogContentsTool
             $data = [];
             if ($description !== null) $data['description'] = $description;
             if ($template !== null) $data['template'] = $template;
-            if ($list_count !== null) $data['list_count'] = $list_count;
-            if ($list_direction !== null) $data['list_direction'] = $list_direction;
-            if ($feed_count !== null) $data['feed_count'] = $feed_count;
-            if ($comment_use !== null) $data['comment_use'] = $comment_use;
-            if ($comment_approve !== null) $data['comment_approve'] = $comment_approve;
-            if ($tag_use !== null) $data['tag_use'] = $tag_use;
-            if ($eye_catch_size !== null) $data['eye_catch_size'] = $eye_catch_size;
-            if ($use_content !== null) $data['use_content'] = $use_content;
-            if ($widget_area !== null) $data['widget_area'] = $widget_area;
+            if ($listCount !== null) $data['list_count'] = $listCount;
+            if ($listDirection !== null) $data['list_direction'] = $listDirection;
+            if ($feedCount !== null) $data['feed_count'] = $feedCount;
+            if ($commentUse !== null) $data['comment_use'] = $commentUse;
+            if ($commentApprove !== null) $data['comment_approve'] = $commentApprove;
+            if ($tagUse !== null) $data['tag_use'] = $tagUse;
+            if ($eyeCatchSize !== null) $data['eye_catch_size'] = $eyeCatchSize;
+            if ($useContent !== null) $data['use_content'] = $useContent;
+            if ($widgetArea !== null) $data['widget_area'] = $widgetArea;
 
             // Contentエンティティの更新データも含める（もし関連するContentフィールドが変更される場合）
             $contentData = [];
