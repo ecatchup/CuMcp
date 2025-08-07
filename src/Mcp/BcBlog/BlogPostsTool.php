@@ -113,6 +113,28 @@ class BlogPostsTool
                     ],
                     'required' => ['id']
                 ]
+            )->withTool(
+                handler: [self::class, 'search'],
+                name: 'search',
+                description: 'キーワードを指定してデータを検索します。',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'keyword' => ['type' => 'string', '検索キーワード']
+                    ],
+                    'required' => ['keyword']
+                ]
+            )->withTool(
+                handler: [self::class, 'fetch'],
+                name: 'fetch',
+                description: '識別子を指定してデータを取得します。',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'number', 'description' => '識別子（必須）']
+                    ],
+                    'required' => ['id']
+                ]
             );
     }
 
@@ -430,4 +452,15 @@ class BlogPostsTool
             return null; // エラー時はnull
         }
     }
+    
+    public function fetch($id): array
+	{
+		return $this->getBlogPost($id);
+	}
+	
+	public function search($keyword) 
+	{
+		return $this->getBlogPosts(1, $keyword);
+	}
+	
 }
