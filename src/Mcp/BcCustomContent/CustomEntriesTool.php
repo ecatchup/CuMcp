@@ -129,7 +129,7 @@ class CustomEntriesTool
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-
+            $customEntriesService->setup($custom_table_id);
             $data = [
                 'custom_table_id' => $custom_table_id,
                 'title' => $title,
@@ -175,7 +175,7 @@ class CustomEntriesTool
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-
+            $customEntriesService->setup($custom_table_id);
             $conditions = [
                 'custom_table_id' => $custom_table_id,
                 'limit' => $limit ?? 20,
@@ -213,7 +213,7 @@ class CustomEntriesTool
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-
+            $customEntriesService->setup($custom_table_id);
             $result = $customEntriesService->get($id, [
                 'custom_table_id' => $custom_table_id
             ]);
@@ -245,7 +245,7 @@ class CustomEntriesTool
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-
+            $customEntriesService->setup($custom_table_id);
             $entity = $customEntriesService->get($id, [
                 'custom_table_id' => $custom_table_id
             ]);
@@ -300,7 +300,7 @@ class CustomEntriesTool
     {
         try {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-
+            $customEntriesService->setup($custom_table_id);
             $result = $customEntriesService->delete($id);
 
             if ($result) {
