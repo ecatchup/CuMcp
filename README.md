@@ -9,7 +9,8 @@ baserCMS用のMCP（Model Context Protocol）サーバープラグインです�
 - カスタムコンテンツの管理
 - カスタムエントリーの作成と取得
 - サーバー情報の取得
-- STDIO および SSE トランスポートサポート
+- STDIO および SSE（HTTP） トランスポートサポート
+- HTTPプロキシ経由のMCP通信（ChatGPT対応）
 
 ## インストール
 
@@ -149,6 +150,21 @@ bin/cake cu_mcp.server --transport=sse --host=127.0.0.1 --port=3000
   }
 }
 ```
+
+### ChatGPT Desktop
+
+ChatGPTでの連携については、詳細な設定手順を `CHATGPT_SETUP.md` で確認してください。
+
+ChatGPTは**HTTPベースのURL設定**を使用します：
+
+1. baserCMS管理画面でMCPサーバーを起動
+2. ChatGPT Desktopアプリで新しいコネクターを追加
+3. MCPサーバーのURL: `https://your-public-domain.com/cu-mcp/mcp-proxy.json`
+
+**重要**: 
+- ChatGPTではSTDIOスクリプトではなく、HTTP URL方式を使用
+- **ローカルURL（localhost）は使用不可** - パブリックアクセス可能なURLが必要
+- HTTPSが推奨
 
 ### その他のMCPクライアント
 

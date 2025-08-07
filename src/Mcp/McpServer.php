@@ -49,8 +49,12 @@ class McpServer
     {
         $builder = new ServerBuilder();
 
+        // サーバー名の設定
+        $serverName = 'baserCMS MCP Server';
+        $serverVersion = '1.0.0';
+
         $builder = $builder
-            ->withServerInfo('baserCMS MCP Server', '1.0.0')
+            ->withServerInfo($serverName, $serverVersion)
             ->withCapabilities(new ServerCapabilities(
                 tools: true,
                 resources: true,
@@ -126,15 +130,20 @@ class McpServer
     public function serverInfo(array $arguments = []): array
     {
         try {
+            $info = [
+                'php_version' => PHP_VERSION,
+                'basercms_version' => BcUtil::getVersion(),
+                'cakephp_version' => Configure::version(),
+                'server_time' => date('Y-m-d H:i:s'),
+                'timezone' => date_default_timezone_get(),
+                'mcp_server_version' => '1.0.0',
+                'supported_clients' => ['ChatGPT', 'Claude', 'Custom MCP Clients'],
+                'available_transports' => ['stdio', 'sse']
+            ];
+
             return [
                 'success' => true,
-                'data' => [
-                    'php_version' => PHP_VERSION,
-                    'basercms_version' => BcUtil::getVersion(),
-                    'cakephp_version' => Configure::version(),
-                    'server_time' => date('Y-m-d H:i:s'),
-                    'timezone' => date_default_timezone_get(),
-                ]
+                'data' => $info
             ];
         } catch (\Exception $e) {
             return [
@@ -143,5 +152,13 @@ class McpServer
                 'trace' => $e->getTraceAsString()
             ];
         }
+    }
+
+    /**
+     * 設定を適用
+     */
+    public function setConfig(array $config): void
+    {
+        // 将来的な設定対応のためのメソッド
     }
 }
