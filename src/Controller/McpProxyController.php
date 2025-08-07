@@ -31,8 +31,34 @@ class McpProxyController extends Controller
     public function initialize(): void
     {
         parent::initialize();
-        // CSRF保護を無効化（MCPリクエスト用）
-        $this->FormProtection->setConfig('validate', false);
+
+        // MCPリクエスト用にセキュリティ関連のコンポーネントを無効化
+        if ($this->components()->has('Security')) {
+            $this->Security->setConfig('validatePost', false);
+            $this->Security->setConfig('csrfCheck', false);
+        }
+
+        if ($this->components()->has('FormProtection')) {
+            $this->FormProtection->setConfig('validate', false);
+        }
+
+        // CakePHP5の場合のCSRF対策
+        if ($this->components()->has('Csrf')) {
+            $this->removeComponent('Csrf');
+        }
+    }
+
+    /**
+     * beforeFilter - セキュリティチェックをバイパス
+     */
+    public function beforeFilter(\Cake\Event\EventInterface $event)
+    {
+        parent::beforeFilter($event);
+
+        // MCPプロトコル用にCSRFチェックを無効化
+        $this->getEventManager()->off('Controller.beforeFilter');
+
+        return $event->getResult();
     }
 
     /**
