@@ -1,16 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * baserCMS :  Base            // JSON をパースしてMCPリクエストを検証
-            $mcpRequest = json_decode($requestBody, true);
-            if (!$mcpRequest || !isset($mcpRequest['jsonrpc']) || $mcpRequest['jsonrpc'] !== '2.0') {
-                throw new BadRequestException('Invalid MCP request format');
-            }
-
-            // MCPリクエストの詳細をログに出力
-            error_log("MCP Request: " . json_encode($mcpRequest, JSON_PRETTY_PRINT));
-
-            // SSE クライアントとしてMCPサーバーに接続してリクエストを処理te Development Project <https://basercms.net>
+ * baserCMS :  Based Website Development Project <https://basercms.net>
  * Copyright (c) NPO baser foundation <https://baserfoundation.org/>
  *
  * @copyright     Copyright (c) NPO baser foundation
@@ -33,6 +24,16 @@ use Cake\Event\EventInterface;
  */
 class McpProxyController extends Controller
 {
+
+    /**
+     * 初期化
+     */
+    public function initialize(): void
+    {
+        parent::initialize();
+        // CSRF保護を無効化（MCPリクエスト用）
+        $this->FormProtection->setConfig('validate', false);
+    }
 
     /**
      * MCPサーバーへのプロキシ処理
@@ -60,15 +61,18 @@ class McpProxyController extends Controller
             // JSONボディを直接取得してMCPリクエストとしてパース
             $requestBody = file_get_contents('php://input');
 
-			if(empty($requestBody)) {
-				return $this->response;
-			}
-			
+            if(empty($requestBody)) {
+                return $this->response;
+            }
+
             // JSONをパースしてMCPリクエストを検証
             $mcpRequest = json_decode($requestBody, true);
             if (!$mcpRequest || !isset($mcpRequest['jsonrpc']) || $mcpRequest['jsonrpc'] !== '2.0') {
                 throw new BadRequestException('Invalid MCP request format');
             }
+
+            // MCPリクエストの詳細をログに出力
+            error_log("MCP Request: " . json_encode($mcpRequest, JSON_PRETTY_PRINT));
 
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
             $response = $this->sendMcpRequest($config, $mcpRequest);
