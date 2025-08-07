@@ -12,12 +12,12 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp;
 
+use BaserCore\Utility\BcUtil;
 use PhpMcp\Server\Server;
 use PhpMcp\Server\ServerBuilder;
 use PhpMcp\Schema\ServerCapabilities;
 use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
-use BaserCore\Utility\BcContainerTrait;
 use PhpMcp\Server\Transports\StdioServerTransport;
 use PhpMcp\Server\Transports\StreamableHttpServerTransport;
 use CuMcp\Mcp\BcBlog\BcBlogServer;
@@ -63,15 +63,11 @@ class McpServer
         ), $builder);
 
         // サーバー情報ツールを追加
-        // $builder = $builder->withTool(
-        //     handler: [self::class, 'serverInfo'],
-        //     name: 'serverInfo',
-        //     description: 'サーバーのバージョンや環境情報を返します',
-        //     inputSchema: [
-        //         'type' => 'object',
-        //         'properties' => []
-        //     ]
-        // );
+        $builder = $builder->withTool(
+            handler: [self::class, 'serverInfo'],
+            name: 'serverInfo',
+            description: 'サーバーのバージョンや環境情報を返します'
+        );
 
         $this->server = $builder->build();
     }
@@ -124,9 +120,6 @@ class McpServer
     public function serverInfo(array $arguments = []): array
     {
         try {
-            $connection = ConnectionManager::get('default');
-            $config = $connection->config();
-
             return [
                 'success' => true,
                 'data' => [
