@@ -92,7 +92,7 @@ class CustomEntriesToolTest extends BcTestCase
             title: $title,
             name: 'test_entry',
             status: true,
-            creator_id: 1
+            creatorId: 1
         );
 
         $this->assertIsArray($result);
@@ -138,7 +138,7 @@ class CustomEntriesToolTest extends BcTestCase
         $result = $this->CustomEntriesTool->addCustomEntry(
             customTableId: $customTableId,
             title: $title,
-            custom_fields: $customFields
+            customFields: $customFields
         );
 
         $this->assertIsArray($result);
@@ -325,7 +325,7 @@ class CustomEntriesToolTest extends BcTestCase
         $result = $this->CustomEntriesTool->editCustomEntry(
             customTableId: 1,
             id: 1,
-            custom_fields: $customFields
+            customFields: $customFields
         );
 
         $this->assertIsArray($result);

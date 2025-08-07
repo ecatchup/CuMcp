@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace CuMcp\Mcp\BcCustomContent;
 
 use BaserCore\Utility\BcContainerTrait;
+use BcCustomContent\Service\CustomFieldsServiceInterface;
 use BcCustomContent\Service\CustomTablesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 
@@ -129,8 +130,11 @@ class CustomTablesTool
 
             if ($result && !empty($customFieldNames)) {
                 // カスタムフィールドとの関連付け
-                foreach ($customFieldNames as $fieldName) {
-                    $customTablesService->addCustomFieldLink($result->id, $fieldName);
+                $customLinks = $this->createCustomLinks($customFieldNames);
+                if($customLinks) {
+                    $customTable = $result->toArray();
+                    $customTable['custom_links'] = $customLinks;
+                    $result = $customTablesService->update($result, $customTable);
                 }
             }
 
@@ -154,6 +158,32 @@ class CustomTablesTool
         }
     }
 
+    private function createCustomLinks($customFieldNames)
+    {
+        $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
+        $customLinks = [];
+        if (!empty($customFieldNames)) {
+            $i = 0;
+            foreach ($customFieldNames as $fieldName) {
+                $customField = $customFieldsService->getIndex(['name' => $fieldName])->first();
+                if ($customField) {
+                    $customLinks["new_" . $i + 1] = [
+                        "name" => $customField->name,
+                        "custom_field_id" => $customField->id,
+                        "type" => $customField->type,
+                        "display_front" => true,
+                        "use_api" => true,
+                        "status" => true,
+                        "title" => $customField->title,
+                        "search_target_admin" => true,
+                        "search_target_front" => true
+                    ];
+                    $i++;
+                }
+            }
+        }
+        return $customLinks;
+    }
     /**
      * カスタムテーブル一覧を取得
      */
@@ -261,12 +291,13 @@ class CustomTablesTool
             $result = $customTablesService->update($entity, $data);
 
             // カスタムフィールドとの関連付けを更新
-            if (!empty($customFieldNames)) {
-                // 既存の関連を削除
-                $customTablesService->removeAllCustomFieldLinks($id);
-                // 新しい関連を追加
-                foreach ($customFieldNames as $fieldName) {
-                    $customTablesService->addCustomFieldLink($id, $fieldName);
+            if ($result && !empty($customFieldNames)) {
+                // カスタムフィールドとの関連付け
+                $customLinks = $this->createCustomLinks($customFieldNames);
+                if($customLinks) {
+                    $customTable = $result->toArray();
+                    $customTable['custom_links'] = $customLinks;
+                    $result = $customTablesService->update($result, $customTable);
                 }
             }
 

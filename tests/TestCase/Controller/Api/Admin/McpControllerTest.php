@@ -23,20 +23,6 @@ class McpControllerTest extends BcTestCase
     use IntegrationTestTrait;
 
     /**
-     * Fixtures
-     *
-     * @var array
-     */
-    protected $fixtures = [
-        'plugin.BaserCore.Users',
-        'plugin.BaserCore.UsersUserGroups',
-        'plugin.BaserCore.UserGroups',
-        'plugin.BcBlog.BlogPosts',
-        'plugin.BcBlog.BlogCategories',
-        'plugin.BcBlog.BlogContents'
-    ];
-
-    /**
      * setUp method
      *
      * @return void

@@ -206,7 +206,7 @@ class BlogContentsTool
             $conditions = [];
 
             if (!empty($siteId)) {
-                $conditions['site_id'] = $siteId;
+                $conditions['siteId'] = $siteId;
             }
 
             if (!empty($keyword)) {
@@ -312,15 +312,15 @@ class BlogContentsTool
             $data = [];
             if ($description !== null) $data['description'] = $description;
             if ($template !== null) $data['template'] = $template;
-            if ($listCount !== null) $data['list_count'] = $listCount;
-            if ($listDirection !== null) $data['list_direction'] = $listDirection;
-            if ($feedCount !== null) $data['feed_count'] = $feedCount;
-            if ($commentUse !== null) $data['comment_use'] = $commentUse;
-            if ($commentApprove !== null) $data['comment_approve'] = $commentApprove;
-            if ($tagUse !== null) $data['tag_use'] = $tagUse;
-            if ($eyeCatchSize !== null) $data['eye_catch_size'] = $eyeCatchSize;
-            if ($useContent !== null) $data['use_content'] = $useContent;
-            if ($widgetArea !== null) $data['widget_area'] = $widgetArea;
+            if ($listCount !== null) $data['listCount'] = $listCount;
+            if ($listDirection !== null) $data['listDirection'] = $listDirection;
+            if ($feedCount !== null) $data['feedCount'] = $feedCount;
+            if ($commentUse !== null) $data['commentUse'] = $commentUse;
+            if ($commentApprove !== null) $data['commentApprove'] = $commentApprove;
+            if ($tagUse !== null) $data['tagUse'] = $tagUse;
+            if ($eyeCatchSize !== null) $data['eyeCatchSize'] = $eyeCatchSize;
+            if ($useContent !== null) $data['useContent'] = $useContent;
+            if ($widgetArea !== null) $data['widgetArea'] = $widgetArea;
 
             // Contentエンティティの更新データも含める（もし関連するContentフィールドが変更される場合）
             $contentData = [];

@@ -113,9 +113,6 @@ class BlogCategoriesTool
 
     public function addBlogCategory(string $title, ?string $name = null, ?int $blogContentId = 1, ?int $parentId = null, ?int $status = 1, ?int $lft = null, ?int $rght = null): array
     {
-        // デバッグ情報をログに出力
-        error_log("addBlogCategory called with title: $title, blogContentId: $blogContentId");
-
         try {
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
 

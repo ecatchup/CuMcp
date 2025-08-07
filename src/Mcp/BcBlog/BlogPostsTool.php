@@ -421,10 +421,9 @@ class BlogPostsTool
         try {
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
             $conditions = [
-                'name' => $categoryName,
-                'blogContentId' => $blogContentId
+                'name' => $categoryName
             ];
-            $category = $blogCategoriesService->getIndex($conditions)->first();
+            $category = $blogCategoriesService->getIndex($blogContentId, $conditions)->first();
 
             return $category ? $category->id : null;
         } catch (\Exception $e) {
