@@ -32,7 +32,12 @@ return [
             ]
         ],
         'skipCsrfUrl' => [
-            'McpProxyIndex' => ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index', '_ext' => 'json']
+            'McpProxyIndex' => ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index', '_ext' => 'json'],
+            'OAuth2Token' => [
+                'plugin' => 'CuMcp',
+                'controller' => 'oauth2',
+                'action' => 'token'
+            ]
         ]
     ]
 ];

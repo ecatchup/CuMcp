@@ -16,14 +16,23 @@ use Cake\Http\Client;
 use Cake\Controller\Controller;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
+use Cake\Http\Exception\UnauthorizedException;
 use Cake\Event\EventInterface;
+use CuMcp\Service\OAuth2Service;
 
 /**
  * MCPサーバーへのプロキシコントローラー
  * SSEクライアントとしてMCPサーバーと通信し、HTTPリクエストをMCPプロトコルに変換
+ * OAuth2認証対応
  */
 class McpProxyController extends Controller
 {
+    /**
+     * OAuth2サービス
+     *
+     * @var OAuth2Service
+     */
+    private OAuth2Service $oauth2Service;
 
     /**
      * 初期化
@@ -31,6 +40,9 @@ class McpProxyController extends Controller
     public function initialize(): void
     {
         parent::initialize();
+
+        // OAuth2サービスを初期化
+        $this->oauth2Service = new OAuth2Service();
 
         // MCPリクエスト用にセキュリティ関連のコンポーネントを無効化
         if ($this->components()->has('Security')) {
@@ -46,19 +58,54 @@ class McpProxyController extends Controller
         if ($this->components()->has('Csrf')) {
             $this->removeComponent('Csrf');
         }
+
+        // CORS設定
+        $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
 
     /**
-     * beforeFilter - セキュリティチェックをバイパス
+     * リクエスト処理前の認証チェック
      */
-    public function beforeFilter(\Cake\Event\EventInterface $event)
+    public function beforeFilter(EventInterface $event): void
     {
         parent::beforeFilter($event);
 
-        // MCPプロトコル用にCSRFチェックを無効化
-        $this->getEventManager()->off('Controller.beforeFilter');
+        // OPTIONSリクエストは認証不要
+        if ($this->request->getMethod() === 'OPTIONS') {
+            return;
+        }
 
-        return $event->getResult();
+        // OAuth2トークンの検証
+        $this->validateOAuth2Token();
+    }
+
+    /**
+     * OAuth2トークンの検証
+     *
+     * @throws UnauthorizedException
+     */
+    private function validateOAuth2Token(): void
+    {
+        $authHeader = $this->request->getHeaderLine('Authorization');
+
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            throw new UnauthorizedException('Missing or invalid authorization header');
+        }
+
+        $token = substr($authHeader, 7);
+        $tokenData = $this->oauth2Service->validateAccessToken($token);
+
+        if (!$tokenData) {
+            throw new UnauthorizedException('Invalid or expired access token');
+        }
+
+        // トークン情報をリクエストに保存
+        $this->request = $this->request
+            ->withAttribute('oauth_client_id', $tokenData['client_id'])
+            ->withAttribute('oauth_user_id', $tokenData['user_id'])
+            ->withAttribute('oauth_scopes', $tokenData['scopes']);
     }
 
     /**
