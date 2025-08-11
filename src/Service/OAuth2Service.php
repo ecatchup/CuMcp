@@ -11,6 +11,7 @@ use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Grant\ClientCredentialsGrant;
 use League\OAuth2\Server\ResourceServer;
 use League\OAuth2\Server\CryptKey;
+use Cake\Core\Configure;
 
 /**
  * OAuth2 Service
@@ -192,10 +193,13 @@ class OAuth2Service
         try {
             $resourceServer = $this->getResourceServer();
 
+            // 環境変数からサイトURLを取得
+            $siteUrl = env('SITE_URL', 'https://localhost');
+
             // PSR-7リクエストを直接作成（テスト環境でも動作するように）
             $request = new \Nyholm\Psr7\ServerRequest(
                 'GET',
-                'https://localhost',
+                $siteUrl,
                 ['Authorization' => 'Bearer ' . $token]
             );
 

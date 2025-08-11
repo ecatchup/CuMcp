@@ -408,4 +408,118 @@ class OAuth2ControllerTest extends TestCase
         $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         $this->assertHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
+
+    /**
+     * Test OAuth 2.0 Protected Resource Metadata endpoint (RFC 9728)
+     *
+     * @return void
+     */
+    public function testProtectedResourceMetadata(): void
+    {
+        $this->get('/cu-mcp/.well-known/oauth-protected-resource');
+
+        $this->assertResponseSuccess();
+        $this->assertContentType('application/json');
+
+        $metadata = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($metadata, 'Protected resource metadata should be valid JSON');
+
+        // RFC 9728で規定されている必須フィールドを確認
+        $this->assertArrayHasKey('resource', $metadata);
+        $this->assertArrayHasKey('authorization_servers', $metadata);
+        $this->assertArrayHasKey('scopes_supported', $metadata);
+        $this->assertArrayHasKey('bearer_methods_supported', $metadata);
+
+        // 内容の検証
+        $this->assertStringContainsString('/cu-mcp', $metadata['resource']);
+        $this->assertIsArray($metadata['authorization_servers']);
+        $this->assertContains('read', $metadata['scopes_supported']);
+        $this->assertContains('write', $metadata['scopes_supported']);
+        $this->assertContains('admin', $metadata['scopes_supported']);
+        $this->assertContains('header', $metadata['bearer_methods_supported']);
+
+        // 追加のエンドポイント情報
+        $this->assertArrayHasKey('introspection_endpoint', $metadata);
+        $this->assertStringContainsString('/oauth2/verify', $metadata['introspection_endpoint']);
+    }
+
+    /**
+     * Test Protected Resource Metadata endpoint OPTIONS request
+     *
+     * @return void
+     */
+    public function testProtectedResourceMetadataOptionsRequest(): void
+    {
+        $this->configRequest([
+            'method' => 'OPTIONS'
+        ]);
+
+        $this->_sendRequest('/cu-mcp/.well-known/oauth-protected-resource', 'OPTIONS', []);
+
+        $this->assertResponseOk();
+        $this->assertHeader('Access-Control-Allow-Origin', '*');
+        $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        $this->assertHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    }
+
+    /**
+     * Test OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414)
+     *
+     * @return void
+     */
+    public function testAuthorizationServerMetadata(): void
+    {
+        $this->get('/cu-mcp/.well-known/oauth-authorization-server');
+
+        $this->assertResponseSuccess();
+        $this->assertContentType('application/json');
+
+        $metadata = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($metadata, 'Authorization server metadata should be valid JSON');
+
+        // RFC 8414で規定されている必須フィールドを確認
+        $this->assertArrayHasKey('issuer', $metadata);
+        $this->assertArrayHasKey('token_endpoint', $metadata);
+        $this->assertArrayHasKey('scopes_supported', $metadata);
+        $this->assertArrayHasKey('response_types_supported', $metadata);
+        $this->assertArrayHasKey('grant_types_supported', $metadata);
+        $this->assertArrayHasKey('token_endpoint_auth_methods_supported', $metadata);
+
+        // 内容の検証
+        $this->assertStringContainsString('/cu-mcp/oauth2', $metadata['issuer']);
+        $this->assertStringContainsString('/oauth2/token', $metadata['token_endpoint']);
+        $this->assertContains('read', $metadata['scopes_supported']);
+        $this->assertContains('write', $metadata['scopes_supported']);
+        $this->assertContains('admin', $metadata['scopes_supported']);
+        $this->assertContains('client_credentials', $metadata['grant_types_supported']);
+        $this->assertContains('client_secret_basic', $metadata['token_endpoint_auth_methods_supported']);
+
+        // 追加のエンドポイント情報（実装済みエンドポイントのみ）
+        $this->assertArrayHasKey('introspection_endpoint', $metadata);
+        $this->assertStringContainsString('/oauth2/verify', $metadata['introspection_endpoint']);
+
+        // 未実装エンドポイントは含まれていないことを確認
+        $this->assertArrayNotHasKey('jwks_uri', $metadata);
+        $this->assertArrayNotHasKey('registration_endpoint', $metadata);
+        $this->assertArrayNotHasKey('authorization_endpoint', $metadata);
+    }
+
+    /**
+     * Test Authorization Server Metadata endpoint OPTIONS request
+     *
+     * @return void
+     */
+    public function testAuthorizationServerMetadataOptionsRequest(): void
+    {
+        $this->configRequest([
+            'method' => 'OPTIONS'
+        ]);
+
+        $this->_sendRequest('/cu-mcp/.well-known/oauth-authorization-server', 'OPTIONS', []);
+
+        $this->assertResponseOk();
+        $this->assertHeader('Access-Control-Allow-Origin', '*');
+        $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        $this->assertHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    }
 }

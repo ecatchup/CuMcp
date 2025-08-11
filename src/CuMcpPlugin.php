@@ -61,6 +61,14 @@ class CuMcpPlugin extends BcPlugin
             $builder->connect('/oauth2/client-info', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/oauth2/client-info', ['controller' => 'OAuth2', 'action' => 'clientInfo'])->setMethods(['GET']);
 
+            // OAuth 2.0 保護リソースメタデータエンドポイント (RFC 9728)
+            $builder->connect('/.well-known/oauth-protected-resource', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-protected-resource', ['controller' => 'OAuth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
+
+            // OAuth 2.0 認可サーバーメタデータエンドポイント (RFC 8414)
+            $builder->connect('/.well-known/oauth-authorization-server', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-authorization-server', ['controller' => 'OAuth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
+
             // MCPプロキシ（最重要: 外部からのMCPアクセス）
             // JSON API用（.json拡張子対応）
             $builder->connect('/mcp-proxy.json', ['controller' => 'McpProxy', 'action' => 'index', '_ext' => 'json'], ['routeClass' => InflectedRoute::class]);

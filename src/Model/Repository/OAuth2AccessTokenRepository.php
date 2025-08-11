@@ -72,7 +72,7 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity): void
     {
         $identifier = $accessTokenEntity->getIdentifier();
-
+        
         if (isset(self::$persistedTokens[$identifier])) {
             throw UniqueTokenIdentifierConstraintViolationException::create();
         }

@@ -254,4 +254,88 @@ class OAuth2Controller extends AppController
                 ]));
         }
     }
+
+    /**
+     * OAuth 2.0 保護リソースメタデータエンドポイント (RFC 9728)
+     *
+     * @return Response
+     */
+    public function protectedResourceMetadata(): Response
+    {
+        try {
+            // 環境変数からサイトURLを取得
+            $siteUrl = env('SITE_URL', 'https://localhost');
+            $baseUrl = rtrim($siteUrl, '/');
+
+            $metadata = [
+                'resource' => $baseUrl . '/cu-mcp',
+                'authorization_servers' => [
+                    $baseUrl . '/cu-mcp/oauth2'
+                ],
+                'scopes_supported' => ['read', 'write', 'admin'],
+                'bearer_methods_supported' => ['header'],
+                'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
+                'resource_registration_endpoint' => $baseUrl . '/cu-mcp/oauth2/client-info'
+            ];
+
+            return $this->response
+                ->withType('application/json')
+                ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
+
+        } catch (\Exception $exception) {
+            return $this->response
+                ->withStatus(500)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'error' => 'server_error',
+                    'error_description' => 'Failed to generate protected resource metadata.',
+                    'debug_message' => $exception->getMessage()
+                ]));
+        }
+    }
+
+    /**
+     * OAuth 2.0 認可サーバーメタデータエンドポイント (RFC 8414)
+     *
+     * @return Response
+     */
+    public function authorizationServerMetadata(): Response
+    {
+        try {
+            // 環境変数からサイトURLを取得
+            $siteUrl = env('SITE_URL', 'https://localhost');
+            $baseUrl = rtrim($siteUrl, '/');
+            $issuer = $baseUrl . '/cu-mcp/oauth2';
+
+            $metadata = [
+                // RFC 8414 必須項目
+                'issuer' => $issuer,
+                'token_endpoint' => $issuer . '/token',
+                'response_types_supported' => ['token'],
+
+                // Client Credentials Grant用の追加項目
+                'grant_types_supported' => ['client_credentials'],
+                'token_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
+                'scopes_supported' => ['read', 'write', 'admin'],
+
+                // 実装済みエンドポイント
+                'introspection_endpoint' => $issuer . '/verify',
+                'introspection_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post']
+            ];
+
+            return $this->response
+                ->withType('application/json')
+                ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
+
+        } catch (\Exception $exception) {
+            return $this->response
+                ->withStatus(500)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'error' => 'server_error',
+                    'error_description' => 'Failed to generate authorization server metadata.',
+                    'debug_message' => $exception->getMessage()
+                ]));
+        }
+    }
 }
