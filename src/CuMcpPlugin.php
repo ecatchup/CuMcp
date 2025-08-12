@@ -55,6 +55,10 @@ class CuMcpPlugin extends BcPlugin
             $builder->connect('/oauth2/token', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/oauth2/token', ['controller' => 'OAuth2', 'action' => 'token'])->setMethods(['POST']);
 
+            // Authorization Code Grant 認可エンドポイント
+            $builder->connect('/oauth2/authorize', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/oauth2/authorize', ['controller' => 'OAuth2', 'action' => 'authorize'])->setMethods(['GET', 'POST']);
+
             $builder->connect('/oauth2/verify', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/oauth2/verify', ['controller' => 'OAuth2', 'action' => 'verify'])->setMethods(['POST', 'GET']);
 

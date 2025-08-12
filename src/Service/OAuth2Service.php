@@ -63,7 +63,7 @@ class OAuth2Service
     }
 
     /**
-     * 認証サーバーを作成
+     * Authorization Code Grant をサポートするための認証サーバーを作成
      *
      * @return AuthorizationServer
      */
@@ -73,6 +73,11 @@ class OAuth2Service
         $clientRepository = new OAuth2ClientRepository();
         $accessTokenRepository = OAuth2AccessTokenRepository::getInstance();
         $scopeRepository = new OAuth2ScopeRepository();
+        
+        // Authorization Code Grant用のリポジトリを追加
+        $authCodeRepository = new \CuMcp\Model\Repository\OAuth2AuthCodeRepository();
+        $refreshTokenRepository = new \CuMcp\Model\Repository\OAuth2RefreshTokenRepository();
+        $userRepository = new \CuMcp\Model\Repository\OAuth2UserRepository();
 
         // 暗号化キーを取得
         $privateKey = $this->getPrivateKey();
@@ -91,6 +96,22 @@ class OAuth2Service
         $clientCredentialsGrant = new ClientCredentialsGrant();
         $server->enableGrantType(
             $clientCredentialsGrant,
+            new \DateInterval('PT1H')
+        );
+
+        // Authorization Code Grant を有効化
+        $authCodeGrant = new \League\OAuth2\Server\Grant\AuthCodeGrant(
+            $authCodeRepository,
+            $refreshTokenRepository,
+            new \DateInterval('PT10M') // 認可コードの有効期限: 10分
+        );
+        
+        // リフレッシュトークンの有効期限を設定（1ヶ月）
+        $authCodeGrant->setRefreshTokenTTL(new \DateInterval('P1M'));
+        
+        // Authorization Code Grant を有効化（アクセストークンの有効期限: 1時間）
+        $server->enableGrantType(
+            $authCodeGrant,
             new \DateInterval('PT1H')
         );
 
@@ -215,5 +236,17 @@ class OAuth2Service
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * 認可コードを保存
+     *
+     * @param array $data 認可コードデータ
+     * @return void
+     */
+    public function storeAuthorizationCode(array $data): void
+    {
+        $authCodeRepository = new \CuMcp\Model\Repository\OAuth2AuthCodeRepository();
+        $authCodeRepository->storeAuthorizationCode($data);
     }
 }
