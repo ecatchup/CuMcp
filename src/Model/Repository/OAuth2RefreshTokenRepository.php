@@ -55,7 +55,7 @@ class OAuth2RefreshTokenRepository implements RefreshTokenRepositoryInterface
      * @param string $tokenId
      * @return void
      */
-    public function revokeRefreshToken(string $tokenId): void
+    public function revokeRefreshToken($tokenId): void
     {
         if (isset(self::$refreshTokens[$tokenId])) {
             self::$refreshTokens[$tokenId]['revoked'] = true;
@@ -68,7 +68,7 @@ class OAuth2RefreshTokenRepository implements RefreshTokenRepositoryInterface
      * @param string $tokenId
      * @return bool
      */
-    public function isRefreshTokenRevoked(string $tokenId): bool
+    public function isRefreshTokenRevoked($tokenId): bool
     {
         return self::$refreshTokens[$tokenId]['revoked'] ?? true;
     }

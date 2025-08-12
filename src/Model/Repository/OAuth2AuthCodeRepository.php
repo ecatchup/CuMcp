@@ -58,7 +58,7 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
      * @param string $codeId
      * @return void
      */
-    public function revokeAuthCode(string $codeId): void
+    public function revokeAuthCode($codeId): void
     {
         if (isset(self::$authCodes[$codeId])) {
             self::$authCodes[$codeId]['revoked'] = true;
@@ -71,7 +71,7 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
      * @param string $codeId
      * @return bool
      */
-    public function isAuthCodeRevoked(string $codeId): bool
+    public function isAuthCodeRevoked($codeId): bool
     {
         return self::$authCodes[$codeId]['revoked'] ?? true;
     }

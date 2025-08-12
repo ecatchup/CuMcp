@@ -25,9 +25,9 @@ class OAuth2UserRepository implements UserRepositoryInterface
      * @return UserEntityInterface|null
      */
     public function getUserEntityByUserCredentials(
-        string $username,
-        string $password,
-        string $grantType,
+        $username,
+        $password,
+        $grantType,
         ClientEntityInterface $clientEntity
     ): ?UserEntityInterface {
         // Authorization Code Grant では直接的なユーザー認証は行わない

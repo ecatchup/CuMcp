@@ -5,8 +5,11 @@ namespace CuMcp\Controller;
 
 use App\Controller\AppController;
 use CuMcp\Service\OAuth2Service;
+use CuMcp\Service\OAuth2ClientRegistrationService;
+use CuMcp\Model\Repository\OAuth2ClientRepository;
 use Cake\Http\Response;
 use Nyholm\Psr7\Response as Psr7Response;
+use Exception;
 
 /**
  * OAuth2 Controller
@@ -23,6 +26,13 @@ class OAuth2Controller extends AppController
     private OAuth2Service $oauth2Service;
 
     /**
+     * OAuth2クライアント登録サービス
+     *
+     * @var OAuth2ClientRegistrationService
+     */
+    private OAuth2ClientRegistrationService $clientRegistrationService;
+
+    /**
      * 初期化
      *
      * @return void
@@ -33,9 +43,13 @@ class OAuth2Controller extends AppController
 
         $this->oauth2Service = new OAuth2Service();
 
+        // クライアント登録サービスを初期化
+        $clientRepository = new OAuth2ClientRepository();
+        $this->clientRegistrationService = new OAuth2ClientRegistrationService($clientRepository);
+
         // CORS設定
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
-        $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
         $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
 
@@ -370,7 +384,7 @@ class OAuth2Controller extends AppController
             }
 
             $request = $this->request;
-            
+
             // 必須パラメータをチェック
             $clientId = $request->getQuery('client_id');
             $responseType = $request->getQuery('response_type');
@@ -401,7 +415,7 @@ class OAuth2Controller extends AppController
             // クライアントの妥当性をチェック
             $clientRepository = new \CuMcp\Model\Repository\OAuth2ClientRepository();
             $client = $clientRepository->getClientEntity($clientId);
-            
+
             if (!$client || !$clientRepository->validateClient($clientId, null, null)) {
                 return $this->response
                     ->withStatus(400)
@@ -426,11 +440,11 @@ class OAuth2Controller extends AppController
             // POSTリクエストの場合は認可処理
             if ($this->request->is('post')) {
                 $action = $this->request->getData('action');
-                
+
                 if ($action === 'approve') {
                     // 認可コードを生成
                     $authCode = bin2hex(random_bytes(32));
-                    
+
                     // 認可コードを保存（実際にはデータベースに保存）
                     $this->oauth2Service->storeAuthorizationCode([
                         'code' => $authCode,
@@ -446,7 +460,7 @@ class OAuth2Controller extends AppController
                     if ($state) {
                         $params['state'] = $state;
                     }
-                    
+
                     $redirectUrl = $redirectUri . '?' . http_build_query($params);
                     return $this->redirect($redirectUrl);
 
@@ -459,7 +473,7 @@ class OAuth2Controller extends AppController
                     if ($state) {
                         $params['state'] = $state;
                     }
-                    
+
                     $redirectUrl = $redirectUri . '?' . http_build_query($params);
                     return $this->redirect($redirectUrl);
                 }
@@ -474,7 +488,7 @@ class OAuth2Controller extends AppController
                 'state' => $state,
                 'user' => $user
             ]);
-            
+
             return $this->render('authorize');
 
         } catch (\Exception $exception) {
@@ -485,6 +499,241 @@ class OAuth2Controller extends AppController
                     'error' => 'server_error',
                     'error_description' => 'An unexpected error occurred.',
                     'message' => $exception->getMessage()
+                ]));
+        }
+    }
+
+    /**
+     * 動的クライアント登録エンドポイント (RFC 7591)
+     * POST /cu-mcp/oauth2/register
+     *
+     * @return Response
+     */
+    public function register(): Response
+    {
+        if (!$this->request->is('post')) {
+            return $this->response
+                ->withStatus(405)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'error' => 'invalid_request',
+                    'error_description' => 'Only POST method is supported'
+                ]));
+        }
+
+        try {
+            // JSONリクエストデータを取得
+            $requestData = [];
+            $contentType = $this->request->getHeaderLine('Content-Type');
+
+            // CakePHPは自動的にJSONデータをパースしてgetData()で取得可能
+            $requestData = $this->request->getData();
+            
+            // データが空の場合のみ、手動でJSONパースを実行
+            if (empty($requestData) && strpos($contentType, 'application/json') !== false) {
+                $body = $this->request->getBody()->getContents();
+                if (!empty($body)) {
+                    $requestData = json_decode($body, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        return $this->response
+                            ->withStatus(400)
+                            ->withType('application/json')
+                            ->withStringBody(json_encode([
+                                'error' => 'invalid_request',
+                                'error_description' => 'Invalid JSON in request body'
+                            ]));
+                    }
+                }
+            }
+
+            // 環境変数からサイトURLを取得
+            $siteUrl = env('SITE_URL', 'https://localhost');
+            $baseUrl = rtrim($siteUrl, '/');
+
+            // クライアントを登録
+            $client = $this->clientRegistrationService->registerClient($requestData, $baseUrl);
+
+            // RFC7591準拠のレスポンスを返す
+            return $this->response
+                ->withStatus(201)
+                ->withType('application/json')
+                ->withStringBody(json_encode($client->toRegistrationResponse(), JSON_PRETTY_PRINT));
+
+        } catch (Exception $exception) {
+            return $this->response
+                ->withStatus(400)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => $exception->getMessage()
+                ]));
+        }
+    }
+
+    /**
+     * クライアント設定エンドポイント (RFC 7591)
+     * GET /cu-mcp/oauth2/register/{client_id}
+     * PUT /cu-mcp/oauth2/register/{client_id}
+     * DELETE /cu-mcp/oauth2/register/{client_id}
+     *
+     * @param string $clientId クライアントID
+     * @return Response
+     */
+    public function clientConfiguration(string $clientId): Response
+    {
+        // 登録アクセストークンを取得
+        $authHeader = $this->request->getHeaderLine('Authorization');
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            return $this->response
+                ->withStatus(401)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'error' => 'invalid_token',
+                    'error_description' => 'Registration access token is required'
+                ]));
+        }
+
+        $registrationAccessToken = substr($authHeader, 7);
+
+        try {
+            if ($this->request->is('get')) {
+                // クライアント情報の取得
+                $client = $this->clientRegistrationService->getClient($clientId, $registrationAccessToken);
+
+                if (!$client) {
+                    return $this->response
+                        ->withStatus(401)
+                        ->withType('application/json')
+                        ->withStringBody(json_encode([
+                            'error' => 'invalid_token',
+                            'error_description' => 'Invalid registration access token or client not found'
+                        ]));
+                }
+
+                return $this->response
+                    ->withType('application/json')
+                    ->withStringBody(json_encode($client->toRegistrationResponse(), JSON_PRETTY_PRINT));
+
+            } elseif ($this->request->is('put')) {
+                // クライアント情報の更新
+                // CakePHPは自動的にJSONデータをパースしてgetData()で取得可能
+                $requestData = $this->request->getData();
+                
+                // データが空の場合のみ、手動でJSONパースを実行
+                $contentType = $this->request->getHeaderLine('Content-Type');
+                if (empty($requestData) && strpos($contentType, 'application/json') !== false) {
+                    $body = $this->request->getBody()->getContents();
+                    if (!empty($body)) {
+                        $requestData = json_decode($body, true);
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            return $this->response
+                                ->withStatus(400)
+                                ->withType('application/json')
+                                ->withStringBody(json_encode([
+                                    'error' => 'invalid_request',
+                                    'error_description' => 'Invalid JSON in request body'
+                                ]));
+                        }
+                    }
+                }
+
+                $client = $this->clientRegistrationService->updateClient($clientId, $registrationAccessToken, $requestData);
+
+                if (!$client) {
+                    return $this->response
+                        ->withStatus(401)
+                        ->withType('application/json')
+                        ->withStringBody(json_encode([
+                            'error' => 'invalid_token',
+                            'error_description' => 'Invalid registration access token or client not found'
+                        ]));
+                }
+
+                return $this->response
+                    ->withType('application/json')
+                    ->withStringBody(json_encode($client->toRegistrationResponse(), JSON_PRETTY_PRINT));
+
+            } elseif ($this->request->is('delete')) {
+                // クライアントの削除
+                $success = $this->clientRegistrationService->deleteClient($clientId, $registrationAccessToken);
+
+                if (!$success) {
+                    return $this->response
+                        ->withStatus(401)
+                        ->withType('application/json')
+                        ->withStringBody(json_encode([
+                            'error' => 'invalid_token',
+                            'error_description' => 'Invalid registration access token or client not found'
+                        ]));
+                }
+
+                return $this->response->withStatus(204); // No Content
+
+            } else {
+                return $this->response
+                    ->withStatus(405)
+                    ->withType('application/json')
+                    ->withStringBody(json_encode([
+                        'error' => 'invalid_request',
+                        'error_description' => 'Only GET, PUT, DELETE methods are supported'
+                    ]));
+            }
+
+        } catch (Exception $exception) {
+            return $this->response
+                ->withStatus(400)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => $exception->getMessage()
+                ]));
+        }
+    }
+
+    /**
+     * クライアント登録メタデータエンドポイント (RFC 7591)
+     * GET /cu-mcp/oauth2/register
+     *
+     * @return Response
+     */
+    public function registrationMetadata(): Response
+    {
+        try {
+            // 環境変数からサイトURLを取得
+            $siteUrl = env('SITE_URL', 'https://localhost');
+            $baseUrl = rtrim($siteUrl, '/');
+
+            $metadata = [
+                'registration_endpoint' => $baseUrl . '/cu-mcp/oauth2/register',
+                'client_configuration_endpoint' => $baseUrl . '/cu-mcp/oauth2/register/{client_id}',
+                'grant_types_supported' => ['authorization_code', 'client_credentials', 'refresh_token'],
+                'response_types_supported' => ['code'],
+                'token_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post', 'none'],
+                'scopes_supported' => ['read', 'write', 'admin'],
+                'subject_types_supported' => ['public'],
+                'id_token_signing_alg_values_supported' => ['RS256'],
+                'request_uri_parameter_supported' => false,
+                'require_request_uri_registration' => false,
+                'claims_parameter_supported' => false,
+                'revocation_endpoint' => $baseUrl . '/cu-mcp/oauth2/revoke',
+                'revocation_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
+                'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
+                'introspection_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
+                'code_challenge_methods_supported' => ['plain', 'S256']
+            ];
+
+            return $this->response
+                ->withType('application/json')
+                ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
+
+        } catch (\Exception $exception) {
+            return $this->response
+                ->withStatus(500)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'error' => 'server_error',
+                    'error_description' => 'Failed to generate registration metadata.',
+                    'debug_message' => $exception->getMessage()
                 ]));
         }
     }

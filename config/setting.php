@@ -33,11 +33,8 @@ return [
         ],
         'skipCsrfUrl' => [
             'McpProxyIndex' => ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index', '_ext' => 'json'],
-            'OAuth2Token' => [
-                'plugin' => 'CuMcp',
-                'controller' => 'oauth2',
-                'action' => 'token'
-            ]
+            // RFC 7591 動的クライアント登録プロトコル（ワイルドカードパターン使用）
+            'OAuth2All' => '/cu-mcp/oauth2/*'
         ]
     ]
 ];

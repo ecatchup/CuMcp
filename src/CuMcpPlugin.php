@@ -73,6 +73,18 @@ class CuMcpPlugin extends BcPlugin
             $builder->connect('/.well-known/oauth-authorization-server', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/.well-known/oauth-authorization-server', ['controller' => 'OAuth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
 
+            // RFC 7591 動的クライアント登録プロトコル
+            // クライアント登録メタデータエンドポイント
+            $builder->connect('/oauth2/register', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/oauth2/register', ['controller' => 'OAuth2', 'action' => 'registrationMetadata'])->setMethods(['GET']);
+            
+            // 動的クライアント登録エンドポイント
+            $builder->connect('/oauth2/register', ['controller' => 'OAuth2', 'action' => 'register'])->setMethods(['POST']);
+            
+            // クライアント設定エンドポイント（RFC 7591）
+            $builder->connect('/oauth2/register/{client_id}', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS'])->setPass(['client_id']);
+            $builder->connect('/oauth2/register/{client_id}', ['controller' => 'OAuth2', 'action' => 'clientConfiguration'])->setMethods(['GET', 'PUT', 'DELETE'])->setPass(['client_id']);
+
             // MCPプロキシ（最重要: 外部からのMCPアクセス）
             // JSON API用（.json拡張子対応）
             $builder->connect('/mcp-proxy.json', ['controller' => 'McpProxy', 'action' => 'index', '_ext' => 'json'], ['routeClass' => InflectedRoute::class]);
