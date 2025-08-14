@@ -62,7 +62,14 @@ class Oauth2Client extends Entity
     ];
 
     /**
-     * Dynamic Client Registration response payload (RFC 7591)
+     * Dynamic Client Registration response payload（RFC 7591）
+     *
+     * メモ:
+     * - client_secret は「登録時のみ」返すのが原則（再取得・更新時は返さない）。
+     * - client_secret_expires_at は有効期限がない場合 0 を返す実装もあるが、本実装では未設定時は省略。
+     * - token_endpoint_auth_method は is_confidential に応じて既定値を補完（true=client_secret_basic / false=none）。
+     * - 以下の項目は任意（クライアントメタデータ）。提供された場合のみ反映する:
+     *   contacts, client_uri, logo_uri, tos_uri, policy_uri, software_id, software_version
      *
      * @return array
      */
@@ -95,6 +102,7 @@ class Oauth2Client extends Entity
             'redirect_uris' => $this->redirect_uris ?? [],
             'grant_types' => $this->grants ?? [],
             'scope' => implode(' ', $scopes),
+            // 任意メタデータ（提供時のみ出力）
             'contacts' => $contacts,
             'client_uri' => $clientUri,
             'logo_uri' => $logoUri,
