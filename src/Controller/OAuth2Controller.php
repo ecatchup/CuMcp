@@ -293,7 +293,7 @@ class OAuth2Controller extends AppController
                 'issuer' => $issuer,
                 'authorization_endpoint' => $issuer . '/authorize',
                 'token_endpoint' => $issuer . '/token',
-                'response_types_supported' => ['code', 'token'],
+                'response_types_supported' => ['code'],
 
                 // 両方のGrantをサポート
                 'grant_types_supported' => ['authorization_code', 'client_credentials', 'refresh_token'],

@@ -59,10 +59,10 @@ class McpProxyController extends Controller
             $this->removeComponent('Csrf');
         }
 
-        // CORS設定
-        $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
-        $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // CORS設定（実態に合わせて POST と OPTIONS のみ許可）
+    $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
+    $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
 
     /**
@@ -72,8 +72,15 @@ class McpProxyController extends Controller
     {
         parent::beforeFilter($event);
 
-        // OPTIONSリクエストは認証不要
-        if ($this->request->getMethod() === 'OPTIONS') {
+        $method = $this->request->getMethod();
+
+        // OPTIONS は認証不要
+        if ($method === 'OPTIONS') {
+            return;
+        }
+
+        // 非許可メソッド（POST以外）は 405 を返すだけにしたいため認証をスキップ
+        if ($method !== 'POST') {
             return;
         }
 
@@ -120,6 +127,17 @@ class McpProxyController extends Controller
             return $this->_handleOptionsRequest();
         }
 
+        // POST以外のメソッドは許可しない
+        if ($this->request->getMethod() !== 'POST') {
+            $this->response = $this->response
+                ->withHeader('Allow', 'POST, OPTIONS')
+                ->withHeader('Access-Control-Allow-Origin', '*')
+                ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+                ->withStatus(405);
+            return $this->response;
+        }
+
         try {
             // MCPサーバーの設定を取得
             $config = $this->getMcpServerConfig();
@@ -134,7 +152,14 @@ class McpProxyController extends Controller
             // JSONボディを直接取得してMCPリクエストとしてパース
             $requestBody = file_get_contents('php://input');
 
-            if(empty($requestBody)) {
+            if (empty($requestBody)) {
+                // 空ボディは不正
+                $this->response = $this->response
+                    ->withHeader('Allow', 'POST, OPTIONS')
+                    ->withHeader('Access-Control-Allow-Origin', '*')
+                    ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+                    ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+                    ->withStatus(400);
                 return $this->response;
             }
 
@@ -154,7 +179,7 @@ class McpProxyController extends Controller
             $this->response = $this->response
                 ->withHeader('Content-Type', 'application/json')
                 ->withHeader('Access-Control-Allow-Origin', '*')
-                ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
                 ->withStringBody(json_encode($response));
@@ -213,7 +238,7 @@ class McpProxyController extends Controller
     {
         $this->response = $this->response
             ->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
             ->withHeader('Access-Control-Max-Age', '86400')
             ->withStatus(200);
