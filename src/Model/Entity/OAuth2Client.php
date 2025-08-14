@@ -3,442 +3,134 @@ declare(strict_types=1);
 
 namespace CuMcp\Model\Entity;
 
-use League\OAuth2\Server\Entities\ClientEntityInterface;
-use League\OAuth2\Server\Entities\Traits\EntityTrait;
+use Cake\ORM\Entity;
 
 /**
- * OAuth2 Client Entity
+ * Oauth2Client Entity
+ *
+ * @property int $id
+ * @property string $client_id
+ * @property string|null $client_secret
+ * @property string $name
+ * @property array $redirect_uris
+ * @property array $grants
+ * @property array $scopes
+ * @property bool $is_confidential
+ * @property string|null $registration_access_token
+ * @property \Cake\I18n\DateTime|null $created
+ * @property \Cake\I18n\DateTime|null $modified
  */
-class OAuth2Client implements ClientEntityInterface
+class Oauth2Client extends Entity
 {
-    use EntityTrait;
-
     /**
-     * クライアント名
+     * Fields that can be mass assigned using newEntity() or patchEntity().
      *
-     * @var string
+     * @var array<string, bool>
      */
-    private string $name;
+    protected array $_accessible = [
+        'client_id' => true,
+        'client_secret' => true,
+        'name' => true,
+        'redirect_uris' => true,
+        'grants' => true,
+        'scopes' => true,
+        'is_confidential' => true,
+        'registration_access_token' => true,
+        'created' => true,
+        'modified' => true,
+    ];
 
     /**
-     * リダイレクトURI
+     * Fields that should be hidden for arrays
      *
-     * @var array
+     * @var array<string>
      */
-    private array $redirectUris;
+    protected array $_hidden = [
+        'client_secret',
+        'registration_access_token',
+    ];
 
     /**
-     * 秘密キー
+     * JSON fields that should be automatically decoded
      *
-     * @var string|null
+     * @var array<string>
      */
-    private ?string $secret;
+    protected array $_jsonFields = [
+        'redirect_uris',
+        'grants',
+        'scopes',
+    ];
 
     /**
-     * 許可されたグラント
-     *
-     * @var array
-     */
-    private array $grants;
-
-    /**
-     * 許可されたスコープ
-     *
-     * @var array
-     */
-    private array $scopes;
-
-    /**
-     * クライアント登録アクセストークン
-     *
-     * @var string|null
-     */
-    private ?string $registrationAccessToken;
-
-    /**
-     * クライアント設定URI
-     *
-     * @var string|null
-     */
-    private ?string $registrationClientUri;
-
-    /**
-     * クライアント作成日時
-     *
-     * @var int|null
-     */
-    private ?int $clientIdIssuedAt;
-
-    /**
-     * クライアント秘密キー有効期限
-     *
-     * @var int|null
-     */
-    private ?int $clientSecretExpiresAt;
-
-    /**
-     * トークンエンドポイント認証方法
-     *
-     * @var string
-     */
-    private string $tokenEndpointAuthMethod;
-
-    /**
-     * 連絡先メールアドレス
-     *
-     * @var array
-     */
-    private array $contacts;
-
-    /**
-     * クライアントURI
-     *
-     * @var string|null
-     */
-    private ?string $clientUri;
-
-    /**
-     * ロゴURI
-     *
-     * @var string|null
-     */
-    private ?string $logoUri;
-
-    /**
-     * 利用規約URI
-     *
-     * @var string|null
-     */
-    private ?string $tosUri;
-
-    /**
-     * プライバシーポリシーURI
-     *
-     * @var string|null
-     */
-    private ?string $policyUri;
-
-    /**
-     * ソフトウェアID
-     *
-     * @var string|null
-     */
-    private ?string $softwareId;
-
-    /**
-     * ソフトウェアバージョン
-     *
-     * @var string|null
-     */
-    private ?string $softwareVersion;
-
-    /**
-     * コンストラクタ
-     *
-     * @param string $identifier クライアントID
-     * @param string $name クライアント名
-     * @param array $redirectUris リダイレクトURI
-     * @param string|null $secret 秘密キー
-     * @param array $grants 許可されたグラント
-     * @param array $scopes 許可されたスコープ
-     * @param string|null $registrationAccessToken 登録アクセストークン
-     * @param string|null $registrationClientUri クライアント設定URI
-     * @param int|null $clientIdIssuedAt クライアント作成日時
-     * @param int|null $clientSecretExpiresAt クライアント秘密キー有効期限
-     * @param string $tokenEndpointAuthMethod トークンエンドポイント認証方法
-     * @param array $contacts 連絡先
-     * @param string|null $clientUri クライアントURI
-     * @param string|null $logoUri ロゴURI
-     * @param string|null $tosUri 利用規約URI
-     * @param string|null $policyUri プライバシーポリシーURI
-     * @param string|null $softwareId ソフトウェアID
-     * @param string|null $softwareVersion ソフトウェアバージョン
-     */
-    public function __construct(
-        string $identifier,
-        string $name,
-        array $redirectUris = [],
-        ?string $secret = null,
-        array $grants = [],
-        array $scopes = [],
-        ?string $registrationAccessToken = null,
-        ?string $registrationClientUri = null,
-        ?int $clientIdIssuedAt = null,
-        ?int $clientSecretExpiresAt = null,
-        string $tokenEndpointAuthMethod = 'client_secret_basic',
-        array $contacts = [],
-        ?string $clientUri = null,
-        ?string $logoUri = null,
-        ?string $tosUri = null,
-        ?string $policyUri = null,
-        ?string $softwareId = null,
-        ?string $softwareVersion = null
-    ) {
-        $this->identifier = $identifier;
-        $this->name = $name;
-        $this->redirectUris = $redirectUris;
-        $this->secret = $secret;
-        $this->grants = $grants;
-        $this->scopes = $scopes;
-        $this->registrationAccessToken = $registrationAccessToken;
-        $this->registrationClientUri = $registrationClientUri;
-        $this->clientIdIssuedAt = $clientIdIssuedAt;
-        $this->clientSecretExpiresAt = $clientSecretExpiresAt;
-        $this->tokenEndpointAuthMethod = $tokenEndpointAuthMethod;
-        $this->contacts = $contacts;
-        $this->clientUri = $clientUri;
-        $this->logoUri = $logoUri;
-        $this->tosUri = $tosUri;
-        $this->policyUri = $policyUri;
-        $this->softwareId = $softwareId;
-        $this->softwareVersion = $softwareVersion;
-    }
-
-    /**
-     * クライアント名を取得
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * リダイレクトURIを取得
-     *
-     * @return array
-     */
-    public function getRedirectUri(): array
-    {
-        return $this->redirectUris;
-    }
-
-    /**
-     * 秘密キーを取得
-     *
-     * @return string|null
-     */
-    public function getSecret(): ?string
-    {
-        return $this->secret;
-    }
-
-    /**
-     * 機密クライアントかどうか
-     *
-     * @return bool
-     */
-    public function isConfidential(): bool
-    {
-        // パブリッククライアント（秘密キーがnullまたは空文字列）の場合はfalse
-        return !empty($this->secret);
-    }
-
-    /**
-     * 許可されたグラントを取得
-     *
-     * @return array
-     */
-    public function getGrants(): array
-    {
-        return $this->grants;
-    }
-
-    /**
-     * 許可されたスコープを取得
-     *
-     * @return array
-     */
-    public function getScopes(): array
-    {
-        return $this->scopes;
-    }
-
-    /**
-     * 登録アクセストークンを取得
-     *
-     * @return string|null
-     */
-    public function getRegistrationAccessToken(): ?string
-    {
-        return $this->registrationAccessToken;
-    }
-
-    /**
-     * クライアント設定URIを取得
-     *
-     * @return string|null
-     */
-    public function getRegistrationClientUri(): ?string
-    {
-        return $this->registrationClientUri;
-    }
-
-    /**
-     * クライアント作成日時を取得
-     *
-     * @return int|null
-     */
-    public function getClientIdIssuedAt(): ?int
-    {
-        return $this->clientIdIssuedAt;
-    }
-
-    /**
-     * クライアント秘密キー有効期限を取得
-     *
-     * @return int|null
-     */
-    public function getClientSecretExpiresAt(): ?int
-    {
-        return $this->clientSecretExpiresAt;
-    }
-
-    /**
-     * トークンエンドポイント認証方法を取得
-     *
-     * @return string
-     */
-    public function getTokenEndpointAuthMethod(): string
-    {
-        return $this->tokenEndpointAuthMethod;
-    }
-
-    /**
-     * 連絡先を取得
-     *
-     * @return array
-     */
-    public function getContacts(): array
-    {
-        return $this->contacts;
-    }
-
-    /**
-     * クライアントURIを取得
-     *
-     * @return string|null
-     */
-    public function getClientUri(): ?string
-    {
-        return $this->clientUri;
-    }
-
-    /**
-     * ロゴURIを取得
-     *
-     * @return string|null
-     */
-    public function getLogoUri(): ?string
-    {
-        return $this->logoUri;
-    }
-
-    /**
-     * 利用規約URIを取得
-     *
-     * @return string|null
-     */
-    public function getTosUri(): ?string
-    {
-        return $this->tosUri;
-    }
-
-    /**
-     * プライバシーポリシーURIを取得
-     *
-     * @return string|null
-     */
-    public function getPolicyUri(): ?string
-    {
-        return $this->policyUri;
-    }
-
-    /**
-     * ソフトウェアIDを取得
-     *
-     * @return string|null
-     */
-    public function getSoftwareId(): ?string
-    {
-        return $this->softwareId;
-    }
-
-    /**
-     * ソフトウェアバージョンを取得
-     *
-     * @return string|null
-     */
-    public function getSoftwareVersion(): ?string
-    {
-        return $this->softwareVersion;
-    }
-
-    /**
-     * RFC7591準拠のクライアント情報配列を取得
+     * Dynamic Client Registration response payload (RFC 7591)
      *
      * @return array
      */
     public function toRegistrationResponse(): array
     {
+        $scopes = $this->scopes ?? [];
+        // 追加の一時プロパティは存在すれば利用
+        $registrationClientUri = $this->get('registration_client_uri');
+        $tokenEndpointAuthMethod = $this->get('token_endpoint_auth_method') ?? ($this->is_confidential ? 'client_secret_basic' : 'none');
+        $clientIdIssuedAt = $this->get('client_id_issued_at') ?? ($this->created ? $this->created->getTimestamp() : null);
+        $clientSecretExpiresAt = $this->get('client_secret_expires_at');
+        $contacts = $this->get('contacts');
+        $clientUri = $this->get('client_uri');
+        $logoUri = $this->get('logo_uri');
+    $tosUri = $this->get('tos_uri');
+    $policyUri = $this->get('policy_uri');
+    $softwareId = $this->get('software_id');
+    $softwareVersion = $this->get('software_version');
+
         $response = [
-            'client_id' => $this->getIdentifier(),
-            'client_name' => $this->getName(),
-            'redirect_uris' => $this->getRedirectUri(),
-            'grant_types' => $this->getGrants(),
-            'scope' => implode(' ', $this->getScopes()),
-            'token_endpoint_auth_method' => $this->getTokenEndpointAuthMethod(),
+            'client_id' => $this->client_id,
+            // シークレットは登録時のみ返す仕様だが、ここでは保持していれば返す
+            'client_secret' => $this->client_secret ?? null,
+            'client_id_issued_at' => $clientIdIssuedAt,
+            'client_secret_expires_at' => $clientSecretExpiresAt,
+            'registration_access_token' => $this->registration_access_token ?? null,
+            'registration_client_uri' => $registrationClientUri,
+            'token_endpoint_auth_method' => $tokenEndpointAuthMethod,
+            'client_name' => $this->name,
+            'redirect_uris' => $this->redirect_uris ?? [],
+            'grant_types' => $this->grants ?? [],
+            'scope' => implode(' ', $scopes),
+            'contacts' => $contacts,
+            'client_uri' => $clientUri,
+            'logo_uri' => $logoUri,
+            'tos_uri' => $tosUri,
+            'policy_uri' => $policyUri,
+            'software_id' => $softwareId,
+            'software_version' => $softwareVersion,
         ];
 
-        if ($this->getSecret()) {
-            $response['client_secret'] = $this->getSecret();
-        }
-
-        if ($this->getRegistrationAccessToken()) {
-            $response['registration_access_token'] = $this->getRegistrationAccessToken();
-        }
-
-        if ($this->getRegistrationClientUri()) {
-            $response['registration_client_uri'] = $this->getRegistrationClientUri();
-        }
-
-        if ($this->getClientIdIssuedAt()) {
-            $response['client_id_issued_at'] = $this->getClientIdIssuedAt();
-        }
-
-        if ($this->getClientSecretExpiresAt()) {
-            $response['client_secret_expires_at'] = $this->getClientSecretExpiresAt();
-        }
-
-        if (!empty($this->getContacts())) {
-            $response['contacts'] = $this->getContacts();
-        }
-
-        if ($this->getClientUri()) {
-            $response['client_uri'] = $this->getClientUri();
-        }
-
-        if ($this->getLogoUri()) {
-            $response['logo_uri'] = $this->getLogoUri();
-        }
-
-        if ($this->getTosUri()) {
-            $response['tos_uri'] = $this->getTosUri();
-        }
-
-        if ($this->getPolicyUri()) {
-            $response['policy_uri'] = $this->getPolicyUri();
-        }
-
-        if ($this->getSoftwareId()) {
-            $response['software_id'] = $this->getSoftwareId();
-        }
-
-        if ($this->getSoftwareVersion()) {
-            $response['software_version'] = $this->getSoftwareVersion();
+        // null を含めたくないキーをフィルタ（client_secret_expires_at は null を許可）
+        foreach (['client_secret', 'registration_access_token', 'registration_client_uri', 'contacts', 'client_uri', 'logo_uri', 'tos_uri', 'policy_uri', 'software_id', 'software_version'] as $nullableKey) {
+            if ($response[$nullableKey] === null) {
+                unset($response[$nullableKey]);
+            }
         }
 
         return $response;
     }
+
+    // 旧サービス層からの呼び出しに対応するための簡易ゲッター
+    public function getName(): string { return (string)$this->name; }
+    public function getRedirectUri(): array { return (array)($this->redirect_uris ?? []); }
+    public function getGrants(): array { return (array)($this->grants ?? []); }
+    public function getScopes(): array { return (array)($this->scopes ?? []); }
+    public function getRegistrationAccessToken(): ?string { return $this->registration_access_token ?? null; }
+    public function getRegistrationClientUri(): ?string { return $this->get('registration_client_uri'); }
+    public function getClientIdIssuedAt(): ?int { return $this->get('client_id_issued_at'); }
+    public function getClientSecretExpiresAt(): ?int { return $this->get('client_secret_expires_at'); }
+    public function getTokenEndpointAuthMethod(): ?string { return $this->get('token_endpoint_auth_method'); }
+    public function getContacts(): array { return (array)($this->get('contacts') ?? []); }
+    public function getClientUri(): ?string { return $this->get('client_uri'); }
+    public function getLogoUri(): ?string { return $this->get('logo_uri'); }
+    public function getTosUri(): ?string { return $this->get('tos_uri'); }
+    public function getPolicyUri(): ?string { return $this->get('policy_uri'); }
+    public function getSoftwareId(): ?string { return $this->get('software_id'); }
+    public function getSoftwareVersion(): ?string { return $this->get('software_version'); }
+    public function getSecret(): ?string { return $this->client_secret ?? null; }
+    public function getIdentifier(): string { return (string)$this->client_id; }
 }

@@ -3,9 +3,12 @@ declare(strict_types=1);
 
 namespace CuMcp\Model\Repository;
 
-use CuMcp\Model\Entity\OAuth2Client;
+use CuMcp\Model\Entity\OAuth2ClientEntity;
+use CuMcp\Model\Table\Oauth2ClientsTable;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
+use Cake\ORM\TableRegistry;
+use Cake\Core\Configure;
 
 /**
  * OAuth2 Client Repository
@@ -13,54 +16,75 @@ use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 class OAuth2ClientRepository implements ClientRepositoryInterface
 {
     /**
-     * 設定されたクライアント情報（静的保持）
+     * Oauth2ClientsTable インスタンス
      *
-     * @var array
+     * @var \CuMcp\Model\Table\Oauth2ClientsTable
      */
-    private static array $clients = [];
+    private Oauth2ClientsTable $clientsTable;
 
     /**
      * コンストラクタ
      */
     public function __construct()
     {
+        $this->clientsTable = TableRegistry::getTableLocator()->get('CuMcp.Oauth2Clients');
+
         // 初期化時にデフォルトクライアントが存在しない場合のみ追加
-        if (empty(self::$clients)) {
-            self::$clients = [
-                'mcp-client' => [
-                    'name' => 'MCP Server Client',
-                    'secret' => 'mcp-secret-key',
-                    'redirect_uris' => ['http://localhost'],
-                    'grants' => ['client_credentials'],
-                    'scopes' => ['read', 'write']
-                ]
+        $this->ensureDefaultClientsExist();
+    }
+
+    /**
+     * デフォルトクライアントが存在することを確認し、なければ作成
+     */
+    private function ensureDefaultClientsExist(): void
+    {
+        \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Starting default client check');
+
+        $defaultClient = $this->clientsTable->findByClientId('mcp-client');
+
+        \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Default client found: ' . ($defaultClient ? 'YES' : 'NO'));
+
+        if (!$defaultClient) {
+            \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Creating default client');
+
+            // JSON型マッピングにより配列で渡せば自動的にJSONとして保存される
+            $clientData = [
+                'client_id' => 'mcp-client',
+                'client_secret' => 'mcp-secret-key',
+                'name' => 'MCP Server Client',
+                'redirect_uris' => ['http://localhost'],
+                'grants' => ['client_credentials'],
+                'scopes' => ['read', 'write'],
+                'is_confidential' => true
             ];
+
+            $client = $this->clientsTable->newEntity($clientData);
+            $result = $this->clientsTable->save($client);
+
+            \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Save result: ' . ($result ? 'SUCCESS' : 'FAILED'));
+
+            if (!$result) {
+                \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Save errors: ' . json_encode($client->getErrors()));
+            }
         }
     }
 
     /**
      * クライアントエンティティを取得
      *
+     * ClientRepositoryInterface::getClientEntity($clientIdentifier) に準拠。
+     * ここではエンティティ取得のみを行い、認証やグラントの検証は validateClient() 側で行う。
+     *
      * @param string $clientIdentifier クライアントID
-     * @param string|null $grantType グラントタイプ
-     * @param string|null $clientSecret クライアント秘密キー
-     * @param bool $mustValidateSecret 秘密キーの検証が必要かどうか
      * @return ClientEntityInterface|null
      */
-    public function getClientEntity($clientIdentifier, $grantType = null, $clientSecret = null, $mustValidateSecret = true): ?ClientEntityInterface
+    public function getClientEntity($clientIdentifier): ?ClientEntityInterface
     {
-        if (!isset(self::$clients[$clientIdentifier])) {
+        $clientData = $this->clientsTable->findByClientId($clientIdentifier);
+        if (!$clientData) {
             return null;
         }
-
-        $clientData = self::$clients[$clientIdentifier];
-
-        // グラントタイプの検証
-        if ($grantType && !in_array($grantType, $clientData['grants'] ?? [])) {
-            return null;
-        }
-
-        return $this->getClientEntityWithExtensions($clientIdentifier);
+        return $this->createClientEntity($clientData);
     }
 
     /**
@@ -73,116 +97,114 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
      */
     public function validateClient($clientIdentifier, $clientSecret, $grantType): bool
     {
-        $client = $this->getClientEntity($clientIdentifier, $grantType, null, false);
+        $clientData = $this->clientsTable->findByClientId($clientIdentifier);
+
+        if (!$clientData) {
+            return false;
+        }
+
+        // グラントタイプの検証
+        if (!in_array($grantType, $clientData->grants)) {
+            return false;
+        }
+
+        // 機密クライアントの場合、シークレットキーを検証
+        if ($clientData->is_confidential) {
+            return !empty($clientSecret) && $clientSecret === $clientData->client_secret;
+        }
+
+        // パブリッククライアントの場合は、シークレットが空であることを確認
+        return empty($clientSecret);
+    }
+
+    /**
+     * 新しいクライアントを登録（Dynamic Client Registration用）
+     *
+     * @param array $clientData クライアントデータ
+     * @return string 登録されたクライアントID
+     */
+    public function registerClient(array $clientData): string
+    {
+        $client = $this->clientsTable->newEntity($clientData);
+        $savedClient = $this->clientsTable->saveOrFail($client);
+
+        return $savedClient->client_id;
+    }
+
+    /**
+     * クライアント情報を更新（Dynamic Client Registration用）
+     *
+     * @param string $clientId クライアントID
+     * @param array $updateData 更新データ
+     * @return bool 更新成功
+     */
+    public function updateClient(string $clientId, array $updateData): bool
+    {
+        $client = $this->clientsTable->findByClientId($clientId);
 
         if (!$client) {
             return false;
         }
 
-        // パブリッククライアント（秘密キーなし）の場合は認証成功
-        if (empty(self::$clients[$clientIdentifier]['secret'])) {
-            return true;
-        }
-
-        // 機密クライアントの場合は秘密キーを検証
-        return hash_equals(self::$clients[$clientIdentifier]['secret'], $clientSecret ?? '');
+        $client = $this->clientsTable->patchEntity($client, $updateData);
+        return (bool)$this->clientsTable->save($client);
     }
 
     /**
-     * 新しいクライアントを永続化
+     * クライアントを削除（Dynamic Client Registration用）
      *
-     * @param OAuth2Client $client
-     * @return bool
+     * @param string $clientId クライアントID
+     * @return bool 削除成功
      */
-    public function persistNewClient(OAuth2Client $client): bool
+    public function deleteClient(string $clientId): bool
     {
-        self::$clients[$client->getIdentifier()] = [
-            'name' => $client->getName(),
-            'secret' => $client->getSecret(),
-            'redirect_uris' => $client->getRedirectUri(),
-            'grants' => $client->getGrants(),
-            'scopes' => $client->getScopes(),
-            'registration_access_token' => $client->getRegistrationAccessToken(),
-            'registration_client_uri' => $client->getRegistrationClientUri(),
-            'client_id_issued_at' => $client->getClientIdIssuedAt(),
-            'client_secret_expires_at' => $client->getClientSecretExpiresAt(),
-            'token_endpoint_auth_method' => $client->getTokenEndpointAuthMethod(),
-            'contacts' => $client->getContacts(),
-            'client_uri' => $client->getClientUri(),
-            'logo_uri' => $client->getLogoUri(),
-            'tos_uri' => $client->getTosUri(),
-            'policy_uri' => $client->getPolicyUri(),
-            'software_id' => $client->getSoftwareId(),
-            'software_version' => $client->getSoftwareVersion()
-        ];
+        $client = $this->clientsTable->findByClientId($clientId);
 
-        return true;
-    }
-
-    /**
-     * クライアント情報を更新
-     *
-     * @param OAuth2Client $client
-     * @return bool
-     */
-    public function updateClient(OAuth2Client $client): bool
-    {
-        if (!isset(self::$clients[$client->getIdentifier()])) {
+        if (!$client) {
             return false;
         }
 
-        return $this->persistNewClient($client);
+        return (bool)$this->clientsTable->delete($client);
     }
 
     /**
-     * クライアントを削除
+     * クライアント情報を取得（Dynamic Client Registration用）
      *
-     * @param string $clientIdentifier
-     * @return bool
+     * @param string $clientId クライアントID
+     * @return array|null クライアント情報
      */
-    public function deleteClient(string $clientIdentifier): bool
+    public function getClientInfo(string $clientId): ?array
     {
-        if (!isset(self::$clients[$clientIdentifier])) {
-            return false;
-        }
+        $client = $this->clientsTable->findByClientId($clientId);
 
-        unset(self::$clients[$clientIdentifier]);
-        return true;
-    }
-
-    /**
-     * 拡張フィールドを含むクライアントエンティティを取得
-     *
-     * @param string $clientIdentifier
-     * @return OAuth2Client|null
-     */
-    public function getClientEntityWithExtensions(string $clientIdentifier): ?OAuth2Client
-    {
-        if (!isset(self::$clients[$clientIdentifier])) {
+        if (!$client) {
             return null;
         }
 
-        $clientData = self::$clients[$clientIdentifier];
+        return [
+            'client_id' => $client->client_id,
+            'client_name' => $client->name,
+            'redirect_uris' => $client->redirect_uris,
+            'grant_types' => $client->grants,
+            'scope' => implode(' ', $client->scopes),
+            'client_id_issued_at' => $client->created ? $client->created->getTimestamp() : null,
+        ];
+    }
 
-        return new OAuth2Client(
-            $clientIdentifier,
-            $clientData['name'],
-            $clientData['redirect_uris'] ?? [],
-            $clientData['secret'] ?? null,
-            $clientData['grants'] ?? [],
-            $clientData['scopes'] ?? [],
-            $clientData['registration_access_token'] ?? null,
-            $clientData['registration_client_uri'] ?? null,
-            $clientData['client_id_issued_at'] ?? null,
-            $clientData['client_secret_expires_at'] ?? null,
-            $clientData['token_endpoint_auth_method'] ?? 'client_secret_basic',
-            $clientData['contacts'] ?? [],
-            $clientData['client_uri'] ?? null,
-            $clientData['logo_uri'] ?? null,
-            $clientData['tos_uri'] ?? null,
-            $clientData['policy_uri'] ?? null,
-            $clientData['software_id'] ?? null,
-            $clientData['software_version'] ?? null
-        );
+    /**
+     * OAuth2Clientエンティティを作成
+     *
+     * @param \CuMcp\Model\Entity\Oauth2Client $clientData
+     * @return ClientEntityInterface
+     */
+    private function createClientEntity(\CuMcp\Model\Entity\Oauth2Client $clientData): ClientEntityInterface
+    {
+        $client = new OAuth2ClientEntity();
+        $client->setIdentifier($clientData->client_id);
+        $client->setName($clientData->name);
+        $client->setRedirectUri($clientData->redirect_uris);
+        $client->setIsConfidential($clientData->is_confidential);
+
+        return $client;
     }
 }

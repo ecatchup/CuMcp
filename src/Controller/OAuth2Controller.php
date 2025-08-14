@@ -9,7 +9,10 @@ use CuMcp\Service\OAuth2ClientRegistrationService;
 use CuMcp\Model\Repository\OAuth2ClientRepository;
 use Cake\Http\Response;
 use Nyholm\Psr7\Response as Psr7Response;
+use Nyholm\Psr7\ServerRequest;
+use Nyholm\Psr7\Stream;
 use Exception;
+use League\OAuth2\Server\Exception\OAuthServerException;
 
 /**
  * OAuth2 Controller
@@ -71,85 +74,48 @@ class OAuth2Controller extends AppController
     public function token(): Response
     {
         try {
-            // CakePHPのリクエストからPSR-7リクエストに変換
-            $cakeRequest = $this->request;
-            $body = $cakeRequest->getBody()->getContents();
+            // PSR-7リクエストを作成
+            $psrRequest = $this->createPsr7Request();
 
-            // ヘッダーを取得
-            $headers = $cakeRequest->getHeaders();
+            // OAuth2サーバーでアクセストークンリクエストを処理
+            $psrResponse = $this->oauth2Service->getAuthorizationServer()
+                ->respondToAccessTokenRequest($psrRequest, new Psr7Response());
 
-            // POST データを取得
-            $postData = [];
-            if ($cakeRequest->is('post')) {
-                $postData = $cakeRequest->getData();
+            // PSR-7レスポンスをCakePHPレスポンスに変換
+            // 一部のPSR-7実装では、書き込み後にストリームポインタが末尾にあるため、
+            // getContents() が空文字を返すのを防ぐために rewind してから取得する
+            $psrBody = $psrResponse->getBody();
+            if ($psrBody->isSeekable()) {
+                $psrBody->rewind();
+            }
+            $bodyString = $psrBody->getContents();
 
-                // クライアント認証情報がリクエストボディに含まれている場合、HTTP Basic認証ヘッダーに変換
-                if (isset($postData['client_id']) && isset($postData['client_secret'])) {
-                    $credentials = base64_encode($postData['client_id'] . ':' . $postData['client_secret']);
-                    $headers['Authorization'] = ['Basic ' . $credentials];
+            return $this->response
+                ->withStatus($psrResponse->getStatusCode())
+                ->withType('application/json')
+                ->withStringBody($bodyString);
+        } catch (OAuthServerException $exception) {
+            // OAuth2の仕様に沿ったエラーレスポンスを返す
+            $errorPsrResponse = $exception->generateHttpResponse(new Psr7Response());
+            $errorBody = $errorPsrResponse->getBody();
+            if ($errorBody->isSeekable()) {
+                $errorBody->rewind();
+            }
+            $errorString = $errorBody->getContents();
 
-                    // リクエストボディからクライアント認証情報を削除
-                    unset($postData['client_secret']);
+            $cakeResponse = $this->response
+                ->withStatus($errorPsrResponse->getStatusCode())
+                ->withType('application/json')
+                ->withStringBody($errorString);
+
+            // 必要に応じてヘッダーも反映（例: WWW-Authenticate）
+            foreach ($errorPsrResponse->getHeaders() as $name => $values) {
+                foreach ($values as $value) {
+                    $cakeResponse = $cakeResponse->withHeader($name, $value);
                 }
             }
 
-            // PSR-7リクエストを作成
-            $request = new \Nyholm\Psr7\ServerRequest(
-                $cakeRequest->getMethod(),
-                $cakeRequest->getUri()->__toString(),
-                $headers,
-                $body
-            );
-
-            // POST データを設定
-            if ($cakeRequest->is('post')) {
-                $request = $request->withParsedBody($postData);
-            }
-
-            // PSR-7レスポンスを作成
-            $psrResponse = new Psr7Response();
-
-            // OAuth2サーバーでトークンを発行
-            $authServer = $this->oauth2Service->getAuthorizationServer();
-            $psrResponse = $authServer->respondToAccessTokenRequest($request, $psrResponse);
-
-            // CakePHPレスポンスに変換
-            $this->response = $this->response->withStatus($psrResponse->getStatusCode());
-
-            foreach ($psrResponse->getHeaders() as $name => $values) {
-                $this->response = $this->response->withHeader($name, implode(', ', $values));
-            }
-
-            // ストリームを巻き戻してから内容を取得
-            $responseStream = $psrResponse->getBody();
-            $responseStream->rewind();
-            $responseBody = $responseStream->getContents();
-
-            $this->response = $this->response->withStringBody($responseBody);
-
-            return $this->response;
-
-        } catch (\League\OAuth2\Server\Exception\OAuthServerException $exception) {
-            // OAuth2エラーレスポンス
-            $psrResponse = new Psr7Response();
-            $psrResponse = $exception->generateHttpResponse($psrResponse);
-
-            // ストリームを巻き戻してから内容を取得
-            $errorStream = $psrResponse->getBody();
-            $errorStream->rewind();
-            $errorBody = $errorStream->getContents();
-
-            $this->response = $this->response->withStatus($psrResponse->getStatusCode());
-            $this->response = $this->response->withType('application/json');
-
-            foreach ($psrResponse->getHeaders() as $name => $values) {
-                $this->response = $this->response->withHeader($name, implode(', ', $values));
-            }
-
-            $this->response = $this->response->withStringBody($errorBody);
-
-            return $this->response;
-
+            return $cakeResponse;
         } catch (\Exception $exception) {
             // 一般的なエラーレスポンス
             return $this->response
@@ -162,6 +128,7 @@ class OAuth2Controller extends AppController
                 ]));
         }
     }
+
 
     /**
      * トークン検証エンドポイント
@@ -528,7 +495,7 @@ class OAuth2Controller extends AppController
 
             // CakePHPは自動的にJSONデータをパースしてgetData()で取得可能
             $requestData = $this->request->getData();
-            
+
             // データが空の場合のみ、手動でJSONパースを実行
             if (empty($requestData) && strpos($contentType, 'application/json') !== false) {
                 $body = $this->request->getBody()->getContents();
@@ -618,7 +585,7 @@ class OAuth2Controller extends AppController
                 // クライアント情報の更新
                 // CakePHPは自動的にJSONデータをパースしてgetData()で取得可能
                 $requestData = $this->request->getData();
-                
+
                 // データが空の場合のみ、手動でJSONパースを実行
                 $contentType = $this->request->getHeaderLine('Content-Type');
                 if (empty($requestData) && strpos($contentType, 'application/json') !== false) {
@@ -736,5 +703,72 @@ class OAuth2Controller extends AppController
                     'debug_message' => $exception->getMessage()
                 ]));
         }
+    }
+
+    /**
+     * CakePHPリクエストをPSR-7リクエストに変換
+     *
+     * @return \Psr\Http\Message\ServerRequestInterface
+     */
+    private function createPsr7Request(): \Psr\Http\Message\ServerRequestInterface
+    {
+        // 環境変数からサイトURLを取得
+        $siteUrl = env('SITE_URL', 'https://localhost');
+        $uri = $siteUrl . $this->request->getRequestTarget();
+
+        // ヘッダーを取得
+        $headers = [];
+        foreach ($this->request->getHeaders() as $name => $values) {
+            $headers[$name] = $values;
+        }
+
+        // client_credentials認証のためにAuthorizationヘッダーを処理
+        if ($this->request->is('post')) {
+            $postData = $this->request->getData();
+
+            // POSTデータにclient_idとclient_secretがある場合、Basic認証ヘッダーに変換
+            if (isset($postData['client_id']) && isset($postData['client_secret'])) {
+                $credentials = base64_encode($postData['client_id'] . ':' . $postData['client_secret']);
+                $headers['Authorization'] = ['Basic ' . $credentials];
+
+                // client_secretをPOSTデータから除去（OAuth2ライブラリがAuthorizationヘッダーから取得するため）
+                unset($postData['client_secret']);
+            }
+        }
+
+        // ボディコンテンツを取得
+        $body = Stream::create('');
+        if ($this->request->is('post')) {
+            $postData = $this->request->getData();
+
+            // client_secretが除去された後のPOSTデータを使用
+            if (!empty($postData)) {
+                $bodyContent = http_build_query($postData);
+                $body = Stream::create($bodyContent);
+                $headers['Content-Type'] = ['application/x-www-form-urlencoded'];
+            }
+        }
+
+        // PSR-7リクエストを作成
+        $psrRequest = new ServerRequest(
+            $this->request->getMethod(),
+            $uri,
+            $headers,
+            $body
+        );
+
+        // POSTデータをparsedBodyとして設定
+        if ($this->request->is('post')) {
+            $postData = $this->request->getData();
+
+            // client_secretを除去したデータを設定
+            if (isset($postData['client_secret'])) {
+                unset($postData['client_secret']);
+            }
+
+            $psrRequest = $psrRequest->withParsedBody($postData);
+        }
+
+        return $psrRequest;
     }
 }
