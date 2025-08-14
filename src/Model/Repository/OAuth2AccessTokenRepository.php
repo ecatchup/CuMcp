@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Model\Repository;
 
-use CuMcp\Model\Entity\OAuth2AccessToken;
+use CuMcp\OAuth2\Entity\AccessToken as OAuth2AccessToken;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;

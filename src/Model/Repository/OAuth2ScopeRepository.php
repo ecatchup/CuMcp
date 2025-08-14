@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Model\Repository;
 
-use CuMcp\Model\Entity\OAuth2Scope;
+use CuMcp\OAuth2\Entity\Scope;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\ScopeEntityInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
@@ -45,7 +45,7 @@ class OAuth2ScopeRepository implements ScopeRepositoryInterface
             return null;
         }
 
-        return new OAuth2Scope($identifier, $this->scopes[$identifier]);
+        return new Scope($identifier, $this->scopes[$identifier]);
     }
 
     /**

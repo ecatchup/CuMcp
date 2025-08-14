@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace CuMcp\Model\Entity;
+namespace CuMcp\OAuth2\Entity;
 
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\RefreshTokenTrait;
 
 /**
- * OAuth2 Refresh Token Entity
+ * OAuth2 Refresh Token (Protocol layer)
  */
-class OAuth2RefreshToken implements RefreshTokenEntityInterface
+class RefreshToken implements RefreshTokenEntityInterface
 {
     use RefreshTokenTrait, EntityTrait;
 }

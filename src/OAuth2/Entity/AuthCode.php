@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace CuMcp\Model\Entity;
+namespace CuMcp\OAuth2\Entity;
 
 use League\OAuth2\Server\Entities\AuthCodeEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
@@ -11,35 +11,20 @@ use League\OAuth2\Server\Entities\Traits\EntityTrait;
 use League\OAuth2\Server\Entities\Traits\TokenEntityTrait;
 
 /**
- * OAuth2 Authorization Code Entity
+ * OAuth2 Authorization Code (Protocol layer)
  */
-class OAuth2AuthCode implements AuthCodeEntityInterface
+class AuthCode implements AuthCodeEntityInterface
 {
     use AuthCodeTrait, EntityTrait, TokenEntityTrait;
 
-    /**
-     * リダイレクトURI
-     *
-     * @var string
-     */
+    /** @var string */
     protected string $redirectUri;
 
-    /**
-     * リダイレクトURIを取得
-     *
-     * @return string
-     */
     public function getRedirectUri(): string
     {
         return $this->redirectUri;
     }
 
-    /**
-     * リダイレクトURIを設定
-     *
-     * @param string $uri
-     * @return void
-     */
     public function setRedirectUri(string $uri): void
     {
         $this->redirectUri = $uri;

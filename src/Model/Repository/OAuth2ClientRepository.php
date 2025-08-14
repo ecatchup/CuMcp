@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace CuMcp\Model\Repository;
 
-use CuMcp\Model\Entity\OAuth2ClientEntity;
 use CuMcp\Model\Table\Oauth2ClientsTable;
+use CuMcp\OAuth2\Entity\Client;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use Cake\ORM\TableRegistry;
@@ -199,7 +199,7 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
      */
     private function createClientEntity(\CuMcp\Model\Entity\Oauth2Client $clientData): ClientEntityInterface
     {
-        $client = new OAuth2ClientEntity();
+        $client = new Client();
         $client->setIdentifier($clientData->client_id);
         $client->setName($clientData->name);
         $client->setRedirectUri($clientData->redirect_uris);
