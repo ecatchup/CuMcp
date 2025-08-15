@@ -249,7 +249,7 @@ class OAuth2Controller extends AppController
             $baseUrl = rtrim($siteUrl, '/');
 
             $metadata = [
-                'resource' => $baseUrl . '/cu-mcp',
+                'resource' => $baseUrl . '/cu-mcp/mcp-proxy.json',
                 'authorization_servers' => [
                     $baseUrl . '/cu-mcp/oauth2'
                 ],
@@ -307,7 +307,9 @@ class OAuth2Controller extends AppController
                 // Authorization Code Grant関連
                 'code_challenge_methods_supported' => ['plain', 'S256'],
                 'revocation_endpoint' => $issuer . '/revoke',
-                'revocation_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post']
+                'revocation_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
+
+                'registration_endpoint' => $issuer . '/register'
             ];
 
             return $this->response
@@ -653,54 +655,6 @@ class OAuth2Controller extends AppController
                 ->withStringBody(json_encode([
                     'error' => 'invalid_client_metadata',
                     'error_description' => $exception->getMessage()
-                ]));
-        }
-    }
-
-    /**
-     * クライアント登録メタデータエンドポイント (RFC 7591)
-     * GET /cu-mcp/oauth2/register
-     *
-     * @return Response
-     */
-    public function registrationMetadata(): Response
-    {
-        try {
-            // 環境変数からサイトURLを取得
-            $siteUrl = env('SITE_URL', 'https://localhost');
-            $baseUrl = rtrim($siteUrl, '/');
-
-            $metadata = [
-                'registration_endpoint' => $baseUrl . '/cu-mcp/oauth2/register',
-                'client_configuration_endpoint' => $baseUrl . '/cu-mcp/oauth2/register/{client_id}',
-                'grant_types_supported' => ['authorization_code', 'client_credentials', 'refresh_token'],
-                'response_types_supported' => ['code'],
-                'token_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post', 'none'],
-                'scopes_supported' => ['read', 'write', 'admin'],
-                'subject_types_supported' => ['public'],
-                'id_token_signing_alg_values_supported' => ['RS256'],
-                'request_uri_parameter_supported' => false,
-                'require_request_uri_registration' => false,
-                'claims_parameter_supported' => false,
-                'revocation_endpoint' => $baseUrl . '/cu-mcp/oauth2/revoke',
-                'revocation_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
-                'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
-                'introspection_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
-                'code_challenge_methods_supported' => ['plain', 'S256']
-            ];
-
-            return $this->response
-                ->withType('application/json')
-                ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
-
-        } catch (\Exception $exception) {
-            return $this->response
-                ->withStatus(500)
-                ->withType('application/json')
-                ->withStringBody(json_encode([
-                    'error' => 'server_error',
-                    'error_description' => 'Failed to generate registration metadata.',
-                    'debug_message' => $exception->getMessage()
                 ]));
         }
     }

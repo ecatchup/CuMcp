@@ -5,7 +5,7 @@ namespace CuMcp\Test\TestCase\Service;
 
 use Cake\TestSuite\TestCase;
 use Cake\Core\Configure;
-use CuMcp\Service\OAuth2Service;
+use CuMcp\OAuth2\Service\OAuth2Service;
 
 /**
  * OAuth2Service Test Case
@@ -25,7 +25,7 @@ class OAuth2ServiceTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         // OAuth2設定をセットアップ
         Configure::write('CuMcp.OAuth2.clients', [
             'test-client' => [
@@ -36,12 +36,12 @@ class OAuth2ServiceTest extends TestCase
                 'scopes' => ['read', 'write']
             ]
         ]);
-        
+
         Configure::write('CuMcp.OAuth2.scopes', [
             'read' => 'データの読み取り',
             'write' => 'データの書き込み'
         ]);
-        
+
         $this->oauth2Service = new OAuth2Service();
     }
 

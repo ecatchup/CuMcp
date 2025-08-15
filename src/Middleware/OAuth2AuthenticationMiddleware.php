@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Middleware;
 
-use CuMcp\Service\OAuth2Service;
+use CuMcp\OAuth2\Service\OAuth2Service;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;

@@ -98,14 +98,14 @@ class McpProxyController extends Controller
         $authHeader = $this->request->getHeaderLine('Authorization');
 
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            throw new UnauthorizedException('Missing or invalid authorization header');
+            $this->throwUnauthorizedException('Missing or invalid authorization header');
         }
 
         $token = substr($authHeader, 7);
         $tokenData = $this->oauth2Service->validateAccessToken($token);
 
         if (!$tokenData) {
-            throw new UnauthorizedException('Invalid or expired access token');
+            $this->throwUnauthorizedException('Invalid or expired access token');
         }
 
         // トークン情報をリクエストに保存
@@ -113,6 +113,17 @@ class McpProxyController extends Controller
             ->withAttribute('oauth_client_id', $tokenData['client_id'])
             ->withAttribute('oauth_user_id', $tokenData['user_id'])
             ->withAttribute('oauth_scopes', $tokenData['scopes']);
+    }
+
+    private function throwUnauthorizedException(string $message): void
+    {
+        $siteUrl = env('SITE_URL', 'https://localhost');
+        $baseUrl = rtrim($siteUrl, '/');
+        $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource';
+
+        $e = new UnauthorizedException($message);
+        $e->setHeader('WWW-Authenticate', 'Bearer resource_metadata="' . $resourceMetadataUrl . '"');
+        throw $e;
     }
 
     /**

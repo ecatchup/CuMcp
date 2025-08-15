@@ -47,6 +47,19 @@ class CuMcpPlugin extends BcPlugin
      */
     public function routes(RouteBuilder $routes): void
     {
+        // .well-known エンドポイントをルートレベルで設定
+        $routes->scope('/', function (RouteBuilder $builder) {
+            $builder->setRouteClass(InflectedRoute::class);
+
+            // OAuth 2.0 保護リソースメタデータエンドポイント (RFC 9728)
+            $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
+
+            // OAuth 2.0 認可サーバーメタデータエンドポイント (RFC 8414)
+            $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
+        });
+
         $routes->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $builder) {
             $builder->setRouteClass(InflectedRoute::class);
 
@@ -65,22 +78,10 @@ class CuMcpPlugin extends BcPlugin
             $builder->connect('/oauth2/client-info', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/oauth2/client-info', ['controller' => 'OAuth2', 'action' => 'clientInfo'])->setMethods(['GET']);
 
-            // OAuth 2.0 保護リソースメタデータエンドポイント (RFC 9728)
-            $builder->connect('/.well-known/oauth-protected-resource', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/.well-known/oauth-protected-resource', ['controller' => 'OAuth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
-
-            // OAuth 2.0 認可サーバーメタデータエンドポイント (RFC 8414)
-            $builder->connect('/.well-known/oauth-authorization-server', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/.well-known/oauth-authorization-server', ['controller' => 'OAuth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
-
             // RFC 7591 動的クライアント登録プロトコル
-            // クライアント登録メタデータエンドポイント
-            $builder->connect('/oauth2/register', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/oauth2/register', ['controller' => 'OAuth2', 'action' => 'registrationMetadata'])->setMethods(['GET']);
-            
             // 動的クライアント登録エンドポイント
             $builder->connect('/oauth2/register', ['controller' => 'OAuth2', 'action' => 'register'])->setMethods(['POST']);
-            
+
             // クライアント設定エンドポイント（RFC 7591）
             $builder->connect('/oauth2/register/{client_id}', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS'])->setPass(['client_id']);
             $builder->connect('/oauth2/register/{client_id}', ['controller' => 'OAuth2', 'action' => 'clientConfiguration'])->setMethods(['GET', 'PUT', 'DELETE'])->setPass(['client_id']);
