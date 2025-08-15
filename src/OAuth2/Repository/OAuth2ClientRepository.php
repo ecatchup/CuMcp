@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace CuMcp\Model\Repository;
+namespace CuMcp\OAuth2\Repository;
 
 use CuMcp\Model\Table\Oauth2ClientsTable;
 use CuMcp\OAuth2\Entity\Client;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use Cake\ORM\TableRegistry;
-use Cake\Core\Configure;
 
 /**
  * OAuth2 Client Repository
@@ -104,7 +103,7 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
         }
 
         // グラントタイプの検証
-        if (!in_array($grantType, $clientData->grants)) {
+        if ($grantType !== null && !in_array($grantType, $clientData->grants)) {
             return false;
         }
 

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace CuMcp\Test\TestCase\Service;
 
-use CuMcp\Service\OAuth2ClientRegistrationService;
-use CuMcp\Model\Repository\OAuth2ClientRepository;
+use CuMcp\OAuth2\Service\OAuth2ClientRegistrationService;
+use CuMcp\OAuth2\Repository\OAuth2ClientRepository;
 use Cake\TestSuite\TestCase;
 
 /**

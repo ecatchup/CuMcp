@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace CuMcp\Model\Repository;
+namespace CuMcp\OAuth2\Repository;
 
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface;
 use League\OAuth2\Server\Repositories\UserRepositoryInterface;
-use CuMcp\Model\Entity\OAuth2User;
+use CuMcp\OAuth2\Entity\User as OAuth2User;
 
 /**
  * OAuth2 User Repository

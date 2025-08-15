@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace CuMcp\Model\Repository;
+namespace CuMcp\OAuth2\Repository;
 
 use CuMcp\OAuth2\Entity\AccessToken as OAuth2AccessToken;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;

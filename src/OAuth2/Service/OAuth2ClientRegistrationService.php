@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace CuMcp\Service;
+namespace CuMcp\OAuth2\Service;
 
 use CuMcp\Model\Entity\Oauth2Client;
-use CuMcp\Model\Repository\OAuth2ClientRepository;
+use CuMcp\OAuth2\Repository\OAuth2ClientRepository;
 use Exception;
 use Cake\ORM\TableRegistry;
 
@@ -127,26 +127,23 @@ class OAuth2ClientRegistrationService
             'registration_access_token' => $registrationAccessToken,
         ];
 
-    // クライアントを保存（Repository経由）
-    $this->clientRepository->registerClient($clientData);
+        // クライアントを保存（Repository経由）
+        $this->clientRepository->registerClient($clientData);
 
+        // フォールバック用にもメモリへ保持
+        self::$registrationTokenMap[$clientId] = $registrationAccessToken;
 
-    // フォールバック用にもメモリへ保持
-    self::$registrationTokenMap[$clientId] = $registrationAccessToken;
-
-    // 保存したエンティティを取得して返す
+        // 保存したエンティティを取得して返す
         /** @var \CuMcp\Model\Table\Oauth2ClientsTable $table */
         $table = TableRegistry::getTableLocator()->get('CuMcp.Oauth2Clients');
         /** @var Oauth2Client $saved */
         $saved = $table->findByClientId($clientId);
 
-        // 発行時刻など、レスポンス用の一時情報をエンティティに保持（仮想用途）
-        // ここではプロパティとして動的に付与しておき、toRegistrationResponse() で利用する
+        // 発行時刻など、レスポンス用の一時情報をエンティティに保持
         $saved->set('registration_client_uri', $registrationClientUri);
         $saved->set('token_endpoint_auth_method', $tokenEndpointAuthMethod);
         $saved->set('client_id_issued_at', $issuedAt);
         $saved->set('client_secret_expires_at', $secretExpiresAt);
-        // DBに保存しない/保存できない可能性のある値もレスポンス用に付与
         $saved->set('registration_access_token', $registrationAccessToken);
         if ($clientSecret) {
             $saved->set('client_secret', $clientSecret);
@@ -176,13 +173,6 @@ class OAuth2ClientRegistrationService
         return $saved;
     }
 
-    /**
-     * クライアント情報の取得
-     *
-     * @param string $clientId クライアントID
-     * @param string $registrationAccessToken 登録アクセストークン
-     * @return Oauth2Client|null
-     */
     public function getClient(string $clientId, string $registrationAccessToken): ?Oauth2Client
     {
         /** @var \CuMcp\Model\Table\Oauth2ClientsTable $table */
@@ -202,7 +192,6 @@ class OAuth2ClientRegistrationService
             return null;
         }
 
-        // 応答用の補助プロパティを設定
         $siteUrl = rtrim(env('SITE_URL', 'https://localhost'), '/');
         $client->set('registration_client_uri', $siteUrl . '/cu-mcp/oauth2/register/' . $clientId);
         $client->set('token_endpoint_auth_method', $client->is_confidential ? 'client_secret_basic' : 'none');
@@ -212,15 +201,6 @@ class OAuth2ClientRegistrationService
         return $client;
     }
 
-    /**
-     * クライアント情報の更新
-     *
-     * @param string $clientId クライアントID
-     * @param string $registrationAccessToken 登録アクセストークン
-     * @param array $requestData 更新データ
-     * @return Oauth2Client|null
-     * @throws Exception
-     */
     public function updateClient(string $clientId, string $registrationAccessToken, array $requestData): ?Oauth2Client
     {
         /** @var \CuMcp\Model\Table\Oauth2ClientsTable $table */
@@ -240,10 +220,8 @@ class OAuth2ClientRegistrationService
             return null;
         }
 
-        // リクエストデータの検証
         $this->validateRegistrationRequest($requestData);
 
-        // 更新データへマッピング
         $update = [];
         if (array_key_exists('client_name', $requestData)) {
             $update['name'] = $requestData['client_name'];
@@ -266,7 +244,6 @@ class OAuth2ClientRegistrationService
             $table->saveOrFail($client);
         }
 
-        // 応答用の補助プロパティを設定
         $siteUrl = rtrim(env('SITE_URL', 'https://localhost'), '/');
         $client->set('registration_client_uri', $siteUrl . '/cu-mcp/oauth2/register/' . $clientId);
         $client->set('token_endpoint_auth_method', $client->is_confidential ? 'client_secret_basic' : 'none');
@@ -276,38 +253,21 @@ class OAuth2ClientRegistrationService
         return $client;
     }
 
-    /**
-     * クライアントの削除
-     *
-     * @param string $clientId クライアントID
-     * @param string $registrationAccessToken 登録アクセストークン
-     * @return bool
-     */
     public function deleteClient(string $clientId, string $registrationAccessToken): bool
     {
         $client = $this->getClient($clientId, $registrationAccessToken);
-
         if (!$client) {
             return false;
         }
-
         return $this->clientRepository->deleteClient($clientId);
     }
 
-    /**
-     * 登録リクエストの検証
-     *
-     * @param array $requestData
-     * @throws Exception
-     */
     private function validateRegistrationRequest(array $requestData): void
     {
-        // リダイレクトURIの検証
         if (isset($requestData['redirect_uris'])) {
             if (!is_array($requestData['redirect_uris'])) {
                 throw new Exception('redirect_uris must be an array');
             }
-
             foreach ($requestData['redirect_uris'] as $uri) {
                 if (!filter_var($uri, FILTER_VALIDATE_URL)) {
                     throw new Exception('Invalid redirect_uri: ' . $uri);
@@ -315,12 +275,10 @@ class OAuth2ClientRegistrationService
             }
         }
 
-        // グラントタイプの検証
         if (isset($requestData['grant_types'])) {
             if (!is_array($requestData['grant_types'])) {
                 throw new Exception('grant_types must be an array');
             }
-
             foreach ($requestData['grant_types'] as $grantType) {
                 if (!in_array($grantType, $this->supportedGrantTypes)) {
                     throw new Exception('Unsupported grant_type: ' . $grantType);
@@ -328,12 +286,10 @@ class OAuth2ClientRegistrationService
             }
         }
 
-        // レスポンスタイプの検証
         if (isset($requestData['response_types'])) {
             if (!is_array($requestData['response_types'])) {
                 throw new Exception('response_types must be an array');
             }
-
             foreach ($requestData['response_types'] as $responseType) {
                 if (!in_array($responseType, $this->supportedResponseTypes)) {
                     throw new Exception('Unsupported response_type: ' . $responseType);
@@ -341,14 +297,12 @@ class OAuth2ClientRegistrationService
             }
         }
 
-        // トークンエンドポイント認証方法の検証
         if (isset($requestData['token_endpoint_auth_method'])) {
             if (!in_array($requestData['token_endpoint_auth_method'], $this->supportedAuthMethods)) {
                 throw new Exception('Unsupported token_endpoint_auth_method: ' . $requestData['token_endpoint_auth_method']);
             }
         }
 
-        // スコープの検証
         if (isset($requestData['scope'])) {
             $scopes = $this->parseScopes($requestData['scope']);
             foreach ($scopes as $scope) {
@@ -359,46 +313,24 @@ class OAuth2ClientRegistrationService
         }
     }
 
-    /**
-     * スコープ文字列をパース
-     *
-     * @param string $scopeString
-     * @return array
-     */
     private function parseScopes(string $scopeString): array
     {
         if (empty($scopeString)) {
             return [];
         }
-
         return array_filter(explode(' ', $scopeString));
     }
 
-    /**
-     * クライアントIDを生成
-     *
-     * @return string
-     */
     private function generateClientId(): string
     {
         return 'client_' . bin2hex(random_bytes(16));
     }
 
-    /**
-     * クライアントシークレットを生成
-     *
-     * @return string
-     */
     private function generateClientSecret(): string
     {
         return bin2hex(random_bytes(32));
     }
 
-    /**
-     * 登録アクセストークンを生成
-     *
-     * @return string
-     */
     private function generateRegistrationAccessToken(): string
     {
         return 'reg_' . bin2hex(random_bytes(32));

@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace CuMcp\Model\Repository;
+namespace CuMcp\OAuth2\Repository;
 
 use League\OAuth2\Server\Entities\RefreshTokenEntityInterface;
 use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
-use CuMcp\Model\Entity\OAuth2RefreshToken;
+use CuMcp\OAuth2\Entity\RefreshToken as OAuth2RefreshToken;
 
 /**
  * OAuth2 Refresh Token Repository

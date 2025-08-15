@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace CuMcp\Controller;
 
 use App\Controller\AppController;
-use CuMcp\Service\OAuth2Service;
-use CuMcp\Service\OAuth2ClientRegistrationService;
-use CuMcp\Model\Repository\OAuth2ClientRepository;
+use CuMcp\OAuth2\Service\OAuth2Service;
+use CuMcp\OAuth2\Service\OAuth2ClientRegistrationService;
+use CuMcp\OAuth2\Repository\OAuth2ClientRepository;
 use Cake\Http\Response;
 use Nyholm\Psr7\Response as Psr7Response;
 use Nyholm\Psr7\ServerRequest;
@@ -380,7 +380,7 @@ class OAuth2Controller extends AppController
             }
 
             // クライアントの妥当性をチェック
-            $clientRepository = new \CuMcp\Model\Repository\OAuth2ClientRepository();
+            $clientRepository = new \CuMcp\OAuth2\Repository\OAuth2ClientRepository();
             $client = $clientRepository->getClientEntity($clientId);
 
             if (!$client || !$clientRepository->validateClient($clientId, null, null)) {

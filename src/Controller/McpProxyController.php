@@ -18,7 +18,7 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
 use Cake\Http\Exception\UnauthorizedException;
 use Cake\Event\EventInterface;
-use CuMcp\Service\OAuth2Service;
+use CuMcp\OAuth2\Service\OAuth2Service;
 
 /**
  * MCPサーバーへのプロキシコントローラー
@@ -59,10 +59,10 @@ class McpProxyController extends Controller
             $this->removeComponent('Csrf');
         }
 
-    // CORS設定（実態に合わせて POST と OPTIONS のみ許可）
-    $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
-    $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        // CORS設定（実態に合わせて POST と OPTIONS のみ許可）
+        $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
 
     /**
@@ -219,9 +219,9 @@ class McpProxyController extends Controller
 
             if (!$responseData) {
                 return [
-                	"jsonrpc" => "2.0",
-  					"result" => []
-				];
+                    "jsonrpc" => "2.0",
+                    "result" => []
+                ];
             }
 
             return $responseData;
@@ -253,7 +253,9 @@ class McpProxyController extends Controller
     public function options()
     {
         return $this->_handleOptionsRequest();
-    }    /**
+    }
+
+    /**
      * MCPサーバーの設定を取得
      */
     private function getMcpServerConfig(): array
@@ -267,7 +269,7 @@ class McpProxyController extends Controller
 
         if (file_exists($configFile)) {
             $savedConfig = json_decode(file_get_contents($configFile), true);
-            return array_merge($defaultConfig, $savedConfig ?: []);
+            return array_merge($defaultConfig, $savedConfig?: []);
         }
 
         return $defaultConfig;
