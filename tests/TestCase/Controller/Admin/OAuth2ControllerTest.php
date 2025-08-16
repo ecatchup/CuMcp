@@ -148,7 +148,7 @@ class OAuth2ControllerTest extends BcTestCase
             'client_name' => 'Test Client',
             'client_uri' => 'http://localhost',
             'redirect_uris' => ['http://localhost/callback'],
-            'grant_types' => ['client_credentials'],
+            'grant_types' => ['authorization_code'],
             'response_types' => ['code'],
             'scope' => 'read write'
         ]);
@@ -176,6 +176,7 @@ class OAuth2ControllerTest extends BcTestCase
 
         // 認可承認
         $this->post('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query([
+            'grant_type' => 'authorization_code',
             'client_id' => $metadata['client_id'],
             'client_secret' => $metadata['client_secret'],
             'response_type' => 'code',
@@ -192,7 +193,9 @@ class OAuth2ControllerTest extends BcTestCase
 
         // 認可コードを使用してアクセストークンを取得
         $this->post('/cu-mcp/oauth2/token', [
-            'grant_type' => 'client_credentials',
+            'grant_type' => 'authorization_code',
+            'code' => $authCode,
+            'redirect_uri' => $metadata['redirect_uris'][0],
             'client_id' => $metadata['client_id'],
             'client_secret' => $metadata['client_secret'],
             'scope' => 'read write'

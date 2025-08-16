@@ -18,14 +18,14 @@ class AuthCode implements AuthCodeEntityInterface
     use AuthCodeTrait, EntityTrait, TokenEntityTrait;
 
     /** @var string */
-    protected string $redirectUri;
+    protected $redirectUri;
 
     public function getRedirectUri(): string
     {
         return $this->redirectUri;
     }
 
-    public function setRedirectUri(string $uri): void
+    public function setRedirectUri($uri): void
     {
         $this->redirectUri = $uri;
     }
