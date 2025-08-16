@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace CuMcp\Controller\Admin;
 
 use BaserCore\Controller\Admin\BcAdminAppController;
+use CuMcp\Lib\OAuth2Util;
+use CuMcp\OAuth2\Entity\User;
 use CuMcp\OAuth2\Service\OAuth2Service;
 use CuMcp\OAuth2\Repository\OAuth2ClientRepository;
 use Cake\Http\Response;
@@ -55,10 +57,10 @@ class OAuth2Controller extends BcAdminAppController
      * Authorization Code Grantの開始点
      * baserCMSのAdmin認証が必要
      *
-     * @return Response
+     * @return Response|\Psr\Http\Message\ResponseInterface
      */
-    public function authorize(): Response
-    {
+    public function authorize()
+	{
         try {
             // ユーザーがログインしているかチェック
             $user = $this->Authentication->getIdentity();
@@ -136,28 +138,24 @@ class OAuth2Controller extends BcAdminAppController
                 $action = $this->request->getData('action');
 
                 if ($action === 'approve') {
-                    // 認可コードを生成
-                    $authCode = bin2hex(random_bytes(32));
+					$server = $this->oauth2Service->getAuthorizationServer();
+                	$psrRequest = OAuth2Util::createPsr7Request($this->request);
+                	$authRequest = $server->validateAuthorizationRequest($psrRequest);
+                	$userEntity = new User();
+                	$userEntity->setIdentifier($user->getIdentifier());
+                	$authRequest->setUser($userEntity);
+                	$authRequest->setAuthorizationApproved(true);
 
                     // 認可コードを保存（実際にはデータベースに保存）
-                    $this->oauth2Service->storeAuthorizationCode([
-                        'code' => $authCode,
-                        'client_id' => $clientId,
-                        'user_id' => $user->getIdentifier(),
-                        'redirect_uri' => $redirectUri,
-                        'scope' => $scope,
-                        'expires_at' => time() + 600, // 10分間有効
-                    ]);
-
-                    // リダイレクトURIに認可コードを付けてリダイレクト
-                    $params = ['code' => $authCode];
-                    if ($state) {
-                        $params['state'] = $state;
-                    }
-
-                    $redirectUrl = $redirectUri . '?' . http_build_query($params);
-                    return $this->redirect($redirectUrl);
-
+//                    $this->oauth2Service->storeAuthorizationCode([
+//                        'code' => $authCode,
+//                        'client_id' => $clientId,
+//                        'user_id' => $user->getIdentifier(),
+//                        'redirect_uri' => $redirectUri,
+//                        'scope' => $scope,
+//                        'expires_at' => time() + 600, // 10分間有効
+//                    ]);
+                    return $server->completeAuthorizationRequest($authRequest, $this->response);
                 } elseif ($action === 'deny') {
                     // アクセス拒否
                     $params = [

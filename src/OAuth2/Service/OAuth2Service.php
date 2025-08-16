@@ -106,7 +106,7 @@ class OAuth2Service
 
     private function getEncryptionKey(): string
     {
-        return base64_encode(random_bytes(32));
+        return env('OAUTH2_ENC_KEY', 'j6eyb4oPtNL0R8i9uU8PlQJ2WY1f8yRk5AVXb7OJd3s');
     }
 
     private function generateKeyPair(): void
