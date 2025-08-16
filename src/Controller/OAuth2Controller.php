@@ -10,8 +10,6 @@ use CuMcp\OAuth2\Repository\OAuth2ClientRepository;
 use Cake\Http\Response;
 use CuMcp\Lib\OAuth2Util;
 use Nyholm\Psr7\Response as Psr7Response;
-use Nyholm\Psr7\ServerRequest;
-use Nyholm\Psr7\Stream;
 use Exception;
 use League\OAuth2\Server\Exception\OAuthServerException;
 
@@ -58,13 +56,17 @@ class OAuth2Controller extends AppController
     }
 
     /**
-     * OPTIONSリクエスト対応
+     * OPTIONSリクエスト対応（CORS対応）
      *
      * @return Response
      */
     public function options(): Response
     {
-        return $this->response->withStatus(200);
+        return $this->response
+            ->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            ->withStatus(200);
     }
 
     /**
@@ -244,22 +246,27 @@ class OAuth2Controller extends AppController
     public function protectedResourceMetadata(): Response
     {
         try {
-            // 環境変数からサイトURLを取得
-            $siteUrl = env('SITE_URL', 'https://localhost');
-            $baseUrl = rtrim($siteUrl, '/');
+            // 現在のリクエストからベースURLを動的に取得
+            $scheme = $this->request->is('https') ? 'https' : 'http';
+            $host = $this->request->getHeaderLine('Host');
+            if (!$host) {
+                $host = $this->request->getEnv('HTTP_HOST') ?: 'localhost';
+            }
+            $baseUrl = $scheme . '://' . $host;
 
             $metadata = [
-                'resource' => $baseUrl . '/cu-mcp/mcp-proxy.json',
-                'authorization_servers' => [
-                    $baseUrl . '/baser/admin/cu-mcp/oauth2'
-                ],
-                'scopes_supported' => ['read', 'write', 'admin'],
+                'resource' => $baseUrl . '/cu-mcp/mcp-proxy',
+                'authorization_servers' => [$baseUrl],
+                'scopes_supported' => ['mcp:read', 'mcp:write'],
                 'bearer_methods_supported' => ['header'],
                 'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
                 'resource_registration_endpoint' => $baseUrl . '/cu-mcp/oauth2/client-info'
             ];
 
             return $this->response
+                ->withHeader('Access-Control-Allow-Origin', '*')
+                ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
                 ->withType('application/json')
                 ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
 
@@ -283,22 +290,28 @@ class OAuth2Controller extends AppController
     public function authorizationServerMetadata(): Response
     {
         try {
-            // 環境変数からサイトURLを取得
-            $siteUrl = env('SITE_URL', 'https://localhost');
-            $baseUrl = rtrim($siteUrl, '/');
-            $issuer = $baseUrl . '/baser/admin/cu-mcp/oauth2';
+            // 現在のリクエストからベースURLを動的に取得
+            $scheme = $this->request->is('https') ? 'https' : 'http';
+            $host = $this->request->getHeaderLine('Host');
+            if (!$host) {
+                $host = $this->request->getEnv('HTTP_HOST') ?: 'localhost';
+            }
+            $baseUrl = $scheme . '://' . $host;
 
             $metadata = [
                 // RFC 8414 必須項目
-                'issuer' => $issuer,
-                'authorization_endpoint' => $issuer . '/authorize',
+                'issuer' => $baseUrl,
+                'authorization_endpoint' => $baseUrl . '/baser/admin/cu-mcp/oauth2/authorize',
                 'token_endpoint' => $baseUrl . '/cu-mcp/oauth2/token',
                 'response_types_supported' => ['code'],
 
                 // 両方のGrantをサポート
                 'grant_types_supported' => ['authorization_code', 'client_credentials', 'refresh_token'],
                 'token_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
-                'scopes_supported' => ['read', 'write', 'admin'],
+                'scopes_supported' => ['mcp:read', 'mcp:write'],
+
+                // PKCE サポート（ChatGPTで推奨される）
+                'code_challenge_methods_supported' => ['S256', 'plain'],
 
                 // 実装済みエンドポイント
                 'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
@@ -312,6 +325,9 @@ class OAuth2Controller extends AppController
             ];
 
             return $this->response
+                ->withHeader('Access-Control-Allow-Origin', '*')
+                ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
                 ->withType('application/json')
                 ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
 
