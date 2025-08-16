@@ -305,7 +305,6 @@ class OAuth2Controller extends AppController
                 'introspection_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
 
                 // Authorization Code Grant関連
-                'code_challenge_methods_supported' => ['plain', 'S256'],
                 'revocation_endpoint' => $baseUrl . '/cu-mcp/oauth2/revoke',
                 'revocation_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
 

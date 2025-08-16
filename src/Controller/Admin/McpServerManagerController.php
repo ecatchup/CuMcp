@@ -13,9 +13,6 @@ declare(strict_types=1);
 namespace CuMcp\Controller\Admin;
 
 use BaserCore\Controller\Admin\BcAdminAppController;
-use Cake\Core\Configure;
-use Cake\Filesystem\File;
-use Cake\Http\Client;
 
 /**
  * MCPサーバー管理コントローラー

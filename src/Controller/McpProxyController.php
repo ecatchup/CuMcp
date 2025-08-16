@@ -84,6 +84,11 @@ class McpProxyController extends Controller
             return;
         }
 
+        if($this->request->getData('method') === 'initialize') {
+            // MCPサーバーの初期化メソッドは認証不要
+            return;
+        }
+
         // OAuth2トークンの検証
         $this->validateOAuth2Token();
     }
@@ -179,9 +184,6 @@ class McpProxyController extends Controller
             if (!$mcpRequest || !isset($mcpRequest['jsonrpc']) || $mcpRequest['jsonrpc'] !== '2.0') {
                 throw new BadRequestException('Invalid MCP request format');
             }
-
-            // MCPリクエストの詳細をログに出力
-            error_log("MCP Request: " . json_encode($mcpRequest, JSON_PRETTY_PRINT));
 
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
             $response = $this->sendMcpRequest($config, $mcpRequest);
