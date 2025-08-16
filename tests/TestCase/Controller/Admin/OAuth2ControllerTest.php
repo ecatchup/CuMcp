@@ -149,7 +149,7 @@ class OAuth2ControllerTest extends BcTestCase
             'client_name' => 'Test Client',
             'client_uri' => 'http://localhost',
             'redirect_uris' => ['http://localhost/callback'],
-            'grant_types' => ['authorization_code'],
+            'grant_types' => ['authorization_code', 'refresh_token'],
             'response_types' => ['code'],
             'scope' => 'read write'
         ]);
@@ -204,6 +204,11 @@ class OAuth2ControllerTest extends BcTestCase
         $this->assertResponseCode(200);
         $tokenData = json_decode((string)$this->_response->getBody(), true);
         $accessToken = $tokenData['access_token'];
+        $refreshToken = $tokenData['refresh_token'];
+
+        // リフレッシュトークンが取得できていることを確認
+        $this->assertArrayHasKey('refresh_token', $tokenData);
+        $this->assertNotEmpty($refreshToken);
 
         // アクセストークンを使用してMCPサーバーのツールリストを取得
         $requestConfig= [
@@ -253,6 +258,58 @@ class OAuth2ControllerTest extends BcTestCase
         $blogResponse = json_decode((string)$this->_response->getBody(), true);
         $this->assertNotNull($blogResponse);
         $this->assertArrayHasKey('result', $blogResponse);
+
+        // リフレッシュトークンを使用して新しいアクセストークンを取得
+        $this->post('/cu-mcp/oauth2/token', [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $refreshToken,
+            'client_id' => $metadata['client_id'],
+            'client_secret' => $metadata['client_secret']
+        ]);
+        $this->assertResponseCode(200);
+        $newTokenData = json_decode((string)$this->_response->getBody(), true);
+        $newAccessToken = $newTokenData['access_token'];
+
+        // 新しいアクセストークンが取得できていることを確認
+        $this->assertArrayHasKey('access_token', $newTokenData);
+        $this->assertNotEmpty($newAccessToken);
+        $this->assertNotEquals($accessToken, $newAccessToken, 'New access token should be different from the original');
+
+        // 新しいアクセストークンを使用してgetBlogPostツールを実行
+        $newRequestConfig = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $newAccessToken,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            ]
+        ];
+
+        // getBlogPostツールを実行（IDが必要な場合はダミーIDを使用）
+        $blogPostRequest = [
+            'jsonrpc' => '2.0',
+            'id' => 'test-blog-post-tool',
+            'method' => 'tools/call',
+            'params' => [
+                'name' => 'getBlogPost',
+                'arguments' => [
+                    'id' => 1 // ダミーID
+                ]
+            ]
+        ];
+        $this->configRequest($newRequestConfig);
+        $this->post('/cu-mcp/mcp-proxy.json', json_encode($blogPostRequest));
+
+        // レスポンスコードが200または404（データが存在しない場合）であることを確認
+        $this->assertTrue(
+            in_array($this->_response->getStatusCode(), [200, 404]),
+            'getBlogPost should return 200 (success) or 404 (not found)'
+        );
+
+        if ($this->_response->getStatusCode() === 200) {
+            $blogPostResponse = json_decode((string)$this->_response->getBody(), true);
+            $this->assertNotNull($blogPostResponse);
+            $this->assertArrayHasKey('result', $blogPostResponse);
+        }
     }
 
 }

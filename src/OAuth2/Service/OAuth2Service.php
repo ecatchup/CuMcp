@@ -73,6 +73,15 @@ class OAuth2Service
             new \DateInterval('PT1H')
         );
 
+        $refreshTokenGrant = new \League\OAuth2\Server\Grant\RefreshTokenGrant(
+            $refreshTokenRepository
+        );
+        $refreshTokenGrant->setRefreshTokenTTL(new \DateInterval('P1M'));
+        $server->enableGrantType(
+            $refreshTokenGrant,
+            new \DateInterval('PT1H')
+        );
+
         return $server;
     }
 
