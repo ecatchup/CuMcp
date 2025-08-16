@@ -96,6 +96,7 @@ class OAuth2ControllerTest extends BcTestCase
         // 認可リクエストのパラメータ
         $params = [
             'client_id' => 'mcp-client',
+            'client_secret' => 'mcp-secret-key',
             'response_type' => 'code',
             'redirect_uri' => 'http://localhost',
             'scope' => 'read write',
