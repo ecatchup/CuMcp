@@ -160,8 +160,8 @@ class McpProxyController extends Controller
                 );
             }
 
-            // JSONボディを直接取得してMCPリクエストとしてパース
-            $requestBody = file_get_contents('php://input');
+            // CakePHPのリクエストオブジェクトからJSONボディを取得
+            $requestBody = (string)$this->request->getBody();
 
             if (empty($requestBody)) {
                 // 空ボディは不正

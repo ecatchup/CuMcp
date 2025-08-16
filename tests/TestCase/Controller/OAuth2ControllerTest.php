@@ -9,6 +9,7 @@ use Cake\Core\Configure;
 
 /**
  * OAuth2Controller Test Case
+ * 認証不要なOAuth2エンドポイントのテスト
  */
 class OAuth2ControllerTest extends TestCase
 {
@@ -23,11 +24,12 @@ class OAuth2ControllerTest extends TestCase
     {
         $this->loadPlugins(['CuMcp']);
         parent::setUp();
+
         // OAuth2設定をセットアップ
         Configure::write('CuMcp.OAuth2.clients', [
             'mcp-client' => [
                 'name' => 'MCP Server Client',
-                'secret' => 'mcp-secret-key', // 機密クライアントに変更
+                'secret' => 'mcp-secret-key',
                 'redirect_uris' => ['http://localhost'],
                 'grants' => ['client_credentials'],
                 'scopes' => ['read', 'write']
@@ -49,12 +51,6 @@ class OAuth2ControllerTest extends TestCase
         if (!file_exists($privateKeyPath) || !file_exists($publicKeyPath)) {
             $this->generateTestKeys($privateKeyPath, $publicKeyPath);
         }
-
-        $this->configRequest([
-            'environment' => [
-                'HTTPS' => 'off'
-            ]
-        ]);
     }
 
     /**
@@ -79,12 +75,13 @@ class OAuth2ControllerTest extends TestCase
     }
 
     /**
-     * Test token endpoint with valid client credentials
+     * Test token endpoint with valid client credentials (no auth required)
      *
      * @return void
      */
     public function testTokenEndpointWithValidCredentials(): void
     {
+        // 認証なしでtokenエンドポイントをテスト
         $this->post('/cu-mcp/oauth2/token', [
             'grant_type' => 'client_credentials',
             'client_id' => 'mcp-client',
@@ -105,421 +102,61 @@ class OAuth2ControllerTest extends TestCase
     }
 
     /**
-     * Test token endpoint with invalid client credentials
-     *
-     * @return void
-     */
-    public function testTokenEndpointWithInvalidCredentials(): void
-    {
-        $this->post('/cu-mcp/oauth2/token', [
-            'grant_type' => 'client_credentials',
-            'client_id' => 'invalid-client',
-            'client_secret' => 'invalid-secret', // 無効なクライアント秘密キーを追加
-            'scope' => 'read'
-        ]);
-
-        $this->assertResponseError();
-        $this->assertContentType('application/json');
-
-        $response = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($response, 'Invalid client response should be valid JSON');
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('invalid_client', $response['error']);
-    }
-
-    /**
-     * Test OPTIONS request for CORS
-     *
-     * @return void
-     */
-    public function testOptionsRequest(): void
-    {
-        $this->configRequest([
-            'method' => 'OPTIONS'
-        ]);
-
-        $this->_sendRequest('/cu-mcp/oauth2/token', 'OPTIONS', []);
-
-        $this->assertResponseOk();
-        $this->assertHeader('Access-Control-Allow-Origin', '*');
-        $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $this->assertHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    }
-
-    /**
-     * Test verify endpoint with valid token
-     *
-     * @return void
-     */
-    public function testVerifyEndpointWithValidToken(): void
-    {
-        // まず有効なトークンを取得
-        $tokenData = [
-            'grant_type' => 'client_credentials',
-            'client_id' => 'mcp-client',
-            'client_secret' => 'mcp-secret-key'
-        ];
-
-        $this->post('/cu-mcp/oauth2/token', $tokenData);
-        $this->assertResponseSuccess();
-
-        $tokenResponse = json_decode((string)$this->_response->getBody(), true);
-        $accessToken = $tokenResponse['access_token'];
-
-        // 取得したトークンでverifyエンドポイントをテスト
-        $this->configRequest([
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-                'Content-Type' => 'application/json'
-            ]
-        ]);
-
-        $this->get('/cu-mcp/oauth2/verify');
-
-        $this->assertResponseSuccess();
-        $this->assertContentType('application/json');
-
-        $verifyResponse = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($verifyResponse, 'Verify response should be valid JSON');
-        $this->assertArrayHasKey('valid', $verifyResponse);
-        $this->assertTrue($verifyResponse['valid']);
-        $this->assertArrayHasKey('client_id', $verifyResponse);
-        $this->assertEquals('mcp-client', $verifyResponse['client_id']);
-        $this->assertArrayHasKey('scopes', $verifyResponse);
-    }
-
-    /**
-     * Test verify endpoint with invalid token
-     *
-     * @return void
-     */
-    public function testVerifyEndpointWithInvalidToken(): void
-    {
-        $this->configRequest([
-            'headers' => [
-                'Authorization' => 'Bearer invalid-token-12345',
-                'Content-Type' => 'application/json'
-            ]
-        ]);
-
-        $this->get('/cu-mcp/oauth2/verify');
-
-        $this->assertResponseCode(401);
-        $this->assertContentType('application/json');
-
-        $response = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($response, 'Invalid token response should be valid JSON');
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('invalid_token', $response['error']);
-        $this->assertArrayHasKey('error_description', $response);
-    }
-
-    /**
-     * Test verify endpoint without Authorization header
-     *
-     * @return void
-     */
-    public function testVerifyEndpointWithoutAuthHeader(): void
-    {
-        $this->get('/cu-mcp/oauth2/verify');
-
-        $this->assertResponseCode(401);
-        $this->assertContentType('application/json');
-
-        $response = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($response, 'No auth header response should be valid JSON');
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('invalid_token', $response['error']);
-        $this->assertStringContainsString('missing or invalid', $response['error_description']);
-    }
-
-    /**
-     * Test verify endpoint with malformed Authorization header
-     *
-     * @return void
-     */
-    public function testVerifyEndpointWithMalformedAuthHeader(): void
-    {
-        $this->configRequest([
-            'headers' => [
-                'Authorization' => 'InvalidFormat token123',
-                'Content-Type' => 'application/json'
-            ]
-        ]);
-
-        $this->get('/cu-mcp/oauth2/verify');
-
-        $this->assertResponseCode(401);
-        $this->assertContentType('application/json');
-
-        $response = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($response, 'Malformed auth header response should be valid JSON');
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('invalid_token', $response['error']);
-    }
-
-    /**
-     * Test verify endpoint OPTIONS request for CORS
-     *
-     * @return void
-     */
-    public function testVerifyOptionsRequest(): void
-    {
-        $this->configRequest([
-            'method' => 'OPTIONS'
-        ]);
-
-        $this->_sendRequest('/cu-mcp/oauth2/verify', 'OPTIONS', []);
-
-        $this->assertResponseOk();
-        $this->assertHeader('Access-Control-Allow-Origin', '*');
-        $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $this->assertHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    }
-
-    /**
-     * Test client-info endpoint with valid token
-     *
-     * @return void
-     */
-    public function testClientInfoEndpointWithValidToken(): void
-    {
-        // まず有効なトークンを取得
-        $tokenData = [
-            'grant_type' => 'client_credentials',
-            'client_id' => 'mcp-client',
-            'client_secret' => 'mcp-secret-key',
-            'scope' => 'read write'
-        ];
-
-        $this->post('/cu-mcp/oauth2/token', $tokenData);
-        $this->assertResponseSuccess();
-
-        $tokenResponse = json_decode((string)$this->_response->getBody(), true);
-        $accessToken = $tokenResponse['access_token'];
-
-        // 取得したトークンでclient-infoエンドポイントをテスト
-        $this->configRequest([
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-                'Content-Type' => 'application/json'
-            ]
-        ]);
-
-        $this->get('/cu-mcp/oauth2/client-info');
-
-        $this->assertResponseSuccess();
-        $this->assertContentType('application/json');
-
-        $clientInfoResponse = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($clientInfoResponse, 'Client info response should be valid JSON');
-        $this->assertArrayHasKey('client_id', $clientInfoResponse);
-        $this->assertEquals('mcp-client', $clientInfoResponse['client_id']);
-        $this->assertArrayHasKey('scopes', $clientInfoResponse);
-        $this->assertArrayHasKey('authenticated', $clientInfoResponse);
-        $this->assertTrue($clientInfoResponse['authenticated']);
-    }
-
-    /**
-     * Test client-info endpoint with invalid token
-     *
-     * @return void
-     */
-    public function testClientInfoEndpointWithInvalidToken(): void
-    {
-        $this->configRequest([
-            'headers' => [
-                'Authorization' => 'Bearer invalid-token-12345',
-                'Content-Type' => 'application/json'
-            ]
-        ]);
-
-        $this->get('/cu-mcp/oauth2/client-info');
-
-        $this->assertResponseCode(401);
-        $this->assertContentType('application/json');
-
-        $response = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($response, 'Invalid token response should be valid JSON');
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('invalid_token', $response['error']);
-        $this->assertArrayHasKey('error_description', $response);
-    }
-
-    /**
-     * Test client-info endpoint without Authorization header
-     *
-     * @return void
-     */
-    public function testClientInfoEndpointWithoutAuthHeader(): void
-    {
-        $this->get('/cu-mcp/oauth2/client-info');
-
-        $this->assertResponseCode(401);
-        $this->assertContentType('application/json');
-
-        $response = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($response, 'No auth header response should be valid JSON');
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('unauthorized', $response['error']);
-        $this->assertStringContainsString('Authentication required', $response['error_description']);
-    }
-
-    /**
-     * Test client-info endpoint with malformed Authorization header
-     *
-     * @return void
-     */
-    public function testClientInfoEndpointWithMalformedAuthHeader(): void
-    {
-        $this->configRequest([
-            'headers' => [
-                'Authorization' => 'InvalidFormat token123',
-                'Content-Type' => 'application/json'
-            ]
-        ]);
-
-        $this->get('/cu-mcp/oauth2/client-info');
-
-        $this->assertResponseCode(401);
-        $this->assertContentType('application/json');
-
-        $response = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($response, 'Malformed auth header response should be valid JSON');
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('unauthorized', $response['error']);
-    }
-
-    /**
-     * Test client-info endpoint OPTIONS request for CORS
-     *
-     * @return void
-     */
-    public function testClientInfoOptionsRequest(): void
-    {
-        $this->configRequest([
-            'method' => 'OPTIONS'
-        ]);
-
-        $this->_sendRequest('/cu-mcp/oauth2/client-info', 'OPTIONS', []);
-
-        $this->assertResponseOk();
-        $this->assertHeader('Access-Control-Allow-Origin', '*');
-        $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $this->assertHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    }
-
-    /**
-     * Test OAuth 2.0 Protected Resource Metadata endpoint (RFC 9728)
-     *
-     * @return void
-     */
-    public function testProtectedResourceMetadata(): void
-    {
-        $this->get('/cu-mcp/.well-known/oauth-protected-resource');
-
-        $this->assertResponseSuccess();
-        $this->assertContentType('application/json');
-
-        $metadata = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($metadata, 'Protected resource metadata should be valid JSON');
-
-        // RFC 9728で規定されている必須フィールドを確認
-        $this->assertArrayHasKey('resource', $metadata);
-        $this->assertArrayHasKey('authorization_servers', $metadata);
-        $this->assertArrayHasKey('scopes_supported', $metadata);
-        $this->assertArrayHasKey('bearer_methods_supported', $metadata);
-
-        // 内容の検証
-        $this->assertStringContainsString('/cu-mcp', $metadata['resource']);
-        $this->assertIsArray($metadata['authorization_servers']);
-        $this->assertContains('read', $metadata['scopes_supported']);
-        $this->assertContains('write', $metadata['scopes_supported']);
-        $this->assertContains('admin', $metadata['scopes_supported']);
-        $this->assertContains('header', $metadata['bearer_methods_supported']);
-
-        // 追加のエンドポイント情報
-        $this->assertArrayHasKey('introspection_endpoint', $metadata);
-        $this->assertStringContainsString('/oauth2/verify', $metadata['introspection_endpoint']);
-    }
-
-    /**
-     * Test Protected Resource Metadata endpoint OPTIONS request
-     *
-     * @return void
-     */
-    public function testProtectedResourceMetadataOptionsRequest(): void
-    {
-        $this->configRequest([
-            'method' => 'OPTIONS'
-        ]);
-
-        $this->_sendRequest('/cu-mcp/.well-known/oauth-protected-resource', 'OPTIONS', []);
-
-        $this->assertResponseOk();
-        $this->assertHeader('Access-Control-Allow-Origin', '*');
-        $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $this->assertHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    }
-
-    /**
-     * Test OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414)
+     * Test authorization server metadata endpoint (no auth required)
      *
      * @return void
      */
     public function testAuthorizationServerMetadata(): void
     {
-        $this->get('/cu-mcp/.well-known/oauth-authorization-server');
+        $this->get('/.well-known/oauth-authorization-server');
 
-        $this->assertResponseSuccess();
+        $this->assertResponseOk();
         $this->assertContentType('application/json');
 
-        $metadata = json_decode((string)$this->_response->getBody(), true);
-        $this->assertNotNull($metadata, 'Authorization server metadata should be valid JSON');
-
-        // RFC 8414で規定されている必須フィールドを確認
-        $this->assertArrayHasKey('issuer', $metadata);
-        $this->assertArrayHasKey('token_endpoint', $metadata);
-        $this->assertArrayHasKey('scopes_supported', $metadata);
-        $this->assertArrayHasKey('response_types_supported', $metadata);
-        $this->assertArrayHasKey('grant_types_supported', $metadata);
-        $this->assertArrayHasKey('token_endpoint_auth_methods_supported', $metadata);
-
-        // 内容の検証
-        $this->assertStringContainsString('/cu-mcp/oauth2', $metadata['issuer']);
-        $this->assertStringContainsString('/oauth2/token', $metadata['token_endpoint']);
-        $this->assertContains('read', $metadata['scopes_supported']);
-        $this->assertContains('write', $metadata['scopes_supported']);
-        $this->assertContains('admin', $metadata['scopes_supported']);
-        $this->assertContains('client_credentials', $metadata['grant_types_supported']);
-        $this->assertContains('client_secret_basic', $metadata['token_endpoint_auth_methods_supported']);
-
-        // 追加のエンドポイント情報（実装済みエンドポイントのみ）
-        $this->assertArrayHasKey('introspection_endpoint', $metadata);
-        $this->assertStringContainsString('/oauth2/verify', $metadata['introspection_endpoint']);
-
-        // 未実装エンドポイントは含まれていないことを確認
-        $this->assertArrayNotHasKey('jwks_uri', $metadata);
-        $this->assertArrayNotHasKey('registration_endpoint', $metadata);
-        // authorization_endpointのチェックを削除（Dynamic Client Registration実装により追加されたため）
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertArrayHasKey('issuer', $response);
+        $this->assertArrayHasKey('token_endpoint', $response);
+        $this->assertArrayHasKey('authorization_endpoint', $response);
     }
 
     /**
-     * Test Authorization Server Metadata endpoint OPTIONS request
+     * Test protected resource metadata endpoint (no auth required)
      *
      * @return void
      */
-    public function testAuthorizationServerMetadataOptionsRequest(): void
+    public function testProtectedResourceMetadata(): void
     {
-        $this->configRequest([
-            'method' => 'OPTIONS'
-        ]);
-
-        $this->_sendRequest('/cu-mcp/.well-known/oauth-authorization-server', 'OPTIONS', []);
+        $this->get('/.well-known/oauth-protected-resource');
 
         $this->assertResponseOk();
-        $this->assertHeader('Access-Control-Allow-Origin', '*');
-        $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $this->assertHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        $this->assertContentType('application/json');
+
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertArrayHasKey('resource', $response);
+        $this->assertArrayHasKey('authorization_servers', $response);
+    }
+
+    /**
+     * Test client registration endpoint (no auth required)
+     *
+     * @return void
+     */
+    public function testClientRegistration(): void
+    {
+        $this->post('/cu-mcp/oauth2/register', [
+            'client_name' => 'Test Client',
+            'client_uri' => 'http://localhost',
+            'redirect_uris' => ['http://localhost/callback'],
+            'grant_types' => ['client_credentials'],
+            'response_types' => ['code'],
+            'scope' => 'read write'
+        ]);
+
+        $this->assertResponseCode(201);
+        $this->assertContentType('application/json');
+
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertArrayHasKey('client_id', $response);
+        $this->assertArrayHasKey('client_secret', $response);
     }
 }

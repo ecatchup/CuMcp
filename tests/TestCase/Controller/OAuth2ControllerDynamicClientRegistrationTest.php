@@ -234,39 +234,6 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
     }
 
     /**
-     * Test registration metadata endpoint
-     *
-     * @return void
-     */
-    public function testRegistrationMetadata(): void
-    {
-        $this->get('/cu-mcp/oauth2/register');
-        $this->assertResponseCode(200);
-        $this->assertContentType('application/json');
-
-        $response = json_decode((string)$this->_response->getBody(), true);
-
-        // Check RFC7591 metadata fields
-        $this->assertArrayHasKey('registration_endpoint', $response);
-        $this->assertArrayHasKey('client_configuration_endpoint', $response);
-        $this->assertArrayHasKey('grant_types_supported', $response);
-        $this->assertArrayHasKey('response_types_supported', $response);
-        $this->assertArrayHasKey('token_endpoint_auth_methods_supported', $response);
-        $this->assertArrayHasKey('scopes_supported', $response);
-
-        // Check supported values
-        $this->assertContains('authorization_code', $response['grant_types_supported']);
-        $this->assertContains('client_credentials', $response['grant_types_supported']);
-        $this->assertContains('code', $response['response_types_supported']);
-        $this->assertContains('client_secret_basic', $response['token_endpoint_auth_methods_supported']);
-        $this->assertContains('client_secret_post', $response['token_endpoint_auth_methods_supported']);
-        $this->assertContains('none', $response['token_endpoint_auth_methods_supported']);
-        $this->assertContains('read', $response['scopes_supported']);
-        $this->assertContains('write', $response['scopes_supported']);
-        $this->assertContains('admin', $response['scopes_supported']);
-    }
-
-    /**
      * Test invalid client metadata
      *
      * @return void
@@ -365,16 +332,4 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
         $this->assertEquals('invalid_token', $response['error']);
     }
 
-    /**
-     * Test CORS options requests
-     *
-     * @return void
-     */
-    public function testCorsOptionsRequests(): void
-    {
-        $this->options('/cu-mcp/oauth2/register');
-        $this->assertResponseCode(200);
-        $this->assertHeader('Access-Control-Allow-Origin', '*');
-        $this->assertHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    }
 }

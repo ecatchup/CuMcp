@@ -17,7 +17,7 @@ use League\OAuth2\Server\Exception\OAuthServerException;
 /**
  * OAuth2 Controller
  *
- * OAuth2認証エンドポイントを提供
+ * OAuth2認証エンドポイントを提供（認証不要なエンドポイントのみ）
  */
 class OAuth2Controller extends AppController
 {
@@ -128,7 +128,6 @@ class OAuth2Controller extends AppController
                 ]));
         }
     }
-
 
     /**
      * トークン検証エンドポイント
@@ -251,7 +250,7 @@ class OAuth2Controller extends AppController
             $metadata = [
                 'resource' => $baseUrl . '/cu-mcp/mcp-proxy.json',
                 'authorization_servers' => [
-                    $baseUrl . '/cu-mcp/oauth2'
+                    $baseUrl . '/baser/admin/cu-mcp/oauth2'
                 ],
                 'scopes_supported' => ['read', 'write', 'admin'],
                 'bearer_methods_supported' => ['header'],
@@ -286,13 +285,13 @@ class OAuth2Controller extends AppController
             // 環境変数からサイトURLを取得
             $siteUrl = env('SITE_URL', 'https://localhost');
             $baseUrl = rtrim($siteUrl, '/');
-            $issuer = $baseUrl . '/cu-mcp/oauth2';
+            $issuer = $baseUrl . '/baser/admin/cu-mcp/oauth2';
 
             $metadata = [
                 // RFC 8414 必須項目
                 'issuer' => $issuer,
                 'authorization_endpoint' => $issuer . '/authorize',
-                'token_endpoint' => $issuer . '/token',
+                'token_endpoint' => $baseUrl . '/cu-mcp/oauth2/token',
                 'response_types_supported' => ['code'],
 
                 // 両方のGrantをサポート
@@ -301,15 +300,15 @@ class OAuth2Controller extends AppController
                 'scopes_supported' => ['read', 'write', 'admin'],
 
                 // 実装済みエンドポイント
-                'introspection_endpoint' => $issuer . '/verify',
+                'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
                 'introspection_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
 
                 // Authorization Code Grant関連
                 'code_challenge_methods_supported' => ['plain', 'S256'],
-                'revocation_endpoint' => $issuer . '/revoke',
+                'revocation_endpoint' => $baseUrl . '/cu-mcp/oauth2/revoke',
                 'revocation_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
 
-                'registration_endpoint' => $issuer . '/register'
+                'registration_endpoint' => $baseUrl . '/cu-mcp/oauth2/register'
             ];
 
             return $this->response
@@ -324,150 +323,6 @@ class OAuth2Controller extends AppController
                     'error' => 'server_error',
                     'error_description' => 'Failed to generate authorization server metadata.',
                     'debug_message' => $exception->getMessage()
-                ]));
-        }
-    }
-
-    /**
-     * 認可エンドポイント
-     * Authorization Code Grantの開始点
-     *
-     * @return Response
-     */
-    public function authorize(): Response
-    {
-        try {
-            // ユーザーがログインしているかチェック
-            $user = $this->Authentication->getIdentity();
-            if (!$user) {
-                // ログインページにリダイレクト（認可リクエストパラメータを保持）
-                $this->Flash->set('認証が必要です。ログインしてください。');
-                return $this->redirect([
-                    'plugin' => null,
-                    'controller' => 'Users',
-                    'action' => 'login',
-                    '?' => [
-                        'redirect' => $this->request->getRequestTarget()
-                    ]
-                ]);
-            }
-
-            $request = $this->request;
-
-            // 必須パラメータをチェック
-            $clientId = $request->getQuery('client_id');
-            $responseType = $request->getQuery('response_type');
-            $redirectUri = $request->getQuery('redirect_uri');
-            $state = $request->getQuery('state');
-            $scope = $request->getQuery('scope', '');
-
-            if (!$clientId || !$responseType || !$redirectUri) {
-                return $this->response
-                    ->withStatus(400)
-                    ->withType('application/json')
-                    ->withStringBody(json_encode([
-                        'error' => 'invalid_request',
-                        'error_description' => 'Missing required parameters: client_id, response_type, redirect_uri'
-                    ]));
-            }
-
-            if ($responseType !== 'code') {
-                return $this->response
-                    ->withStatus(400)
-                    ->withType('application/json')
-                    ->withStringBody(json_encode([
-                        'error' => 'unsupported_response_type',
-                        'error_description' => 'Only response_type=code is supported'
-                    ]));
-            }
-
-            // クライアントの妥当性をチェック
-            $clientRepository = new \CuMcp\OAuth2\Repository\OAuth2ClientRepository();
-            $client = $clientRepository->getClientEntity($clientId);
-
-            if (!$client || !$clientRepository->validateClient($clientId, null, null)) {
-                return $this->response
-                    ->withStatus(400)
-                    ->withType('application/json')
-                    ->withStringBody(json_encode([
-                        'error' => 'invalid_client',
-                        'error_description' => 'Invalid client_id'
-                    ]));
-            }
-
-            // リダイレクトURIの妥当性をチェック
-            if (!in_array($redirectUri, $client->getRedirectUri())) {
-                return $this->response
-                    ->withStatus(400)
-                    ->withType('application/json')
-                    ->withStringBody(json_encode([
-                        'error' => 'invalid_redirect_uri',
-                        'error_description' => 'Invalid redirect_uri'
-                    ]));
-            }
-
-            // POSTリクエストの場合は認可処理
-            if ($this->request->is('post')) {
-                $action = $this->request->getData('action');
-
-                if ($action === 'approve') {
-                    // 認可コードを生成
-                    $authCode = bin2hex(random_bytes(32));
-
-                    // 認可コードを保存（実際にはデータベースに保存）
-                    $this->oauth2Service->storeAuthorizationCode([
-                        'code' => $authCode,
-                        'client_id' => $clientId,
-                        'user_id' => $user->getIdentifier(),
-                        'redirect_uri' => $redirectUri,
-                        'scope' => $scope,
-                        'expires_at' => time() + 600, // 10分間有効
-                    ]);
-
-                    // リダイレクトURIに認可コードを付けてリダイレクト
-                    $params = ['code' => $authCode];
-                    if ($state) {
-                        $params['state'] = $state;
-                    }
-
-                    $redirectUrl = $redirectUri . '?' . http_build_query($params);
-                    return $this->redirect($redirectUrl);
-
-                } elseif ($action === 'deny') {
-                    // アクセス拒否
-                    $params = [
-                        'error' => 'access_denied',
-                        'error_description' => 'The user denied the request'
-                    ];
-                    if ($state) {
-                        $params['state'] = $state;
-                    }
-
-                    $redirectUrl = $redirectUri . '?' . http_build_query($params);
-                    return $this->redirect($redirectUrl);
-                }
-            }
-
-            // 認可画面を表示
-            $this->set([
-                'client' => $client,
-                'clientId' => $clientId,
-                'redirectUri' => $redirectUri,
-                'scope' => $scope,
-                'state' => $state,
-                'user' => $user
-            ]);
-
-            return $this->render('authorize');
-
-        } catch (\Exception $exception) {
-            return $this->response
-                ->withStatus(500)
-                ->withType('application/json')
-                ->withStringBody(json_encode([
-                    'error' => 'server_error',
-                    'error_description' => 'An unexpected error occurred.',
-                    'message' => $exception->getMessage()
                 ]));
         }
     }

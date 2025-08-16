@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\OAuth2\Repository;
 
+use Cake\Datasource\RepositoryInterface;
 use CuMcp\Model\Table\Oauth2ClientsTable;
 use CuMcp\OAuth2\Entity\Client;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
@@ -19,7 +20,7 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
      *
      * @var \CuMcp\Model\Table\Oauth2ClientsTable
      */
-    private Oauth2ClientsTable $clientsTable;
+    private RepositoryInterface $clientsTable;
 
     /**
      * コンストラクタ
@@ -37,15 +38,8 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
      */
     private function ensureDefaultClientsExist(): void
     {
-        \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Starting default client check');
-
         $defaultClient = $this->clientsTable->findByClientId('mcp-client');
-
-        \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Default client found: ' . ($defaultClient ? 'YES' : 'NO'));
-
         if (!$defaultClient) {
-            \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Creating default client');
-
             // JSON型マッピングにより配列で渡せば自動的にJSONとして保存される
             $clientData = [
                 'client_id' => 'mcp-client',
@@ -58,13 +52,7 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
             ];
 
             $client = $this->clientsTable->newEntity($clientData);
-            $result = $this->clientsTable->save($client);
-
-            \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Save result: ' . ($result ? 'SUCCESS' : 'FAILED'));
-
-            if (!$result) {
-                \Cake\Log\Log::write('debug', 'ensureDefaultClientsExist: Save errors: ' . json_encode($client->getErrors()));
-            }
+            $this->clientsTable->save($client);
         }
     }
 
