@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Model\Table;
 
+use Cake\Datasource\EntityInterface;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
@@ -117,7 +118,7 @@ class Oauth2ClientsTable extends Table
      * @param string $clientId
      * @return \CuMcp\Model\Entity\Oauth2Client|null
      */
-    public function findByClientId(string $clientId): ?\CuMcp\Model\Entity\Oauth2Client
+    public function findByClientId(string $clientId): ?EntityInterface
     {
         return $this->find()
             ->where(['client_id' => $clientId])
