@@ -19,6 +19,7 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
 use Cake\Http\Exception\UnauthorizedException;
 use Cake\Event\EventInterface;
+use Cake\Http\Response;
 use CuMcp\OAuth2\Service\OAuth2Service;
 
 /**
@@ -46,9 +47,26 @@ class McpProxyController extends Controller
         $this->oauth2Service = new OAuth2Service();
 
         // CORS設定（統一された設定）
+        $protocolVersion = $this->getProtocolVersion();
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
         $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
         $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin');
+        $this->response = $this->response->withHeader('MCP-Protocol-Version', $protocolVersion);
+    }
+
+    private function getProtocolVersion(): string
+    {
+        $protocolVersion = $this->request->getHeaderLine('MCP-Protocol-Version');
+        if (!empty($protocolVersion)) {
+            return $protocolVersion;
+        }
+        $requestBody = (string)$this->request->getBody();
+        $mcpRequest = json_decode($requestBody, true);
+
+        if (isset($mcpRequest['params']['protocolVersion'])) {
+            return $mcpRequest['params']['protocolVersion'];
+        }
+        return '2025-03-26';
     }
 
     /**
@@ -73,9 +91,9 @@ class McpProxyController extends Controller
         if(in_array($this->request->getData('method'), [
             'initialize',
             'notifications/initialized',
-            'tools/list',
-            'resources/list',
-            'prompts/list'
+//            'tools/list',
+//            'resources/list',
+//            'prompts/list'
         ])) {
             // MCPサーバーの初期化メソッドは認証不要
             return;
@@ -86,28 +104,29 @@ class McpProxyController extends Controller
             }
         }
 
-        // OAuth2トークンの検証
-        $this->validateOAuth2Token();
+        $response = $this->validateOAuth2Token();
+        if ($response) {
+            $this->response = $this->returnUnauthorizedResponse('Authorization required');
+            $event->stopPropagation();
+        }
     }
 
     /**
      * OAuth2トークンの検証
-     *
-     * @throws UnauthorizedException
      */
-    private function validateOAuth2Token(): void
+    private function validateOAuth2Token(): Response|null
     {
         $authHeader = $this->request->getHeaderLine('Authorization');
 
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            $this->throwUnauthorizedException('Missing or invalid authorization header');
+            return $this->returnUnauthorizedResponse('Missing or invalid authorization header');
         }
 
         $token = substr($authHeader, 7);
         $tokenData = $this->oauth2Service->validateAccessToken($token);
 
         if (!$tokenData) {
-            $this->throwUnauthorizedException('Invalid or expired access token');
+            return $this->returnUnauthorizedResponse('Invalid or expired access token');
         }
 
         // トークン情報をリクエストに保存
@@ -115,17 +134,29 @@ class McpProxyController extends Controller
             ->withAttribute('oauth_client_id', $tokenData['client_id'])
             ->withAttribute('oauth_user_id', $tokenData['user_id'])
             ->withAttribute('oauth_scopes', $tokenData['scopes']);
+        return null;
     }
 
-    private function throwUnauthorizedException(string $message): void
+    private function returnUnauthorizedResponse(string $message): \Cake\Http\Response
     {
         $siteUrl = env('SITE_URL', 'https://localhost');
         $baseUrl = rtrim($siteUrl, '/');
         $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource';
 
-        $e = new UnauthorizedException($message);
-        $e->setHeader('WWW-Authenticate', 'Bearer resource_metadata="' . $resourceMetadataUrl . '"');
-        throw $e;
+        return $this->response
+            ->withStatus(401)
+            ->withHeader('Content-Type', 'application/json')
+            ->withHeader('WWW-Authenticate', 'Bearer resource_metadata="' . $resourceMetadataUrl . '"')
+            ->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
+            ->withStringBody(json_encode([
+                'jsonrpc' => '2.0',
+                'error' => [
+                    'code' => -32001,
+                    'message' => $message
+                ]
+            ]));
     }
 
     /**
@@ -204,6 +235,9 @@ class McpProxyController extends Controller
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
 //                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
                 ->withBody($stream);
+            if($this->request->getData('method') === 'notifications/initialized') {
+                $this->response = $this->response->withStatus(202);
+            }
         } catch (BadRequestException $e) {
             throw $e;
         } catch (\Exception $e) {
