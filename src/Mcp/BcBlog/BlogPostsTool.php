@@ -119,13 +119,13 @@ class BlogPostsTool
             )->withTool(
                 handler: [self::class, 'search'],
                 name: 'search',
-                description: 'キーワードを指定してデータを検索します。',
+                description: 'クエリ文字列でブログ記事を検索します。',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード']
+                        'query' => ['type' => 'string', 'description' => '検索クエリ']
                     ],
-                    'required' => ['keyword']
+                    'required' => ['query']
                 ]
             )->withTool(
                 handler: [self::class, 'fetch'],
@@ -459,7 +459,7 @@ class BlogPostsTool
         }
     }
 
-    public function fetch($id): array
+    public function fetch(int $id): array
 	{
 		$result = $this->getBlogPost($id, 1);
 		if(!empty($result['success'])) {
@@ -473,16 +473,16 @@ class BlogPostsTool
         return $result;
 	}
 
-	public function search($keyword)
-	{
-		$result =  $this->getBlogPosts(1, $keyword, 1);
-		if(!empty($result['success'])) {
+    public function search(string $query): array
+    {
+        $result = $this->getBlogPosts(1, $query);
+        if (!empty($result['success'])) {
             $postsArray = [];
             foreach ($result['data'] as $post) {
                 $postsArray[] = [
                     'id' => $post->id,
                     'title' => $post->title,
-                    'text' => $post->detail . $post->content,
+                    'text' => ($post->detail ?? '') . ($post->content ?? ''),
                     'url' => ''
                 ];
             }
@@ -490,6 +490,6 @@ class BlogPostsTool
         }
         unset($result['pagination']);
         return $result;
-	}
+    }
 
 }
