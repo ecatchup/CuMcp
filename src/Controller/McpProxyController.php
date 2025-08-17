@@ -141,7 +141,7 @@ class McpProxyController extends Controller
     {
         $siteUrl = env('SITE_URL', 'https://localhost');
         $baseUrl = rtrim($siteUrl, '/');
-        $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource';
+        $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource/mcp';
 
         $this->log("Setting WWW-Authenticate header: Bearer resource_metadata=\"$resourceMetadataUrl\"");
         $this->log("SITE_URL: " . $siteUrl);
