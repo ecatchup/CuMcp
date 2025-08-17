@@ -130,7 +130,7 @@ class OAuth2ControllerTest extends BcTestCase
     public function testIntegration(): void
     {
         // MPCサーバーの接続ポイントにGETリクエストを送信
-        $this->get('/cu-mcp/mcp-proxy.json');
+        $this->get('/mcp');
         $this->assertResponseCode(405);
 
         // oauth-protected-resource にリクエストを送信
@@ -226,7 +226,7 @@ class OAuth2ControllerTest extends BcTestCase
             'method' => 'tools/list'
         ];
         $this->configRequest($requestConfig);
-        $this->post('/cu-mcp/mcp-proxy.json', json_encode($mcpRequest));
+        $this->post('/mcp', json_encode($mcpRequest));
         $this->assertResponseCode(200);
         $this->assertContentType('application/json');
 
@@ -252,7 +252,7 @@ class OAuth2ControllerTest extends BcTestCase
             ]
         ];
         $this->configRequest($requestConfig);
-        $this->post('/cu-mcp/mcp-proxy.json', json_encode($blogRequest));
+        $this->post('/mcp', json_encode($blogRequest));
         $this->assertResponseCode(200);
 
         $blogResponse = json_decode((string)$this->_response->getBody(), true);
@@ -297,7 +297,7 @@ class OAuth2ControllerTest extends BcTestCase
             ]
         ];
         $this->configRequest($newRequestConfig);
-        $this->post('/cu-mcp/mcp-proxy.json', json_encode($blogPostRequest));
+        $this->post('/mcp', json_encode($blogPostRequest));
 
         // レスポンスコードが200または404（データが存在しない場合）であることを確認
         $this->assertTrue(

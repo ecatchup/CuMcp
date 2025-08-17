@@ -255,7 +255,7 @@ class OAuth2Controller extends AppController
             $baseUrl = $scheme . '://' . $host;
 
             $metadata = [
-                'resource' => $baseUrl . '/cu-mcp/mcp-proxy',
+                'resource' => $baseUrl . '/mcp',
                 'authorization_servers' => [$baseUrl],
                 'scopes_supported' => ['mcp:read', 'mcp:write'],
                 'bearer_methods_supported' => ['header'],

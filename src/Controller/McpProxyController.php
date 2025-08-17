@@ -44,21 +44,6 @@ class McpProxyController extends Controller
         // OAuth2サービスを初期化
         $this->oauth2Service = new OAuth2Service();
 
-        // MCPリクエスト用にセキュリティ関連のコンポーネントを無効化
-        if ($this->components()->has('Security')) {
-            $this->Security->setConfig('validatePost', false);
-            $this->Security->setConfig('csrfCheck', false);
-        }
-
-        if ($this->components()->has('FormProtection')) {
-            $this->FormProtection->setConfig('validate', false);
-        }
-
-        // CakePHP5の場合のCSRF対策
-        if ($this->components()->has('Csrf')) {
-            $this->removeComponent('Csrf');
-        }
-
         // CORS設定（実態に合わせて POST と OPTIONS のみ許可）
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
         $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -84,7 +69,13 @@ class McpProxyController extends Controller
             return;
         }
 
-        if($this->request->getData('method') === 'initialize') {
+        if(in_array($this->request->getData('method'), [
+            'initialize',
+            'notifications/initialized',
+            'tools/list',
+            'resources/list',
+            'prompts/list'
+        ])) {
             // MCPサーバーの初期化メソッドは認証不要
             return;
         }
@@ -133,7 +124,7 @@ class McpProxyController extends Controller
 
     /**
      * MCPサーバーへのプロキシ処理
-     * /cu-mcp/mcp-proxy.json へのアクセスを内部MCPサーバーに転送
+     * /mcp へのアクセスを内部MCPサーバーに転送
      * OPTIONSリクエストも含めて全てここで処理
      */
     public function index()
@@ -188,17 +179,13 @@ class McpProxyController extends Controller
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
             $response = $this->sendMcpRequest($config, $mcpRequest);
 
-            // MCP応答をHTTPレスポンスとして返す
             $this->response = $this->response
                 ->withHeader('Content-Type', 'application/json')
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin')
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
-                ->withStringBody(json_encode($response));
-
-        } catch (ServiceUnavailableException $e) {
-            throw $e;
+                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         } catch (BadRequestException $e) {
             throw $e;
         } catch (\Exception $e) {
@@ -237,6 +224,15 @@ class McpProxyController extends Controller
                 ];
             }
 
+            // MCP Inspector対応：プロトコルバージョンとcapabilitiesを調整
+            if (isset($responseData['result']) && isset($mcpRequest['method']) && $mcpRequest['method'] === 'initialize') {
+                // capabilitiesにツールの存在を示す（実際のツールリストはtools/listで取得）
+                $responseData['result']['capabilities'] = [
+                    'tools' => new \stdClass(),  // 空オブジェクトでツール機能があることを示す
+                    'resources' => new \stdClass(),
+                    'prompts' => new \stdClass()
+                ];
+            }
             return $responseData;
 
         } catch (\Exception $e) {

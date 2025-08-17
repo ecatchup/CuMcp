@@ -242,7 +242,7 @@ class McpServerManagerController extends BcAdminAppController
         return [
             'running' => $isRunning,
             'pid' => $pid,
-            'proxy_url' => "{$protocol}://{$host}/cu-mcp/mcp-proxy.json",
+            'proxy_url' => "{$protocol}://{$host}/mcp",
             'internal_url' => "http://{$config['host']}:{$config['port']}",
             'config' => $config
         ];

@@ -32,7 +32,7 @@ return [
             ]
         ],
         'skipCsrfUrl' => [
-            'McpProxyIndex' => ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index', '_ext' => 'json'],
+            'Mcp' => '/mcp',
             // RFC 7591 動的クライアント登録プロトコル（ワイルドカードパターン使用）
             'OAuth2All' => '/cu-mcp/oauth2/*',
             'OAuth2AdminAll' => '/baser/admin/cu-mcp/oauth2/*'

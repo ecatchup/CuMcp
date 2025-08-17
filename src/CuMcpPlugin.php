@@ -52,6 +52,8 @@ class CuMcpPlugin extends BcPlugin
         $routes->scope('/', function (RouteBuilder $builder) {
             $builder->setRouteClass(InflectedRoute::class);
 
+            $builder->connect('/mcp', ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index'], ['routeClass' => InflectedRoute::class]);
+
             // OAuth 2.0 保護リソースメタデータエンドポイント (RFC 9728)
             $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
@@ -63,14 +65,6 @@ class CuMcpPlugin extends BcPlugin
 
         $routes->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $builder) {
             $builder->setRouteClass(InflectedRoute::class);
-
-            // MCPプロキシ（最重要: 外部からのMCPアクセス）
-            // JSON API用（.json拡張子対応）
-            $builder->connect('/mcp-proxy.json', ['controller' => 'McpProxy', 'action' => 'index', '_ext' => 'json'], ['routeClass' => InflectedRoute::class]);
-
-            // 通常のプロキシルート（バックアップ）
-            $builder->connect('/mcp-proxy/**', ['controller' => 'McpProxy', 'action' => 'index']);
-            $builder->connect('/mcp-proxy', ['controller' => 'McpProxy', 'action' => 'index']);
 
             // OAuth2エンドポイント（認証不要）
             // トークン発行エンドポイント

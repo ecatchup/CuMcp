@@ -159,7 +159,7 @@ ChatGPTは**HTTPベースのURL設定**を使用します：
 
 1. baserCMS管理画面でMCPサーバーを起動
 2. ChatGPT Desktopアプリで新しいコネクターを追加
-3. MCPサーバーのURL: `https://your-public-domain.com/cu-mcp/mcp-proxy.json`
+3. MCPサーバーのURL: `https://your-public-domain.com/mcp`
 
 **重要**: 
 - ChatGPTではSTDIOスクリプトではなく、HTTP URL方式を使用

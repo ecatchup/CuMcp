@@ -129,7 +129,7 @@ tail -f /path/to/basercms/logs/cu_mcp_server.log
 
 MCPサーバーが正常に動作しているかテスト：
 ```bash
-curl -X POST "https://your-public-domain.com/cu-mcp/mcp-proxy.json" \
+curl -X POST "https://your-public-domain.com/mcp" \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
