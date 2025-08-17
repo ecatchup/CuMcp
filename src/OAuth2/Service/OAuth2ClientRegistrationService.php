@@ -8,7 +8,7 @@ use CuMcp\Model\Entity\Oauth2Client;
 use CuMcp\OAuth2\Repository\OAuth2ClientRepository;
 use Exception;
 use Cake\ORM\TableRegistry;
-
+use Cake\Log\LogTrait;
 /**
  * OAuth2 動的クライアント登録サービス
  * RFC7591 OAuth 2.0 Dynamic Client Registration Protocol の実装
@@ -93,7 +93,7 @@ class OAuth2ClientRegistrationService
     * @return Oauth2Client
      * @throws Exception
      */
-    public function registerClient(array $requestData, string $baseUrl): EntityInterface
+    public function registerClient(array $requestData, string $baseUrl): Oauth2Client
     {
         // リクエストデータの検証
         $this->validateRegistrationRequest($requestData);
