@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\OAuth2\Service;
 
+use Cake\Datasource\EntityInterface;
 use CuMcp\Model\Entity\Oauth2Client;
 use CuMcp\OAuth2\Repository\OAuth2ClientRepository;
 use Exception;
@@ -92,7 +93,7 @@ class OAuth2ClientRegistrationService
     * @return Oauth2Client
      * @throws Exception
      */
-    public function registerClient(array $requestData, string $baseUrl): Oauth2Client
+    public function registerClient(array $requestData, string $baseUrl): EntityInterface
     {
         // リクエストデータの検証
         $this->validateRegistrationRequest($requestData);
