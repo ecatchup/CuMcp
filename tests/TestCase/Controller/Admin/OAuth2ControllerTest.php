@@ -99,7 +99,7 @@ class OAuth2ControllerTest extends BcTestCase
             'client_secret' => 'mcp-secret-key',
             'response_type' => 'code',
             'redirect_uri' => 'http://localhost',
-            'scope' => 'read write',
+            'scope' => 'mcp:read mcp:write',
             'state' => 'test-state'
         ];
 
@@ -136,8 +136,7 @@ class OAuth2ControllerTest extends BcTestCase
         // oauth-protected-resource にリクエストを送信
         $this->get('/.well-known/oauth-protected-resource');
         $metadata = json_decode((string)$this->_response->getBody(), true);
-        $authorizationServer = $metadata['authorization_servers'][0];
-        $this->assertTextContains('/cu-mcp/oauth2', $authorizationServer);
+        $this->assertTextContains('/mcp', $metadata['resource']);
 
         // oauth-authorization-server にリクエストを送信
         $this->get('/.well-known/oauth-authorization-server');
@@ -151,7 +150,7 @@ class OAuth2ControllerTest extends BcTestCase
             'redirect_uris' => ['http://localhost/callback'],
             'grant_types' => ['authorization_code', 'refresh_token'],
             'response_types' => ['code'],
-            'scope' => 'read write'
+            'scope' => 'mcp:read mcp:write'
         ]);
         $metadata = json_decode((string)$this->_response->getBody(), true);
         $this->assertResponseCode(201);

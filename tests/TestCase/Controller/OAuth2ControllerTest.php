@@ -32,14 +32,13 @@ class OAuth2ControllerTest extends TestCase
                 'secret' => 'mcp-secret-key',
                 'redirect_uris' => ['http://localhost'],
                 'grants' => ['client_credentials'],
-                'scopes' => ['read', 'write']
+                'scopes' => ['mcp:read', 'mcp:write']
             ]
         ]);
 
         Configure::write('CuMcp.OAuth2.scopes', [
-            'read' => 'データの読み取り',
-            'write' => 'データの書き込み',
-            'admin' => '管理者権限'
+            'mcp:read' => 'データの読み取り',
+            'mcp:write' => 'データの書き込み'
         ]);
 
         Configure::write('OAuth2.accessTokenTTL', 'PT1H');
@@ -86,7 +85,7 @@ class OAuth2ControllerTest extends TestCase
             'grant_type' => 'client_credentials',
             'client_id' => 'mcp-client',
             'client_secret' => 'mcp-secret-key',
-            'scope' => 'read write'
+            'scope' => 'mcp:read mcp:write'
         ]);
 
         $this->assertResponseOk();
@@ -149,7 +148,7 @@ class OAuth2ControllerTest extends TestCase
             'redirect_uris' => ['http://localhost/callback'],
             'grant_types' => ['client_credentials'],
             'response_types' => ['code'],
-            'scope' => 'read write'
+            'scope' => 'mcp:read mcp:write'
         ]);
 
         $this->assertResponseCode(201);

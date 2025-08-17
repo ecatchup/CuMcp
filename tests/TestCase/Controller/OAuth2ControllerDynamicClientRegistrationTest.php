@@ -46,7 +46,7 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
             'client_name' => 'Test Dynamic Client',
             'redirect_uris' => ['https://example.com/callback'],
             'grant_types' => ['authorization_code', 'client_credentials'],
-            'scope' => 'read write',
+            'scope' => 'mcp:read mcp:write',
             'token_endpoint_auth_method' => 'client_secret_basic',
             'contacts' => ['admin@example.com'],
             'client_uri' => 'https://example.com',
@@ -80,7 +80,7 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
         $this->assertEquals('Test Dynamic Client', $response['client_name']);
         $this->assertEquals(['https://example.com/callback'], $response['redirect_uris']);
         $this->assertEquals(['authorization_code', 'client_credentials'], $response['grant_types']);
-        $this->assertEquals('read write', $response['scope']);
+        $this->assertEquals('mcp:read mcp:write', $response['scope']);
         $this->assertEquals('client_secret_basic', $response['token_endpoint_auth_method']);
         $this->assertEquals(['admin@example.com'], $response['contacts']);
         $this->assertEquals('https://example.com', $response['client_uri']);
@@ -99,7 +99,7 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
             'client_name' => 'Test Config Client',
             'redirect_uris' => ['https://example.com/callback'],
             'grant_types' => ['client_credentials'],
-            'scope' => 'read'
+            'scope' => 'mcp:read'
         ];
 
         $this->configRequest([
@@ -132,7 +132,7 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
         $this->assertEquals('Test Config Client', $response['client_name']);
         $this->assertEquals(['https://example.com/callback'], $response['redirect_uris']);
         $this->assertEquals(['client_credentials'], $response['grant_types']);
-        $this->assertEquals('read', $response['scope']);
+        $this->assertEquals('mcp:read', $response['scope']);
     }
 
     /**
@@ -147,7 +147,7 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
             'client_name' => 'Test Update Client',
             'redirect_uris' => ['https://example.com/callback'],
             'grant_types' => ['client_credentials'],
-            'scope' => 'read'
+            'scope' => 'mcp:read'
         ];
 
         $this->configRequest([
@@ -168,7 +168,7 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
         $updateData = [
             'client_name' => 'Updated Client Name',
             'redirect_uris' => ['https://updated.com/callback'],
-            'scope' => 'read write admin'
+            'scope' => 'mcp:read mcp:write'
         ];
 
         $this->configRequest([
@@ -186,7 +186,7 @@ class OAuth2ControllerDynamicClientRegistrationTest extends TestCase
         $response = json_decode((string)$this->_response->getBody(), true);
         $this->assertEquals('Updated Client Name', $response['client_name']);
         $this->assertEquals(['https://updated.com/callback'], $response['redirect_uris']);
-        $this->assertEquals('read write admin', $response['scope']);
+        $this->assertEquals('mcp:read mcp:write', $response['scope']);
     }
 
     /**

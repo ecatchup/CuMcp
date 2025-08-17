@@ -53,7 +53,7 @@ class OAuth2ClientRegistrationServiceTest extends TestCase
             'client_name' => 'Test Client',
             'redirect_uris' => ['https://example.com/callback'],
             'grant_types' => ['authorization_code'],
-            'scope' => 'read write',
+            'scope' => 'mcp:read mcp:write',
             'token_endpoint_auth_method' => 'client_secret_basic',
             'contacts' => ['admin@example.com']
         ];
@@ -65,7 +65,7 @@ class OAuth2ClientRegistrationServiceTest extends TestCase
         $this->assertEquals('Test Client', $client->getName());
         $this->assertEquals(['https://example.com/callback'], $client->getRedirectUri());
         $this->assertEquals(['authorization_code'], $client->getGrants());
-        $this->assertEquals(['read', 'write'], $client->getScopes());
+        $this->assertEquals(['mcp:read', 'mcp:write'], $client->getScopes());
         $this->assertEquals('client_secret_basic', $client->getTokenEndpointAuthMethod());
         $this->assertEquals(['admin@example.com'], $client->getContacts());
         $this->assertNotNull($client->getRegistrationAccessToken());
@@ -180,7 +180,7 @@ class OAuth2ClientRegistrationServiceTest extends TestCase
         $updateData = [
             'client_name' => 'Updated Client',
             'redirect_uris' => ['https://updated.com/callback'],
-            'scope' => 'read'
+            'scope' => 'mcp:read'
         ];
 
         $updatedClient = $this->service->updateClient($clientId, $registrationToken, $updateData);
@@ -188,7 +188,7 @@ class OAuth2ClientRegistrationServiceTest extends TestCase
         $this->assertNotNull($updatedClient);
         $this->assertEquals('Updated Client', $updatedClient->getName());
         $this->assertEquals(['https://updated.com/callback'], $updatedClient->getRedirectUri());
-        $this->assertEquals(['read'], $updatedClient->getScopes());
+        $this->assertEquals(['mcp:read'], $updatedClient->getScopes());
     }
 
     /**
@@ -229,7 +229,7 @@ class OAuth2ClientRegistrationServiceTest extends TestCase
             'client_name' => 'RFC7591 Test Client',
             'redirect_uris' => ['https://example.com/callback'],
             'grant_types' => ['authorization_code', 'client_credentials'],
-            'scope' => 'read write admin',
+            'scope' => 'mcp:read mcp:write',
             'token_endpoint_auth_method' => 'client_secret_post',
             'contacts' => ['admin@example.com', 'support@example.com'],
             'client_uri' => 'https://example.com',
@@ -254,7 +254,7 @@ class OAuth2ClientRegistrationServiceTest extends TestCase
         $this->assertEquals('RFC7591 Test Client', $response['client_name']);
         $this->assertEquals(['https://example.com/callback'], $response['redirect_uris']);
         $this->assertEquals(['authorization_code', 'client_credentials'], $response['grant_types']);
-        $this->assertEquals('read write admin', $response['scope']);
+        $this->assertEquals('mcp:read mcp:write', $response['scope']);
         $this->assertEquals('client_secret_post', $response['token_endpoint_auth_method']);
         $this->assertEquals(['admin@example.com', 'support@example.com'], $response['contacts']);
         $this->assertEquals('https://example.com', $response['client_uri']);

@@ -17,6 +17,7 @@ use BcBlog\Service\BlogPostsServiceInterface;
 use BcBlog\Service\BlogContentsServiceInterface;
 use BcBlog\Service\BlogCategoriesServiceInterface;
 use BaserCore\Service\UsersServiceInterface;
+use Cake\Log\LogTrait;
 use PhpMcp\Server\ServerBuilder;
 
 /**
@@ -27,6 +28,7 @@ use PhpMcp\Server\ServerBuilder;
 class BlogPostsTool
 {
     use BcContainerTrait;
+    use LogTrait;
     /**
      * ブログ記事関連のツールを ServerBuilder に追加
      */
@@ -177,15 +179,15 @@ class BlogPostsTool
             $data = [
                 'title' => $title,
                 'detail' => $detail,
-                'blogContentId' => $this->getBlogContentId($blogContent),
-                'userId' => $userId,
+                'blog_content_id' => $this->getBlogContentId($blogContent),
+                'user_id' => $userId,
                 'status' => 1, // 公開
                 'posted' => date('Y-m-d H:i:s')
             ];
 
             // カテゴリ設定
             if (!empty($category)) {
-                $data['blogCategoryId'] = $this->getBlogCategoryId($category, $data['blogContentId']);
+                $data['blog_category_id'] = $this->getBlogCategoryId($category, $data['blog_content_id']);
             }
 
             $result = $blogPostsService->create($data);
@@ -220,7 +222,7 @@ class BlogPostsTool
 
             $conditions = [];
             if (!empty($blogContentId)) {
-                $conditions['blogContentId'] = $blogContentId;
+                $conditions['blog_content_id'] = $blogContentId;
             }
 
             if (!empty($keyword)) {
@@ -336,7 +338,7 @@ class BlogPostsTool
             if ($eyeCatch !== null) $data['eyeCatch'] = $eyeCatch;
 
             if (!empty($category)) {
-                $data['blogCategoryId'] = $this->getBlogCategoryId(
+                $data['blog_category_id'] = $this->getBlogCategoryId(
                     $category,
                     $blogContentId ?? $entity->blog_content_id
                 );
@@ -347,12 +349,12 @@ class BlogPostsTool
                     $usersService = $this->getService(UsersServiceInterface::class);
                     $conditions = ['email' => $email];
                     $user = $usersService->getIndex($conditions)->first();
-                    $data['userId'] = $user ? $user->id : 1;
+                    $data['user_id'] = $user ? $user->id : 1;
                 } catch (\Exception $e) {
-                    $data['userId'] = 1; // エラー時はデフォルト
+                    $data['user_id'] = 1; // エラー時はデフォルト
                 }
             } elseif ($userId !== null) {
-                $data['userId'] = $userId;
+                $data['user_id'] = $userId;
             }
 
             $result = $blogPostsService->update($entity, $data);
@@ -452,15 +454,15 @@ class BlogPostsTool
             return null; // エラー時はnull
         }
     }
-    
+
     public function fetch($id): array
 	{
 		return $this->getBlogPost($id);
 	}
-	
-	public function search($keyword) 
+
+	public function search($keyword)
 	{
 		return $this->getBlogPosts(1, $keyword);
 	}
-	
+
 }
