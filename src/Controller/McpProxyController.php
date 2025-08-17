@@ -77,7 +77,7 @@ class McpProxyController extends Controller
         parent::beforeFilter($event);
 
         $method = $this->request->getMethod();
-
+        $this->log(json_encode($this->request->getData(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         // OPTIONS は認証不要
         if ($method === 'OPTIONS') {
             return null;
@@ -223,7 +223,9 @@ class McpProxyController extends Controller
 
             $stream = new CallbackStream(function () use ($config, $mcpRequest) {
                 $response = $this->sendMcpRequest($config, $mcpRequest);
-                echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $data = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $this->log($data);
+                echo $data;
                 @ob_flush(); @flush();  // ここがポイント
             });
 
