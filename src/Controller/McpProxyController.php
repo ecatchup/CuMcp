@@ -237,7 +237,7 @@ class McpProxyController extends Controller
                     'resources' => new \stdClass(),
                     'prompts' => new \stdClass()
                 ];
-                $responseData['result']['protocolVersion'] = '2025-06-18';
+//                $responseData['result']['protocolVersion'] = '2025-06-18';
             }
             return $responseData;
 
