@@ -233,9 +233,9 @@ class McpProxyController extends Controller
             if (isset($responseData['result']) && isset($mcpRequest['method']) && $mcpRequest['method'] === 'initialize') {
                 // capabilitiesにツールの存在を示す（実際のツールリストはtools/listで取得）
                 $responseData['result']['capabilities'] = [
-                    'tools' => new \stdClass(),  // 空オブジェクトでツール機能があることを示す
-                    'resources' => new \stdClass(),
-                    'prompts' => new \stdClass()
+                    'tools' => ['listChanged' => true],  // 空オブジェクトでツール機能があることを示す
+                    'resources' => ['listChanged' => true],
+                    'prompts' => ['listChanged' => true]
                 ];
 //                $responseData['result']['protocolVersion'] = '2025-06-18';
             }
