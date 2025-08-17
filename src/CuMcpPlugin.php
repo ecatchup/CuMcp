@@ -57,10 +57,14 @@ class CuMcpPlugin extends BcPlugin
             // OAuth 2.0 保護リソースメタデータエンドポイント (RFC 9728)
             $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
+            $builder->connect('/.well-known/oauth-protected-resource/mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-protected-resource/mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
 
             // OAuth 2.0 認可サーバーメタデータエンドポイント (RFC 8414)
             $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
+            $builder->connect('/.well-known/oauth-authorization-server/mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-authorization-server/mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
         });
 
         $routes->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $builder) {
