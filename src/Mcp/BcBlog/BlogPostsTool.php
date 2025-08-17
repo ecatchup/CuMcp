@@ -123,7 +123,7 @@ class BlogPostsTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'keyword' => ['type' => 'string', '検索キーワード']
+                        'keyword' => ['type' => 'string', 'description' => '検索キーワード']
                     ],
                     'required' => ['keyword']
                 ]
