@@ -72,7 +72,7 @@ class McpProxyController extends Controller
     /**
      * リクエスト処理前の認証チェック
      */
-    public function beforeFilter(EventInterface $event): void
+    public function beforeFilter(EventInterface $event): Response|null
     {
         parent::beforeFilter($event);
 
@@ -80,12 +80,12 @@ class McpProxyController extends Controller
 
         // OPTIONS は認証不要
         if ($method === 'OPTIONS') {
-            return;
+            return null;
         }
 
         // 非許可メソッド（POST以外）は 405 を返すだけにしたいため認証をスキップ
         if ($method !== 'POST') {
-            return;
+            return null;
         }
 
         if(in_array($this->request->getData('method'), [
@@ -96,19 +96,19 @@ class McpProxyController extends Controller
 //            'prompts/list'
         ])) {
             // MCPサーバーの初期化メソッドは認証不要
-            return;
+            return null;
         } elseif($this->request->getData('method') === 'tools/call') {
             $toolName = $this->request->getData('params.name');
             if(in_array($toolName, ['search', 'fetch'])) {
-                return;
+                return null;
             }
         }
 
         $response = $this->validateOAuth2Token();
         if ($response) {
-            $this->response = $this->returnUnauthorizedResponse('Authorization required');
-            $event->stopPropagation();
+            return $response;
         }
+        return null;
     }
 
     /**
