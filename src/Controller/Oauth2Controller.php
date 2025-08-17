@@ -42,7 +42,7 @@ class Oauth2Controller extends AppController
     public function initialize(): void
     {
         parent::initialize();
-
+        $this->log($this->request->getPath());
         $this->oauth2Service = new OAuth2Service();
 
         // クライアント登録サービスを初期化
