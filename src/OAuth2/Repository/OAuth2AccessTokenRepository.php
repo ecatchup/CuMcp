@@ -8,9 +8,13 @@ use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
+use Cake\ORM\TableRegistry;
+use Cake\I18n\DateTime;
 
 /**
  * OAuth2 Access Token Repository
+ *
+ * アクセストークンの管理を行う（データベース永続化）
  */
 class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
 {
@@ -22,11 +26,11 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
     private static ?OAuth2AccessTokenRepository $instance = null;
 
     /**
-     * 永続化されたアクセストークン
+     * OAuth2AccessTokens Table
      *
-     * @var array
+     * @var \CuMcp\Model\Table\Oauth2AccessTokensTable
      */
-    private static array $persistedTokens = [];
+    private $accessTokensTable;
 
     /**
      * シングルトンインスタンスを取得
@@ -39,6 +43,14 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
             self::$instance = new self();
         }
         return self::$instance;
+    }
+
+    /**
+     * コンストラクタ
+     */
+    public function __construct()
+    {
+        $this->accessTokensTable = TableRegistry::getTableLocator()->get('CuMcp.Oauth2AccessTokens');
     }
 
     /**
@@ -72,19 +84,29 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
     public function persistNewAccessToken(AccessTokenEntityInterface $accessTokenEntity): void
     {
         $identifier = $accessTokenEntity->getIdentifier();
-        
-        if (isset(self::$persistedTokens[$identifier])) {
+
+        // 重複チェック
+        $existingToken = $this->accessTokensTable->find()
+            ->where(['token_id' => $identifier])
+            ->first();
+
+        if ($existingToken) {
             throw UniqueTokenIdentifierConstraintViolationException::create();
         }
 
-        self::$persistedTokens[$identifier] = [
-            'identifier' => $identifier,
+        // データベースに保存
+        $accessToken = $this->accessTokensTable->newEntity([
+            'token_id' => $identifier,
             'client_id' => $accessTokenEntity->getClient()->getIdentifier(),
             'user_id' => $accessTokenEntity->getUserIdentifier(),
-            'scopes' => array_keys($accessTokenEntity->getScopes()),
-            'expires_at' => $accessTokenEntity->getExpiryDateTime(),
+            'scopes' => implode(' ', array_keys($accessTokenEntity->getScopes())),
+            'expires_at' => DateTime::createFromInterface($accessTokenEntity->getExpiryDateTime()),
             'revoked' => false
-        ];
+        ]);
+
+        if (!$this->accessTokensTable->save($accessToken)) {
+            throw new \RuntimeException('Failed to save access token to database');
+        }
     }
 
     /**
@@ -95,8 +117,14 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
      */
     public function revokeAccessToken($tokenId): void
     {
-        if (isset(self::$persistedTokens[$tokenId])) {
-            self::$persistedTokens[$tokenId]['revoked'] = true;
+        // データベースで無効化
+        $accessToken = $this->accessTokensTable->find()
+            ->where(['token_id' => $tokenId])
+            ->first();
+
+        if ($accessToken) {
+            $accessToken->revoked = true;
+            $this->accessTokensTable->save($accessToken);
         }
     }
 
@@ -108,11 +136,22 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
      */
     public function isAccessTokenRevoked($tokenId): bool
     {
-        if (!isset(self::$persistedTokens[$tokenId])) {
+        // データベースから確認
+        $accessToken = $this->accessTokensTable->find()
+            ->where(['token_id' => $tokenId])
+            ->first();
+
+        if (!$accessToken) {
+            return true; // 見つからない場合は無効扱い
+        }
+
+        // 期限切れもチェック
+        $now = new DateTime();
+        if ($accessToken->expires_at < $now) {
             return true;
         }
 
-        return self::$persistedTokens[$tokenId]['revoked'];
+        return $accessToken->revoked;
     }
 
     /**
@@ -123,14 +162,42 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
      */
     public function getAccessTokenData(string $tokenId): ?array
     {
-        if (!isset(self::$persistedTokens[$tokenId])) {
+        // データベースから取得
+        $accessToken = $this->accessTokensTable->find()
+            ->where(['token_id' => $tokenId])
+            ->first();
+
+        if (!$accessToken) {
             return null;
         }
 
-        if (self::$persistedTokens[$tokenId]['revoked']) {
+        if ($accessToken->revoked) {
             return null;
         }
 
-        return self::$persistedTokens[$tokenId];
+        // 期限切れチェック
+        $now = new DateTime();
+        if ($accessToken->expires_at < $now) {
+            return null;
+        }
+
+        return [
+            'identifier' => $accessToken->token_id,
+            'client_id' => $accessToken->client_id,
+            'user_id' => $accessToken->user_id,
+            'scopes' => explode(' ', $accessToken->scopes),
+            'expires_at' => $accessToken->expires_at,
+            'revoked' => $accessToken->revoked
+        ];
+    }
+
+    /**
+     * 期限切れのアクセストークンをクリーンアップ
+     *
+     * @return int 削除された件数
+     */
+    public function cleanExpiredTokens(): int
+    {
+        return $this->accessTokensTable->cleanExpiredTokens();
     }
 }

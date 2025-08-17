@@ -69,8 +69,8 @@ class OAuth2ClientRegistrationService
      * @var array
      */
     private array $supportedScopes = [
-        'read',
-        'write',
+        'mcp:read',
+        'mcp:write',
         'admin'
     ];
 
@@ -109,7 +109,7 @@ class OAuth2ClientRegistrationService
 
         // 現在時刻を取得
         $issuedAt = time();
-        $secretExpiresAt = null;
+        $secretExpiresAt = 0;
 
         // 登録アクセストークンを生成
         $registrationAccessToken = $this->generateRegistrationAccessToken();

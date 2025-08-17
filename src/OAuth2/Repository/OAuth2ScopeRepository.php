@@ -27,9 +27,8 @@ class OAuth2ScopeRepository implements ScopeRepositoryInterface
     {
         // デフォルトのスコープ情報を設定
         $this->scopes = [
-            'read' => 'データの読み取り',
-            'write' => 'データの書き込み',
-            'admin' => '管理者権限'
+            'mcp:read' => 'データの読み取り',
+            'mcp:write' => 'データの書き込み',
         ];
     }
 

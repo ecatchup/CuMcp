@@ -11,12 +11,16 @@ use CuMcp\OAuth2\Entity\User as OAuth2User;
 /**
  * OAuth2 User Repository
  *
- * ユーザー情報の管理を行う
+ * League OAuth2 Server の要求により実装されているが、
+ * 現在のCuMcpの用途（MCP/Client Credentials Grant）では実際には使用されない
  */
 class OAuth2UserRepository implements UserRepositoryInterface
 {
     /**
      * ユーザー認証情報でユーザーエンティティを取得
+     *
+     * 注意：現在のCuMcpではClient Credentials Grantのみを使用するため、
+     * このメソッドは実際には呼び出されない
      *
      * @param string $username
      * @param string $password
@@ -30,8 +34,9 @@ class OAuth2UserRepository implements UserRepositoryInterface
         $grantType,
         ClientEntityInterface $clientEntity
     ): ?UserEntityInterface {
-        // Authorization Code Grant では直接的なユーザー認証は行わない
-        // 認可エンドポイントで既にログイン済みのユーザー情報を使用
+        // Client Credentials Grant では使用されない
+        // Authorization Code Grant を将来実装する場合は、
+        // ここでbaserCMSのユーザー認証を行う
         return null;
     }
 }

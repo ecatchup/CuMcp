@@ -145,16 +145,6 @@ class OAuth2Controller extends BcAdminAppController
                 	$userEntity->setIdentifier($user->getIdentifier());
                 	$authRequest->setUser($userEntity);
                 	$authRequest->setAuthorizationApproved(true);
-
-                    // 認可コードを保存（実際にはデータベースに保存）
-//                    $this->oauth2Service->storeAuthorizationCode([
-//                        'code' => $authCode,
-//                        'client_id' => $clientId,
-//                        'user_id' => $user->getIdentifier(),
-//                        'redirect_uri' => $redirectUri,
-//                        'scope' => $scope,
-//                        'expires_at' => time() + 600, // 10分間有効
-//                    ]);
                     return $server->completeAuthorizationRequest($authRequest, $this->response);
                 } elseif ($action === 'deny') {
                     // アクセス拒否

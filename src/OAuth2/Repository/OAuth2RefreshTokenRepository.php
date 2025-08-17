@@ -12,17 +12,10 @@ use Cake\I18n\DateTime;
 /**
  * OAuth2 Refresh Token Repository
  *
- * リフレッシュトークンの管理を行う（データベース永続化対応）
+ * リフレッシュトークンの管理を行う（データベース永続化）
  */
 class OAuth2RefreshTokenRepository implements RefreshTokenRepositoryInterface
 {
-    /**
-     * リフレッシュトークンの一時保存用（下位互換のため残す）
-     *
-     * @var array
-     */
-    private static array $refreshTokens = [];
-
     /**
      * OAuth2RefreshTokens Table
      *
@@ -67,14 +60,6 @@ class OAuth2RefreshTokenRepository implements RefreshTokenRepositoryInterface
         if (!$this->refreshTokensTable->save($refreshToken)) {
             throw new \RuntimeException('Failed to save refresh token to database');
         }
-
-        // 下位互換のためメモリにも保存
-        self::$refreshTokens[$refreshTokenEntity->getIdentifier()] = [
-            'token' => $refreshTokenEntity->getIdentifier(),
-            'access_token_id' => $refreshTokenEntity->getAccessToken()->getIdentifier(),
-            'expires_at' => $refreshTokenEntity->getExpiryDateTime()->getTimestamp(),
-            'revoked' => false
-        ];
     }
 
     /**
@@ -93,11 +78,6 @@ class OAuth2RefreshTokenRepository implements RefreshTokenRepositoryInterface
         if ($refreshToken) {
             $refreshToken->revoked = true;
             $this->refreshTokensTable->save($refreshToken);
-        }
-
-        // メモリでも無効化
-        if (isset(self::$refreshTokens[$tokenId])) {
-            self::$refreshTokens[$tokenId]['revoked'] = true;
         }
     }
 
@@ -121,11 +101,6 @@ class OAuth2RefreshTokenRepository implements RefreshTokenRepositoryInterface
                 return true;
             }
             return $refreshToken->revoked;
-        }
-
-        // メモリからも確認（下位互換）
-        if (isset(self::$refreshTokens[$tokenId])) {
-            return self::$refreshTokens[$tokenId]['revoked'] ?? true;
         }
 
         return true; // 見つからない場合は無効扱い

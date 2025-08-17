@@ -12,17 +12,10 @@ use Cake\I18n\DateTime;
 /**
  * OAuth2 Authorization Code Repository
  *
- * 認可コードの管理を行う（データベース永続化対応）
+ * 認可コードの管理を行う（データベース永続化）
  */
 class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
 {
-    /**
-     * 認可コードの一時保存用（下位互換のため残す）
-     *
-     * @var array
-     */
-    private static array $authCodes = [];
-
     /**
      * OAuth2AuthCodes Table
      *
@@ -70,17 +63,6 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
         if (!$this->authCodesTable->save($authCode)) {
             throw new \RuntimeException('Failed to save authorization code to database');
         }
-
-        // 下位互換のためメモリにも保存
-        self::$authCodes[$authCodeEntity->getIdentifier()] = [
-            'code' => $authCodeEntity->getIdentifier(),
-            'client_id' => $authCodeEntity->getClient()->getIdentifier(),
-            'user_id' => $authCodeEntity->getUserIdentifier(),
-            'scopes' => array_map(fn($scope) => $scope->getIdentifier(), $authCodeEntity->getScopes()),
-            'expires_at' => $authCodeEntity->getExpiryDateTime()->getTimestamp(),
-            'redirect_uri' => $authCodeEntity->getRedirectUri(),
-            'revoked' => false
-        ];
     }
 
     /**
@@ -99,11 +81,6 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
         if ($authCode) {
             $authCode->revoked = true;
             $this->authCodesTable->save($authCode);
-        }
-
-        // メモリでも無効化
-        if (isset(self::$authCodes[$codeId])) {
-            self::$authCodes[$codeId]['revoked'] = true;
         }
     }
 
@@ -129,11 +106,6 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
             return $authCode->revoked;
         }
 
-        // メモリからも確認（下位互換）
-        if (isset(self::$authCodes[$codeId])) {
-            return self::$authCodes[$codeId]['revoked'] ?? true;
-        }
-
         return true; // 見つからない場合は無効扱い
     }
 
@@ -150,8 +122,8 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
             'code' => $data['code'],
             'client_id' => $data['client_id'],
             'user_id' => $data['user_id'],
-            'scopes' => is_array($data['scope'] ?? []) ? 
-                implode(' ', $data['scope']) : 
+            'scopes' => is_array($data['scope'] ?? []) ?
+                implode(' ', $data['scope']) :
                 ($data['scope'] ?? ''),
             'expires_at' => DateTime::createFromTimestamp($data['expires_at']),
             'redirect_uri' => $data['redirect_uri'],
@@ -161,9 +133,6 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
         if (!$this->authCodesTable->save($authCode)) {
             throw new \RuntimeException('Failed to save authorization code to database');
         }
-
-        // メモリにも保存（下位互換）
-        self::$authCodes[$data['code']] = $data + ['revoked' => false];
     }
 
     /**
@@ -192,8 +161,7 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
             ];
         }
 
-        // メモリからも確認（下位互換）
-        return self::$authCodes[$code] ?? null;
+        return null;
     }
 
     /**
