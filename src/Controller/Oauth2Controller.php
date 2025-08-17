@@ -256,7 +256,7 @@ class Oauth2Controller extends AppController
 
             $metadata = [
                 'resource' => $baseUrl . '/mcp',
-                'authorization_servers' => [$baseUrl],
+                'authorization_servers' => [$baseUrl . 'baser/admin/cu-mcp/oauth2/'],
                 'scopes_supported' => ['mcp:read', 'mcp:write'],
                 'bearer_methods_supported' => ['header'],
                 'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
