@@ -134,7 +134,7 @@ class BlogPostsTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'id' => ['type' => 'number', 'description' => '識別子（必須）']
+                        'id' => ['type' => 'string', 'description' => '識別子（必須）']
                     ],
                     'required' => ['id']
                 ]
@@ -459,9 +459,9 @@ class BlogPostsTool
         }
     }
 
-    public function fetch(int $id): array
+    public function fetch(string $id): array
 	{
-		$result = $this->getBlogPost($id, 1);
+		$result = $this->getBlogPost((int) $id, 1);
 		if(!empty($result['success'])) {
             $result['data'] = [
                 'id' => $result['data']['id'],
