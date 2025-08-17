@@ -45,10 +45,10 @@ class McpProxyController extends Controller
         // OAuth2サービスを初期化
         $this->oauth2Service = new OAuth2Service();
 
-        // CORS設定（実態に合わせて POST と OPTIONS のみ許可）
+        // CORS設定（統一された設定）
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
         $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin');
     }
 
     /**
@@ -146,7 +146,7 @@ class McpProxyController extends Controller
                 ->withHeader('Allow', 'POST, OPTIONS')
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
                 ->withStatus(405);
             return $this->response;
         }
@@ -171,7 +171,7 @@ class McpProxyController extends Controller
                     ->withHeader('Allow', 'POST, OPTIONS')
                     ->withHeader('Access-Control-Allow-Origin', '*')
                     ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                    ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+                    ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
                     ->withStatus(400);
                 return $this->response;
             }
@@ -200,7 +200,7 @@ class McpProxyController extends Controller
                 ->withHeader('Content-Type', 'application/json')
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin')
+                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
 //                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
                 ->withBody($stream);
@@ -267,7 +267,7 @@ class McpProxyController extends Controller
         $this->response = $this->response
             ->withHeader('Access-Control-Allow-Origin', '*')
             ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
             ->withHeader('Access-Control-Max-Age', '86400')
             ->withStatus(200);
 
