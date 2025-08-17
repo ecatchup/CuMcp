@@ -74,7 +74,8 @@ class BlogPostsTool
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
-                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）']
                     ],
                     'required' => ['id']
                 ]
@@ -229,8 +230,8 @@ class BlogPostsTool
                 $conditions['keyword'] = $keyword;
             }
 
-            if (isset($status)) {
-                $conditions['status'] = $status;
+            if ($status) {
+                $conditions['status'] = 'publish';
             }
 
             $conditions['limit'] = $limit ?? 10;
@@ -259,7 +260,7 @@ class BlogPostsTool
     /**
      * ブログ記事を取得
      */
-    public function getBlogPost(int $id, ?int $blogContentId = null): array
+    public function getBlogPost(int $id, ?int $blogContentId = null, $status = null): array
     {
         try {
             // 必須パラメータのチェック
@@ -271,8 +272,11 @@ class BlogPostsTool
             }
 
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
-
-            $result = $blogPostsService->get($id);
+            $options = [];
+            if($status) {
+                $options = ['status' => 'publish'];
+            }
+            $result = $blogPostsService->get($id, $options);
 
             if ($result) {
                 // ブログコンテンツIDが指定されている場合は条件をチェック
@@ -457,12 +461,35 @@ class BlogPostsTool
 
     public function fetch($id): array
 	{
-		return $this->getBlogPost($id);
+		$result = $this->getBlogPost($id, 1);
+		if(!empty($result['success'])) {
+            $result['data'] = [
+                'id' => $result['data']['id'],
+                'title' => $result['data']['title'],
+                'text' => $result['data']['content'] . $result['data']['detail'],
+                'url' => ''
+            ];
+		}
+        return $result;
 	}
 
 	public function search($keyword)
 	{
-		return $this->getBlogPosts(1, $keyword);
+		$result =  $this->getBlogPosts(1, $keyword, 1);
+		if(!empty($result['success'])) {
+            $postsArray = [];
+            foreach ($result['data'] as $post) {
+                $postsArray[] = [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'text' => $post->detail . $post->content,
+                    'url' => ''
+                ];
+            }
+            $result['data'] = $postsArray;
+        }
+        unset($result['pagination']);
+        return $result;
 	}
 
 }

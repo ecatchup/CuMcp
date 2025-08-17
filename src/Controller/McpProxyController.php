@@ -78,6 +78,11 @@ class McpProxyController extends Controller
         ])) {
             // MCPサーバーの初期化メソッドは認証不要
             return;
+        } elseif($this->request->getData('method') === 'tools/call') {
+            $toolName = $this->request->getData('params.name');
+            if(in_array($toolName, ['search', 'fetch'])) {
+                return;
+            }
         }
 
         // OAuth2トークンの検証
