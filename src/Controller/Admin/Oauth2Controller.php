@@ -15,7 +15,7 @@ use Cake\Http\Response;
  *
  * OAuth2認証エンドポイントを提供（認証が必要なエンドポイントのみ）
  */
-class OAuth2Controller extends BcAdminAppController
+class Oauth2Controller extends BcAdminAppController
 {
     /**
      * OAuth2サービス

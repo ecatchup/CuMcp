@@ -18,7 +18,7 @@ use League\OAuth2\Server\Exception\OAuthServerException;
  *
  * OAuth2認証エンドポイントを提供（認証不要なエンドポイントのみ）
  */
-class OAuth2Controller extends AppController
+class Oauth2Controller extends AppController
 {
     /**
      * OAuth2サービス
