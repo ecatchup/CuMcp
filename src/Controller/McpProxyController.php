@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Controller;
 
+use Cake\Http\CallbackStream;
 use Cake\Http\Client;
 use Cake\Controller\Controller;
 use Cake\Http\Exception\BadRequestException;
@@ -182,7 +183,18 @@ class McpProxyController extends Controller
             }
 
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
-            $response = $this->sendMcpRequest($config, $mcpRequest);
+//            $response = $this->sendMcpRequest($config, $mcpRequest);
+
+            // PHP 側の出力バッファ/圧縮は極力オフ
+            @ini_set('output_buffering', 'off');
+            @ini_set('zlib.output_compression', '0');
+            while (ob_get_level()) { @ob_end_flush(); }
+
+            $stream = new CallbackStream(function () use ($config, $mcpRequest) {
+                $response = $this->sendMcpRequest($config, $mcpRequest);
+                echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                @ob_flush(); @flush();  // ここがポイント
+            });
 
             $this->response = $this->response
                 ->withHeader('Content-Type', 'application/json')
@@ -190,7 +202,8 @@ class McpProxyController extends Controller
                 ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin')
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
-                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+//                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+                ->withBody($stream);
         } catch (BadRequestException $e) {
             throw $e;
         } catch (\Exception $e) {
