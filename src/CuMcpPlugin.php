@@ -55,50 +55,50 @@ class CuMcpPlugin extends BcPlugin
             $builder->connect('/mcp', ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index'], ['routeClass' => InflectedRoute::class]);
 
             // OAuth 2.0 保護リソースメタデータエンドポイント (RFC 9728)
-            $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
+            $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
 
             // OAuth 2.0 認可サーバーメタデータエンドポイント (RFC 8414)
-            $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'OAuth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
+            $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
         });
 
         $routes->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $builder) {
             $builder->setRouteClass(InflectedRoute::class);
 
-            // OAuth2エンドポイント（認証不要）
+            // Oauth2エンドポイント（認証不要）
             // トークン発行エンドポイント
-            $builder->connect('/oauth2/token', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/oauth2/token', ['controller' => 'OAuth2', 'action' => 'token'])->setMethods(['POST']);
+            $builder->connect('/oauth2/token', ['controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/oauth2/token', ['controller' => 'Oauth2', 'action' => 'token'])->setMethods(['POST']);
 
             // トークン検証エンドポイント
-            $builder->connect('/oauth2/verify', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/oauth2/verify', ['controller' => 'OAuth2', 'action' => 'verify'])->setMethods(['POST', 'GET']);
+            $builder->connect('/oauth2/verify', ['controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/oauth2/verify', ['controller' => 'Oauth2', 'action' => 'verify'])->setMethods(['POST', 'GET']);
 
             // クライアント情報取得エンドポイント
-            $builder->connect('/oauth2/client-info', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/oauth2/client-info', ['controller' => 'OAuth2', 'action' => 'clientInfo'])->setMethods(['GET']);
+            $builder->connect('/oauth2/client-info', ['controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/oauth2/client-info', ['controller' => 'Oauth2', 'action' => 'clientInfo'])->setMethods(['GET']);
 
             // RFC 7591 動的クライアント登録プロトコル（認証不要）
-            $builder->connect('/oauth2/register', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/oauth2/register', ['controller' => 'OAuth2', 'action' => 'register'])->setMethods(['POST']);
+            $builder->connect('/oauth2/register', ['controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/oauth2/register', ['controller' => 'Oauth2', 'action' => 'register'])->setMethods(['POST']);
 
             // クライアント設定エンドポイント（RFC 7591）
-            $builder->connect('/oauth2/register/{client_id}', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS'])->setPass(['client_id']);
-            $builder->connect('/oauth2/register/{client_id}', ['controller' => 'OAuth2', 'action' => 'clientConfiguration'])->setMethods(['GET', 'PUT', 'DELETE'])->setPass(['client_id']);
+            $builder->connect('/oauth2/register/{client_id}', ['controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS'])->setPass(['client_id']);
+            $builder->connect('/oauth2/register/{client_id}', ['controller' => 'Oauth2', 'action' => 'clientConfiguration'])->setMethods(['GET', 'PUT', 'DELETE'])->setPass(['client_id']);
 
             // その他のルート
             $builder->fallbacks(\Cake\Routing\Route\DashedRoute::class);
         });
 
-        // Admin prefix routes for OAuth2 endpoints（認証が必要なエンドポイントのみ）
+        // Admin prefix routes for Oauth2 endpoints（認証が必要なエンドポイントのみ）
         $routes->prefix('Admin', ['path' => BcUtil::getPrefix()], function (RouteBuilder $builder) {
             $builder->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $routes) {
                 $routes->setRouteClass(InflectedRoute::class);
 
                 // Authorization Code Grant 認可エンドポイント（認証必要）
-                $routes->connect('/oauth2/authorize', ['controller' => 'OAuth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-                $routes->connect('/oauth2/authorize', ['controller' => 'OAuth2', 'action' => 'authorize'])->setMethods(['GET', 'POST']);
+                $routes->connect('/oauth2/authorize', ['controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+                $routes->connect('/oauth2/authorize', ['controller' => 'Oauth2', 'action' => 'authorize'])->setMethods(['GET', 'POST']);
 
                 // MCPサーバー管理
                 $routes->get('/mcp-server-manager', ['controller' => 'McpServerManager', 'action' => 'index']);
