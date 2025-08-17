@@ -293,7 +293,7 @@ class McpProxyController extends Controller
                     'resources' => ['listChanged' => true],
                     'prompts' => ['listChanged' => true]
                 ];
-//                $responseData['result']['protocolVersion'] = '2025-06-18';
+                $responseData['result']['protocolVersion'] = '2025-06-18';
             }
             return $responseData;
 
