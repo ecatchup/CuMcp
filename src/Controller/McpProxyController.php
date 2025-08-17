@@ -234,6 +234,8 @@ class McpProxyController extends Controller
                 // capabilitiesにツールの存在を示す（実際のツールリストはtools/listで取得）
                 $responseData['result']['capabilities'] = [
                     'tools' => new \stdClass(),  // 空オブジェクトでツール機能があることを示す
+                    'resources' => new \stdClass(),
+                    'prompts' => new \stdClass()
                 ];
                 $responseData['result']['protocolVersion'] = '2025-06-18';
             }
