@@ -27,6 +27,7 @@ class OAuth2Util
         }
 
         // client_credentials認証のためにAuthorizationヘッダーを処理
+        $postData = [];
         if ($request->is('post')) {
             $postData = $request->getData();
 
@@ -43,8 +44,6 @@ class OAuth2Util
         // ボディコンテンツを取得
         $body = Stream::create('');
         if ($request->is('post')) {
-            $postData = $request->getData();
-
             // client_secretが除去された後のPOSTデータを使用
             if (!empty($postData)) {
                 $bodyContent = http_build_query($postData);
@@ -61,15 +60,14 @@ class OAuth2Util
             $body
         );
 
+        // クエリパラメータを設定（PKCEパラメータなどを含む）
+        $queryParams = $request->getQueryParams();
+        if (!empty($queryParams)) {
+            $psrRequest = $psrRequest->withQueryParams($queryParams);
+        }
+
         // POSTデータをparsedBodyとして設定
-        if ($request->is('post')) {
-            $postData = $request->getData();
-
-            // client_secretを除去したデータを設定
-            if (isset($postData['client_secret'])) {
-                unset($postData['client_secret']);
-            }
-
+        if ($request->is('post') && !empty($postData)) {
             $psrRequest = $psrRequest->withParsedBody($postData);
         }
 

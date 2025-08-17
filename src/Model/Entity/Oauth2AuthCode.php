@@ -52,7 +52,7 @@ class Oauth2AuthCode extends Entity
         if (empty($this->scopes)) {
             return [];
         }
-        
+
         return explode(' ', trim($this->scopes));
     }
 

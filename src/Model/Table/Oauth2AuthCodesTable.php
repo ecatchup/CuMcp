@@ -73,6 +73,16 @@ class Oauth2AuthCodesTable extends Table
             ->requirePresence('expires_at', 'create')
             ->notEmptyDateTime('expires_at');
 
+        $validator
+            ->scalar('code_challenge')
+            ->maxLength('code_challenge', 255)
+            ->allowEmptyString('code_challenge');
+
+        $validator
+            ->scalar('code_challenge_method')
+            ->maxLength('code_challenge_method', 255)
+            ->allowEmptyString('code_challenge_method');
+
         return $validator;
     }
 

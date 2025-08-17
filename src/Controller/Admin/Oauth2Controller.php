@@ -88,6 +88,10 @@ class Oauth2Controller extends BcAdminAppController
             $scope = $request->getQuery('scope', '');
             $clientSecret = $request->getQuery('client_secret', null);
 
+            // PKCE パラメータ
+            $codeChallenge = $request->getQuery('code_challenge');
+            $codeChallengeMethod = $request->getQuery('code_challenge_method', 'plain');
+
             if (!$clientId || !$responseType || !$redirectUri) {
                 return $this->response
                     ->withStatus(400)
@@ -112,7 +116,7 @@ class Oauth2Controller extends BcAdminAppController
             $clientRepository = new OAuth2ClientRepository();
             $client = $clientRepository->getClientEntity($clientId);
 
-            if (!$client || !$clientRepository->validateClient($clientId, $clientSecret, null)) {
+            if (!$client) {
                 return $this->response
                     ->withStatus(400)
                     ->withType('application/json')
@@ -138,13 +142,19 @@ class Oauth2Controller extends BcAdminAppController
                 $action = $this->request->getData('action');
 
                 if ($action === 'approve') {
-					$server = $this->oauth2Service->getAuthorizationServer();
-                	$psrRequest = OAuth2Util::createPsr7Request($this->request);
-                	$authRequest = $server->validateAuthorizationRequest($psrRequest);
-                	$userEntity = new User();
-                	$userEntity->setIdentifier($user->getIdentifier());
-                	$authRequest->setUser($userEntity);
-                	$authRequest->setAuthorizationApproved(true);
+                    $server = $this->oauth2Service->getAuthorizationServer();
+
+                    // PSR-7リクエストを作成（クエリパラメータとPOSTデータの両方を含む）
+                    $psrRequest = OAuth2Util::createPsr7Request($this->request);
+
+                    // 認可リクエストを検証（PKCEパラメータも含む）
+                    $authRequest = $server->validateAuthorizationRequest($psrRequest);
+
+                    $userEntity = new User();
+                    $userEntity->setIdentifier($user->getIdentifier());
+                    $authRequest->setUser($userEntity);
+                    $authRequest->setAuthorizationApproved(true);
+
                     return $server->completeAuthorizationRequest($authRequest, $this->response);
                 } elseif ($action === 'deny') {
                     // アクセス拒否

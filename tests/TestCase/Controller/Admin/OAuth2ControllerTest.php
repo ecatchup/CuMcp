@@ -311,4 +311,288 @@ class OAuth2ControllerTest extends BcTestCase
         }
     }
 
+    /**
+     * PKCE (Proof Key for Code Exchange) フローの統合テスト
+     * ChatGPTコネクタで使用されるPKCEフローをテスト
+     *
+     * @return void
+     */
+    public function testIntegrationWithPKCE(): void
+    {
+        // Step 1: OAuth2メタデータの取得
+        $this->get('/.well-known/oauth-authorization-server');
+        $metadata = json_decode((string)$this->_response->getBody(), true);
+        $this->assertResponseOk();
+        $this->assertArrayHasKey('registration_endpoint', $metadata);
+        $this->assertArrayHasKey('code_challenge_methods_supported', $metadata);
+        $this->assertContains('S256', $metadata['code_challenge_methods_supported']);
+
+        // Step 2: 動的クライアント登録
+        $registrationEndpoint = $metadata['registration_endpoint'];
+        $this->post($registrationEndpoint, [
+            'client_name' => 'ChatGPT Connector Test',
+            'client_uri' => 'https://chatgpt.com',
+            'redirect_uris' => ['https://chatgpt.com/connector_platform_oauth_redirect'],
+            'grant_types' => ['authorization_code', 'refresh_token'],
+            'response_types' => ['code'],
+            'token_endpoint_auth_method' => 'none', // PKCEではclient_secretは不要
+            'scope' => 'mcp:read mcp:write'
+        ]);
+        $this->assertResponseCode(201);
+        $clientData = json_decode((string)$this->_response->getBody(), true);
+        $this->assertArrayHasKey('client_id', $clientData);
+        $clientId = $clientData['client_id'];
+        $redirectUri = $clientData['redirect_uris'][0];
+
+        // Step 3: PKCE パラメータの生成
+        $codeVerifier = $this->generateCodeVerifier();
+        $codeChallenge = $this->generateCodeChallenge($codeVerifier);
+        $state = bin2hex(random_bytes(16));
+
+        // Step 4: 認可リクエスト（PKCEパラメータ付き）
+        $authParams = [
+            'client_id' => $clientId,
+            'response_type' => 'code',
+            'redirect_uri' => $redirectUri,
+            'state' => $state,
+            'scope' => 'mcp:read mcp:write',
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256'
+        ];
+
+        // 未認証でのアクセス
+        $this->get('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams));
+        $this->assertResponseCode(302); // ログイン画面へリダイレクト
+
+        // 管理者でログイン
+        $this->loginAdmin($this->getRequest());
+        $this->get('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams));
+        $this->assertResponseOk(); // 認可画面が表示される
+
+        // Step 5: 認可承認（PKCEパラメータが保存される）
+        $this->post('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams), [
+            'action' => 'approve'
+        ]);
+        $this->assertResponseCode(302);
+
+        // リダイレクトURLから認可コードを取得
+        $redirectUrl = $this->_response->getHeaderLine('Location');
+        $this->assertStringContainsString('code=', $redirectUrl);
+        $this->assertStringContainsString('state=' . $state, $redirectUrl);
+
+        $queryParams = [];
+        parse_str(parse_url($redirectUrl, PHP_URL_QUERY), $queryParams);
+        $this->assertArrayHasKey('code', $queryParams);
+        $this->assertEquals($state, $queryParams['state']);
+        $authCode = $queryParams['code'];
+
+        // Step 6: アクセストークン交換（PKCE検証）
+        $tokenParams = [
+            'grant_type' => 'authorization_code',
+            'code' => $authCode,
+            'redirect_uri' => $redirectUri,
+            'client_id' => $clientId,
+            'code_verifier' => $codeVerifier // client_secretの代わりにcode_verifierを使用
+        ];
+
+        $this->post('/cu-mcp/oauth2/token', $tokenParams);
+        $this->assertResponseOk();
+
+        $tokenData = json_decode((string)$this->_response->getBody(), true);
+        $this->assertArrayHasKey('access_token', $tokenData);
+        $this->assertArrayHasKey('token_type', $tokenData);
+        $this->assertEquals('Bearer', $tokenData['token_type']);
+        $accessToken = $tokenData['access_token'];
+
+        // Step 7: 不正なcode_verifierでのテスト（失敗することを確認）
+        $invalidTokenParams = [
+            'grant_type' => 'authorization_code',
+            'code' => $authCode, // 同じ認可コードを再利用（実際は無効化されているはず）
+            'redirect_uri' => $redirectUri,
+            'client_id' => $clientId,
+            'code_verifier' => 'invalid_verifier'
+        ];
+
+        $this->post('/cu-mcp/oauth2/token', $invalidTokenParams);
+        $this->assertResponseError(); // 400番台のエラーが返されることを確認
+
+        // Step 8: アクセストークンを使用してMCPサーバーにアクセス
+        $requestConfig = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            ]
+        ];
+
+        // MCPプロキシ経由でtools/listを呼び出し
+        $mcpRequest = [
+            'jsonrpc' => '2.0',
+            'id' => 'pkce-test-tools-list',
+            'method' => 'tools/list'
+        ];
+
+        $this->configRequest($requestConfig);
+        $this->post('/mcp', json_encode($mcpRequest));
+        $this->assertResponseOk();
+        $this->assertContentType('application/json');
+
+        $toolsResponse = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($toolsResponse);
+        $this->assertArrayHasKey('result', $toolsResponse);
+        $this->assertArrayHasKey('tools', $toolsResponse['result']);
+        $this->assertIsArray($toolsResponse['result']['tools']);
+
+        // Step 9: ツール実行テスト
+        $tools = $toolsResponse['result']['tools'];
+        if (!empty($tools)) {
+            $firstTool = $tools[0];
+            $toolRequest = [
+                'jsonrpc' => '2.0',
+                'id' => 'pkce-test-tool-call',
+                'method' => 'tools/call',
+                'params' => [
+                    'name' => $firstTool['name'],
+                    'arguments' => []
+                ]
+            ];
+
+            $this->configRequest($requestConfig);
+            $this->post('/mcp', json_encode($toolRequest));
+            // ツールによってはパラメータが必要な場合があるので、200または400を許可
+            $this->assertTrue(
+                in_array($this->_response->getStatusCode(), [200, 400]),
+                'Tool call should return 200 (success) or 400 (missing parameters)'
+            );
+        }
+    }
+
+    /**
+     * PKCEのcode_verifierを生成
+     * RFC 7636 に準拠した43-128文字のランダム文字列
+     *
+     * @return string
+     */
+    private function generateCodeVerifier(): string
+    {
+        $length = 43; // 最小文字数
+        $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+        $verifier = '';
+
+        for ($i = 0; $i < $length; $i++) {
+            $verifier .= $characters[random_int(0, strlen($characters) - 1)];
+        }
+
+        return $verifier;
+    }
+
+    /**
+     * PKCEのcode_challengeを生成
+     * code_verifierのSHA256ハッシュをBase64URL エンコード
+     *
+     * @param string $codeVerifier
+     * @return string
+     */
+    private function generateCodeChallenge(string $codeVerifier): string
+    {
+        $hash = hash('sha256', $codeVerifier, true);
+        return rtrim(strtr(base64_encode($hash), '+/', '-_'), '=');
+    }
+
+    /**
+     * PKCEセキュリティテスト - 不正なcode_verifierでの失敗を確認
+     *
+     * @return void
+     */
+    public function testPKCESecurityFailure(): void
+    {
+        // クライアント登録
+        $this->get('/.well-known/oauth-authorization-server');
+        $metadata = json_decode((string)$this->_response->getBody(), true);
+        $registrationEndpoint = $metadata['registration_endpoint'];
+
+        $this->post($registrationEndpoint, [
+            'client_name' => 'PKCE Security Test Client',
+            'redirect_uris' => ['https://example.com/callback'],
+            'grant_types' => ['authorization_code'],
+            'response_types' => ['code'],
+            'token_endpoint_auth_method' => 'none',
+            'scope' => 'mcp:read'
+        ]);
+        $clientData = json_decode((string)$this->_response->getBody(), true);
+        $clientId = $clientData['client_id'];
+        $redirectUri = $clientData['redirect_uris'][0];
+
+        // PKCE パラメータ生成
+        $codeVerifier = $this->generateCodeVerifier();
+        $codeChallenge = $this->generateCodeChallenge($codeVerifier);
+
+        // 認可フロー
+        $this->loginAdmin($this->getRequest());
+        $authParams = [
+            'client_id' => $clientId,
+            'response_type' => 'code',
+            'redirect_uri' => $redirectUri,
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256'
+        ];
+
+        $this->post('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams), [
+            'action' => 'approve'
+        ]);
+
+        $redirectUrl = $this->_response->getHeaderLine('Location');
+        $queryParams = [];
+        parse_str(parse_url($redirectUrl, PHP_URL_QUERY), $queryParams);
+        $authCode = $queryParams['code'];
+
+        // 正しいcode_verifierでトークン交換（成功するはず）
+        $this->post('/cu-mcp/oauth2/token', [
+            'grant_type' => 'authorization_code',
+            'code' => $authCode,
+            'redirect_uri' => $redirectUri,
+            'client_id' => $clientId,
+            'code_verifier' => $codeVerifier
+        ]);
+        $this->assertResponseOk();
+        $tokenData = json_decode((string)$this->_response->getBody(), true);
+        $this->assertArrayHasKey('access_token', $tokenData);
+
+        // 新しい認可コードを取得（同じ認可コードは再利用できないため）
+        $codeVerifier2 = $this->generateCodeVerifier();
+        $codeChallenge2 = $this->generateCodeChallenge($codeVerifier2);
+        $authParams2 = [
+            'client_id' => $clientId,
+            'response_type' => 'code',
+            'redirect_uri' => $redirectUri,
+            'code_challenge' => $codeChallenge2,
+            'code_challenge_method' => 'S256'
+        ];
+
+        $this->post('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams2), [
+            'action' => 'approve'
+        ]);
+
+        $redirectUrl2 = $this->_response->getHeaderLine('Location');
+        $queryParams2 = [];
+        parse_str(parse_url($redirectUrl2, PHP_URL_QUERY), $queryParams2);
+        $authCode2 = $queryParams2['code'];
+
+        // 間違ったcode_verifierでトークン交換（失敗するはず）
+        $wrongVerifier = $this->generateCodeVerifier(); // 別のverifierを生成
+        $this->post('/cu-mcp/oauth2/token', [
+            'grant_type' => 'authorization_code',
+            'code' => $authCode2,
+            'redirect_uri' => $redirectUri,
+            'client_id' => $clientId,
+            'code_verifier' => $wrongVerifier
+        ]);
+
+        // PKCE検証失敗でエラーが返されることを確認
+        $this->assertResponseError();
+        $errorResponse = json_decode((string)$this->_response->getBody(), true);
+        $this->assertArrayHasKey('error', $errorResponse);
+        $this->assertEquals('invalid_grant', $errorResponse['error']);
+    }
+
 }

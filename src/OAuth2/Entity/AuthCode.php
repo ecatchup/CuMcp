@@ -20,6 +20,12 @@ class AuthCode implements AuthCodeEntityInterface
     /** @var string */
     protected $redirectUri;
 
+    /** @var string|null */
+    protected $codeChallenge;
+
+    /** @var string */
+    protected $codeChallengeMethod = 'plain';
+
     public function getRedirectUri(): string
     {
         return $this->redirectUri;
@@ -28,5 +34,25 @@ class AuthCode implements AuthCodeEntityInterface
     public function setRedirectUri($uri): void
     {
         $this->redirectUri = $uri;
+    }
+
+    public function getCodeChallenge(): ?string
+    {
+        return $this->codeChallenge;
+    }
+
+    public function setCodeChallenge(?string $codeChallenge): void
+    {
+        $this->codeChallenge = $codeChallenge;
+    }
+
+    public function getCodeChallengeMethod(): string
+    {
+        return $this->codeChallengeMethod;
+    }
+
+    public function setCodeChallengeMethod(string $codeChallengeMethod): void
+    {
+        $this->codeChallengeMethod = $codeChallengeMethod;
     }
 }

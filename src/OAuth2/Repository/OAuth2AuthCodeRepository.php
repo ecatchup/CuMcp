@@ -50,7 +50,7 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
     public function persistNewAuthCode(AuthCodeEntityInterface $authCodeEntity): void
     {
         // データベースに保存
-        $authCode = $this->authCodesTable->newEntity([
+        $entityData = [
             'code' => $authCodeEntity->getIdentifier(),
             'client_id' => $authCodeEntity->getClient()->getIdentifier(),
             'user_id' => $authCodeEntity->getUserIdentifier(),
@@ -58,7 +58,9 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
             'expires_at' => DateTime::createFromInterface($authCodeEntity->getExpiryDateTime()),
             'redirect_uri' => $authCodeEntity->getRedirectUri(),
             'revoked' => false
-        ]);
+        ];
+
+        $authCode = $this->authCodesTable->newEntity($entityData);
 
         if (!$this->authCodesTable->save($authCode)) {
             throw new \RuntimeException('Failed to save authorization code to database');
