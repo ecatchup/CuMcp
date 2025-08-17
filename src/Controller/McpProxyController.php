@@ -47,11 +47,11 @@ class McpProxyController extends Controller
         $this->oauth2Service = new OAuth2Service();
 
         // CORS設定（統一された設定）
-        $protocolVersion = $this->getProtocolVersion();
+//        $protocolVersion = $this->getProtocolVersion();
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
         $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
         $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin');
-        $this->response = $this->response->withHeader('MCP-Protocol-Version', $protocolVersion);
+//        $this->response = $this->response->withHeader('MCP-Protocol-Version', $protocolVersion);
     }
 
     private function getProtocolVersion(): string
@@ -143,6 +143,10 @@ class McpProxyController extends Controller
         $baseUrl = rtrim($siteUrl, '/');
         $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource';
 
+        $this->log("Setting WWW-Authenticate header: Bearer resource_metadata=\"$resourceMetadataUrl\"");
+        $this->log("SITE_URL: " . $siteUrl);
+        $this->log("Base URL: " . $baseUrl);
+
         return $this->response
             ->withStatus(401)
             ->withHeader('Content-Type', 'application/json')
@@ -166,6 +170,9 @@ class McpProxyController extends Controller
      */
     public function index()
     {
+        $protocolVersion = $this->getProtocolVersion();
+        $this->response = $this->response->withHeader('MCP-Protocol-Version', $protocolVersion);
+
         // OPTIONSリクエストの場合はCORSレスポンスを返す
         if ($this->request->getMethod() === 'OPTIONS') {
             return $this->_handleOptionsRequest();
