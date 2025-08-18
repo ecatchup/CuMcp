@@ -14,9 +14,6 @@
  */
 ?>
 
-<div class="bca-main">
-    <div class="bca-main__contents">
-        <div class="bca-main__body">
 
             <!-- サーバー状態表示 -->
             <div class="bca-panel-box">
@@ -132,7 +129,7 @@
                     </div>
 
                     <div class="bca-section">
-                        <h4>利用可能な機能</h4>
+                        <h3>利用可能な機能</h3>
                         <ul>
                             <li>ブログ記事の、単一取得・一覧取得・追加・編集・削除</li>
                             <li>カスタムエントリーの、単一取得・一覧取得・追加・編集・削除</li>
@@ -143,9 +140,6 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-</div>
 
 <script>
 function copyToClipboard(text) {
@@ -171,3 +165,13 @@ setInterval(function() {
     }
 }, 30000); // 30秒ごと
 </script>
+
+<style>
+  .bca-data-list__item {
+    display:flex;
+  }
+  .bca-data-list__item-label,
+  .bca-data-list__item-value {
+    padding: 0.2rem 0.5rem;
+  }
+</style>
