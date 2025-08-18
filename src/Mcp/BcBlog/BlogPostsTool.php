@@ -29,6 +29,7 @@ class BlogPostsTool
 {
     use BcContainerTrait;
     use LogTrait;
+
     /**
      * ブログ記事関連のツールを ServerBuilder に追加
      */
@@ -46,7 +47,8 @@ class BlogPostsTool
                         'detail' => ['type' => 'string', 'description' => '記事詳細（必須）'],
                         'category' => ['type' => 'string', 'description' => 'カテゴリ名（省略時はカテゴリなし）'],
                         'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名（省略時はデフォルト）'],
-                        'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス（省略時はデフォルトユーザー）']
+                        'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス（省略時はデフォルトユーザー）'],
+                        'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日（省略時は現在日時）']
                     ],
                     'required' => ['title', 'detail']
                 ]
@@ -99,7 +101,8 @@ class BlogPostsTool
                         'name' => ['type' => 'string', 'description' => '記事のスラッグ'],
                         'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像（URL）'],
                         'userId' => ['type' => 'number', 'description' => 'ユーザーID（emailと併用不可）'],
-                        'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス']
+                        'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス'],
+                        'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日']
                     ],
                     'required' => ['id']
                 ]
@@ -111,8 +114,7 @@ class BlogPostsTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
-                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                        'id' => ['type' => 'number', 'description' => '記事ID（必須）']
                     ],
                     'required' => ['id']
                 ]
@@ -144,7 +146,14 @@ class BlogPostsTool
     /**
      * ブログ記事を追加
      */
-    public function addBlogPost(string $title, string $detail, ?string $blogContent = null, ?string $category = null, ?string $email = null): array
+    public function addBlogPost(
+        string $title,
+        string $detail,
+        ?string $blogContent = null,
+        ?string $category = null,
+        ?string $email = null,
+        ?string $posted = null
+    ): array
     {
         try {
             // 必須パラメータのチェック
@@ -171,7 +180,7 @@ class BlogPostsTool
                     $usersService = $this->getService(UsersServiceInterface::class);
                     $conditions = ['email' => $email];
                     $user = $usersService->getIndex($conditions)->first();
-                    $userId = $user ? $user->id : 1;
+                    $userId = $user? $user->id : 1;
                 } catch (\Exception $e) {
                     $userId = 1; // エラー時はデフォルト
                 }
@@ -183,7 +192,7 @@ class BlogPostsTool
                 'blog_content_id' => $this->getBlogContentId($blogContent),
                 'user_id' => $userId,
                 'status' => 1, // 公開
-                'posted' => date('Y-m-d H:i:s')
+                'posted' => $posted ?? date('Y-m-d H:i:s')
             ];
 
             // カテゴリ設定
@@ -273,7 +282,7 @@ class BlogPostsTool
 
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
             $options = [];
-            if($status) {
+            if ($status) {
                 $options = ['status' => 'publish'];
             }
             $result = $blogPostsService->get($id, $options);
@@ -310,7 +319,20 @@ class BlogPostsTool
     /**
      * ブログ記事を編集
      */
-    public function editBlogPost(int $id, ?string $title = null, ?string $detail = null, ?string $content = null, ?int $status = null, ?string $name = null, ?string $eyeCatch = null, ?string $category = null, ?int $blogContentId = null, ?string $email = null, ?int $userId = null): array
+    public function editBlogPost(
+        int $id,
+        ?string $title = null,
+        ?string $detail = null,
+        ?string $content = null,
+        ?int $status = null,
+        ?string $name = null,
+        ?string $eyeCatch = null,
+        ?string $category = null,
+        ?int $blogContentId = null,
+        ?string $email = null,
+        ?int $userId = null,
+        ?string $posted = null
+    ): array
     {
         try {
             // 必須パラメータのチェック
@@ -340,6 +362,7 @@ class BlogPostsTool
             if ($status !== null) $data['status'] = $status;
             if ($name !== null) $data['name'] = $name;
             if ($eyeCatch !== null) $data['eyeCatch'] = $eyeCatch;
+            if ($posted !== null) $data['posted'] = $posted;
 
             if (!empty($category)) {
                 $data['blog_category_id'] = $this->getBlogCategoryId(
@@ -353,7 +376,7 @@ class BlogPostsTool
                     $usersService = $this->getService(UsersServiceInterface::class);
                     $conditions = ['email' => $email];
                     $user = $usersService->getIndex($conditions)->first();
-                    $data['user_id'] = $user ? $user->id : 1;
+                    $data['user_id'] = $user? $user->id : 1;
                 } catch (\Exception $e) {
                     $data['user_id'] = 1; // エラー時はデフォルト
                 }
@@ -386,7 +409,7 @@ class BlogPostsTool
     /**
      * ブログ記事を削除
      */
-    public function deleteBlogPost(int $id, ?int $blogContentId = null): array
+    public function deleteBlogPost(int $id): array
     {
         try {
             // 必須パラメータのチェック
@@ -435,7 +458,7 @@ class BlogPostsTool
             $conditions = ['name' => $blogContentName];
             $content = $blogContentsService->getIndex($conditions)->first();
 
-            return $content ? $content->id : 1;
+            return $content? $content->id : 1;
         } catch (\Exception $e) {
             return 1; // エラー時はデフォルト
         }
@@ -453,32 +476,32 @@ class BlogPostsTool
             ];
             $category = $blogCategoriesService->getIndex($blogContentId, $conditions)->first();
 
-            return $category ? $category->id : null;
+            return $category? $category->id : null;
         } catch (\Exception $e) {
             return null; // エラー時はnull
         }
     }
 
     public function fetch(string $id): array
-	{
-		$result = $this->getBlogPost((int) $id, 1);
-		if(!empty($result['success'])) {
+    {
+        $result = $this->getBlogPost((int)$id, 1);
+        if (!empty($result['success'])) {
             $result['data'] = [
                 'id' => $result['data']['id'],
                 'title' => $result['data']['title'],
                 'text' => $result['data']['content'] . $result['data']['detail'],
                 'url' => ''
             ];
-		}
+        }
         return $result;
-	}
+    }
 
     public function search(string $query): array
     {
         $result = $this->getBlogPosts(1, $query);
         if (!empty($result['success'])) {
             $postsArray = [];
-            foreach ($result['data'] as $post) {
+            foreach($result['data'] as $post) {
                 $postsArray[] = [
                     'id' => $post->id,
                     'title' => $post->title,
