@@ -85,7 +85,10 @@ class Oauth2Controller extends BcAdminAppController
             $responseType = $request->getQuery('response_type');
             $redirectUri = $request->getQuery('redirect_uri');
             $state = $request->getQuery('state');
-            $scope = $request->getQuery('scope', 'mcp:read mcp:write');
+            $scope = $request->getQuery('scope');
+            if(!$scope) {
+                $scope = 'mcp:read mcp:write'; // デフォルトスコープ
+            }
             $clientSecret = $request->getQuery('client_secret', null);
 
             // PKCE パラメータ
