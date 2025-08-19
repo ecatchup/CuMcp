@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\OAuth2\Repository;
 
+use Cake\Utility\Hash;
 use CuMcp\OAuth2\Entity\AccessToken as OAuth2AccessToken;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
@@ -93,13 +94,17 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
         if ($existingToken) {
             throw UniqueTokenIdentifierConstraintViolationException::create();
         }
-
+        $scopes = $accessTokenEntity->getScopes();
+        $scopeArray = [];
+        foreach ($scopes as $scope) {
+            $scopeArray[] = $scope->getIdentifier();
+        }
         // データベースに保存
         $accessToken = $this->accessTokensTable->newEntity([
             'token_id' => $identifier,
             'client_id' => $accessTokenEntity->getClient()->getIdentifier(),
             'user_id' => $accessTokenEntity->getUserIdentifier(),
-            'scopes' => implode(' ', array_keys($accessTokenEntity->getScopes())),
+            'scopes' => implode(' ', $scopeArray),
             'expires_at' => DateTime::createFromInterface($accessTokenEntity->getExpiryDateTime()),
             'revoked' => false
         ]);
