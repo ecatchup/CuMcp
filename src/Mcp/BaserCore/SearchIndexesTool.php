@@ -24,7 +24,7 @@ class SearchIndexesTool
     public function __construct()
     {
         $this->searchIndexesService = $this->getService(SearchIndexesServiceInterface::class);
-        Configure::write('App.fullBaseUrl', env('SITE_URL'));
+        Configure::write('App.fullBaseUrl', preg_replace('/\/$/', '', env('SITE_URL')));
     }
 
     /**
