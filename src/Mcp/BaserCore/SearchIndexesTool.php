@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BaserCore;
 
+use BaserCore\Utility\BcContainerTrait;
+use BcSearchIndex\Service\SearchIndexesService;
+use BcSearchIndex\Service\SearchIndexesServiceInterface;
 use Cake\Log\LogTrait;
-use CuMcp\Mcp\BcBlog\BlogPostsTool;
 use PhpMcp\Server\ServerBuilder;
 
 /**
@@ -13,11 +15,13 @@ use PhpMcp\Server\ServerBuilder;
 class SearchIndexesTool
 {
     use LogTrait;
-    private BlogPostsTool $blogPostsTool;
+    use BcContainerTrait;
+
+    private SearchIndexesService|SearchIndexesServiceInterface $searchIndexesService;
 
     public function __construct()
     {
-        $this->blogPostsTool = new BlogPostsTool();
+        $this->searchIndexesService = $this->getService(SearchIndexesServiceInterface::class);
     }
 
     /**
@@ -29,7 +33,7 @@ class SearchIndexesTool
             ->withTool(
                 handler: [self::class, 'search'],
                 name: 'search',
-                description: 'クエリ文字列でブログ記事を検索します。',
+                description: 'クエリ文字列でサイトを検索します。',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
@@ -53,35 +57,55 @@ class SearchIndexesTool
 
     public function fetch(string $id): array
     {
-        $result = $this->blogPostsTool->getBlogPost((int)$id, 1);
-        if (!empty($result['success'])) {
-            $result['data'] = [
-                'id' => $result['data']['id'],
-                'title' => $result['data']['title'],
-                'text' => $result['data']['content'] . $result['data']['detail'],
-                'url' => ''
+        try {
+            $entity = $this->searchIndexesService->get((int) $id, [
+            	'status' => 'publish',
+            	'site_id' => null
+			]);
+            if($entity) {
+                $result['data'] = [
+                    'id' => $entity->id,
+                    'title' => $entity->title,
+                    'text' => $entity->detail,
+                    'url' => $entity->url
+                ];
+            }
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ];
         }
-        return $result;
+        return $result ?? [];
     }
 
     public function search(string $query): array
     {
-        $result = $this->blogPostsTool->getBlogPosts(1, $query);
-        if (!empty($result['success'])) {
-            $postsArray = [];
-            foreach($result['data'] as $post) {
-                $postsArray[] = [
-                    'id' => $post->id,
-                    'title' => $post->title,
-                    'text' => ($post->detail ?? '') . ($post->content ?? ''),
-                    'url' => ''
+        try {
+            $entities = $this->searchIndexesService->getIndex([
+                'status' => 'publish',
+                'keyword' => $query,
+                'site_id' => null
+			]);
+            $array = [];
+            foreach($entities as $entity) {
+                $array[] = [
+                    'id' => $entity->id,
+                    'title' => $entity->title,
+                    'text' => $entity->detail,
+                    'url' => $entity->url
                 ];
             }
-            $result['data'] = $postsArray;
+            $result['data'] = $array;
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ];
         }
-        unset($result['pagination']);
-        return $result;
+        return $result ?? [];
     }
 
 }
