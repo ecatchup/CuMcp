@@ -66,7 +66,7 @@ class SearchIndexesTool
             	'site_id' => null
 			]);
             if($entity) {
-                $result['data'] = [
+                $result = [
                     'id' => $entity->id,
                     'title' => $entity->title,
                     'text' => $entity->detail,
@@ -91,16 +91,16 @@ class SearchIndexesTool
                 'keyword' => $query,
                 'site_id' => null
 			]);
-            $array = [];
+            $result = [];
             foreach($entities as $entity) {
-                $array[] = [
+                $result[] = [
                     'id' => $entity->id,
                     'title' => $entity->title,
                     'text' => $entity->detail,
                     'url' => Router::url($entity->url, true)
                 ];
             }
-            $result['data'] = $array;
+            return ['results' => $result];
         } catch (\Exception $e) {
             return [
                 'error' => true,
@@ -108,7 +108,6 @@ class SearchIndexesTool
                 'trace' => $e->getTraceAsString()
             ];
         }
-        return $result ?? [];
     }
 
 }
