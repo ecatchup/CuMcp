@@ -6,7 +6,9 @@ namespace CuMcp\Mcp\BaserCore;
 use BaserCore\Utility\BcContainerTrait;
 use BcSearchIndex\Service\SearchIndexesService;
 use BcSearchIndex\Service\SearchIndexesServiceInterface;
+use Cake\Core\Configure;
 use Cake\Log\LogTrait;
+use Cake\Routing\Router;
 use PhpMcp\Server\ServerBuilder;
 
 /**
@@ -22,10 +24,11 @@ class SearchIndexesTool
     public function __construct()
     {
         $this->searchIndexesService = $this->getService(SearchIndexesServiceInterface::class);
+        Configure::write('App.fullBaseUrl', env('SITE_URL'));
     }
 
     /**
-     * ブログ記事関連のツールを ServerBuilder に追加
+     * 検索インデックス用のツールを ServerBuilder に追加
      */
     public function addToolsToBuilder(ServerBuilder $builder): ServerBuilder
     {
@@ -67,7 +70,7 @@ class SearchIndexesTool
                     'id' => $entity->id,
                     'title' => $entity->title,
                     'text' => $entity->detail,
-                    'url' => $entity->url
+                    'url' => Router::url($entity->url, true)
                 ];
             }
         } catch (\Exception $e) {
@@ -94,7 +97,7 @@ class SearchIndexesTool
                     'id' => $entity->id,
                     'title' => $entity->title,
                     'text' => $entity->detail,
-                    'url' => $entity->url
+                    'url' => Router::url($entity->url, true)
                 ];
             }
             $result['data'] = $array;
