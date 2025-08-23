@@ -136,7 +136,7 @@ class OAuth2ControllerTest extends BcTestCase
         // oauth-protected-resource にリクエストを送信
         $this->get('/.well-known/oauth-protected-resource');
         $metadata = json_decode((string)$this->_response->getBody(), true);
-        $this->assertTextContains('/mcp', $metadata['resource']);
+        $this->assertTextContains('/cu-mcp', $metadata['resource']);
 
         // oauth-authorization-server にリクエストを送信
         $this->get('/.well-known/oauth-authorization-server');
@@ -157,7 +157,7 @@ class OAuth2ControllerTest extends BcTestCase
         $this->assertArrayHasKey('client_id', $metadata);
 
         // 認可リクエスト
-        $this->get('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query([
+        $this->get('/cu-mcp/oauth2/authorize?' . http_build_query([
             'client_id' => $metadata['client_id'],
             'client_secret' => $metadata['client_secret'],
             'response_type' => 'code',
@@ -166,7 +166,7 @@ class OAuth2ControllerTest extends BcTestCase
         $this->assertResponseCode(302);
 
         $this->loginAdmin($this->getRequest());
-        $this->get('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query([
+        $this->get('/cu-mcp/oauth2/authorize?' . http_build_query([
             'client_id' => $metadata['client_id'],
             'client_secret' => $metadata['client_secret'],
             'response_type' => 'code',
@@ -175,7 +175,7 @@ class OAuth2ControllerTest extends BcTestCase
         $this->assertResponseCode(200);
 
         // 認可承認
-        $this->post('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query([
+        $this->post('/cu-mcp/oauth2/authorize?' . http_build_query([
             'grant_type' => 'authorization_code',
             'client_id' => $metadata['client_id'],
             'client_secret' => $metadata['client_secret'],
@@ -225,7 +225,7 @@ class OAuth2ControllerTest extends BcTestCase
             'method' => 'tools/list'
         ];
         $this->configRequest($requestConfig);
-        $this->post('/mcp', json_encode($mcpRequest));
+        $this->post('/cu-mcp', json_encode($mcpRequest));
         $this->assertResponseCode(200);
         $this->assertContentType('application/json');
 
@@ -251,7 +251,7 @@ class OAuth2ControllerTest extends BcTestCase
             ]
         ];
         $this->configRequest($requestConfig);
-        $this->post('/mcp', json_encode($blogRequest));
+        $this->post('/cu-mcp', json_encode($blogRequest));
         $this->assertResponseCode(200);
 
         $blogResponse = json_decode((string)$this->_response->getBody(), true);
@@ -296,7 +296,7 @@ class OAuth2ControllerTest extends BcTestCase
             ]
         ];
         $this->configRequest($newRequestConfig);
-        $this->post('/mcp', json_encode($blogPostRequest));
+        $this->post('/cu-mcp', json_encode($blogPostRequest));
 
         // レスポンスコードが200または404（データが存在しない場合）であることを確認
         $this->assertTrue(
@@ -361,17 +361,18 @@ class OAuth2ControllerTest extends BcTestCase
         ];
 
         // 未認証でのアクセス
-        $this->get('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams));
+        $this->get('/cu-mcp/oauth2/authorize?' . http_build_query($authParams));
         $this->assertResponseCode(302); // ログイン画面へリダイレクト
 
         // 管理者でログイン
         $this->loginAdmin($this->getRequest());
-        $this->get('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams));
+        $this->get('/cu-mcp/oauth2/authorize?' . http_build_query($authParams));
         $this->assertResponseOk(); // 認可画面が表示される
 
         // Step 5: 認可承認（PKCEパラメータが保存される）
-        $this->post('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams), [
-            'action' => 'approve'
+        $this->post('/cu-mcp/oauth2/authorize?' . http_build_query($authParams), [
+            'action' => 'approve',
+            'scope' => 'mcp:read mcp:write'
         ]);
         $this->assertResponseCode(302);
 
@@ -433,7 +434,7 @@ class OAuth2ControllerTest extends BcTestCase
         ];
 
         $this->configRequest($requestConfig);
-        $this->post('/mcp', json_encode($mcpRequest));
+        $this->post('/cu-mcp', json_encode($mcpRequest));
         $this->assertResponseOk();
         $this->assertContentType('application/json');
 
@@ -458,7 +459,7 @@ class OAuth2ControllerTest extends BcTestCase
             ];
 
             $this->configRequest($requestConfig);
-            $this->post('/mcp', json_encode($toolRequest));
+            $this->post('/cu-mcp', json_encode($toolRequest));
             // ツールによってはパラメータが必要な場合があるので、200または400を許可
             $this->assertTrue(
                 in_array($this->_response->getStatusCode(), [200, 400]),
@@ -537,7 +538,7 @@ class OAuth2ControllerTest extends BcTestCase
             'code_challenge_method' => 'S256'
         ];
 
-        $this->post('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams), [
+        $this->post('/cu-mcp/oauth2/authorize?' . http_build_query($authParams), [
             'action' => 'approve'
         ]);
 
@@ -569,7 +570,7 @@ class OAuth2ControllerTest extends BcTestCase
             'code_challenge_method' => 'S256'
         ];
 
-        $this->post('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($authParams2), [
+        $this->post('/cu-mcp/oauth2/authorize?' . http_build_query($authParams2), [
             'action' => 'approve'
         ]);
 

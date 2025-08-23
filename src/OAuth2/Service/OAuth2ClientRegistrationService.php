@@ -3,12 +3,11 @@ declare(strict_types=1);
 
 namespace CuMcp\OAuth2\Service;
 
-use Cake\Datasource\EntityInterface;
 use CuMcp\Model\Entity\Oauth2Client;
 use CuMcp\OAuth2\Repository\OAuth2ClientRepository;
 use Exception;
 use Cake\ORM\TableRegistry;
-use Cake\Log\LogTrait;
+
 /**
  * OAuth2 動的クライアント登録サービス
  * RFC7591 OAuth 2.0 Dynamic Client Registration Protocol の実装

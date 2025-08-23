@@ -1,14 +1,5 @@
 <?php
 declare(strict_types=1);
-/**
- * baserCMS :  Based Website Development Project <https://basercms.net>
- * Copyright (c) NPO baser foundation <https://baserfoundation.org/>
- *
- * @copyright     Copyright (c) NPO baser foundation
- * @link          https://basercms.net baserCMS Project
- * @since         5.0.7
- * @license       https://basercms.net/license/index.html MIT License
- */
 
 namespace CuMcp;
 
@@ -53,18 +44,19 @@ class CuMcpPlugin extends BcPlugin
             $builder->setRouteClass(InflectedRoute::class);
 
             $builder->connect('/mcp', ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index'], ['routeClass' => InflectedRoute::class]);
+            $builder->connect('/cu-mcp', ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index'], ['routeClass' => InflectedRoute::class]);
 
             // OAuth 2.0 保護リソースメタデータエンドポイント (RFC 9728)
             $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/.well-known/oauth-protected-resource', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
-            $builder->connect('/.well-known/oauth-protected-resource/mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/.well-known/oauth-protected-resource/mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
+            $builder->connect('/.well-known/oauth-protected-resource/cu-mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-protected-resource/cu-mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'protectedResourceMetadata'])->setMethods(['GET']);
 
             // OAuth 2.0 認可サーバーメタデータエンドポイント (RFC 8414)
             $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
             $builder->connect('/.well-known/oauth-authorization-server', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
-            $builder->connect('/.well-known/oauth-authorization-server/mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-            $builder->connect('/.well-known/oauth-authorization-server/mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
+            $builder->connect('/.well-known/oauth-authorization-server/cu-mcp/oauth2', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/.well-known/oauth-authorization-server/cu-mcp/oauth2', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
         });
 
         $routes->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $builder) {
@@ -91,6 +83,10 @@ class CuMcpPlugin extends BcPlugin
             $builder->connect('/oauth2/register/{client_id}', ['controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS'])->setPass(['client_id']);
             $builder->connect('/oauth2/register/{client_id}', ['controller' => 'Oauth2', 'action' => 'clientConfiguration'])->setMethods(['GET', 'PUT', 'DELETE'])->setPass(['client_id']);
 
+            // Authorization Code Grant 認可エンドポイント（認証必要）
+            $builder->connect('/oauth2/authorize', ['prefix' => 'Admin', 'controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
+            $builder->connect('/oauth2/authorize', ['prefix' => 'Admin', 'controller' => 'Oauth2', 'action' => 'authorize'])->setMethods(['GET', 'POST']);
+
             // その他のルート
             $builder->fallbacks(\Cake\Routing\Route\DashedRoute::class);
         });
@@ -99,10 +95,6 @@ class CuMcpPlugin extends BcPlugin
         $routes->prefix('Admin', ['path' => BcUtil::getPrefix()], function (RouteBuilder $builder) {
             $builder->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $routes) {
                 $routes->setRouteClass(InflectedRoute::class);
-
-                // Authorization Code Grant 認可エンドポイント（認証必要）
-                $routes->connect('/oauth2/authorize', ['controller' => 'Oauth2', 'action' => 'options'])->setMethods(['OPTIONS']);
-                $routes->connect('/oauth2/authorize', ['controller' => 'Oauth2', 'action' => 'authorize'])->setMethods(['GET', 'POST']);
 
                 // MCPサーバー管理
                 $routes->get('/mcp-server-manager', ['controller' => 'McpServerManager', 'action' => 'index']);

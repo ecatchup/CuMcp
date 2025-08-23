@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace CuMcp\OAuth2\Repository;
 
-use Cake\Utility\Hash;
 use CuMcp\OAuth2\Entity\AccessToken as OAuth2AccessToken;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;

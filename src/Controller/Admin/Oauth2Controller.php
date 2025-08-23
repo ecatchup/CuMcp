@@ -32,7 +32,6 @@ class Oauth2Controller extends BcAdminAppController
     public function initialize(): void
     {
         parent::initialize();
-
         $this->oauth2Service = new OAuth2Service();
 		$this->loadComponent('FormProtection');
 		$this->FormProtection->setConfig('validate', false);
@@ -89,11 +88,6 @@ class Oauth2Controller extends BcAdminAppController
             if(!$scope) {
                 $scope = 'mcp:read mcp:write'; // デフォルトスコープ
             }
-            $clientSecret = $request->getQuery('client_secret', null);
-
-            // PKCE パラメータ
-            $codeChallenge = $request->getQuery('code_challenge');
-            $codeChallengeMethod = $request->getQuery('code_challenge_method', 'plain');
 
             if (!$clientId || !$responseType || !$redirectUri) {
                 return $this->response

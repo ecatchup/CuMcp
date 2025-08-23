@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace CuMcp\OAuth2\Repository;
 
 use Cake\Datasource\RepositoryInterface;
-use CuMcp\Model\Table\Oauth2ClientsTable;
 use CuMcp\OAuth2\Entity\Client;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;

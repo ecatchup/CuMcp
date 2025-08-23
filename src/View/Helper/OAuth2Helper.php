@@ -23,8 +23,6 @@ class OAuth2Helper extends Helper
         $descriptions = [
             'read' => 'データの読み取り',
             'write' => 'データの書き込み',
-            'admin' => '管理者権限',
-            'mcp' => 'MCPサーバーへのアクセス',
         ];
 
         return $descriptions[$scope] ?? $scope;

@@ -1,14 +1,5 @@
 <?php
 declare(strict_types=1);
-/**
- * baserCMS :  Based Website Development Project <https://basercms.net>
- * Copyright (c) NPO baser foundation <https://baserfoundation.org/>
- *
- * @copyright     Copyright (c) NPO baser foundation
- * @link          https://basercms.net baserCMS Project
- * @since         5.0.7
- * @license       https://basercms.net/license/index.html MIT License
- */
 
 namespace CuMcp\Controller\Admin;
 
@@ -166,7 +157,7 @@ class McpServerManagerController extends BcAdminAppController
                 escapeshellarg($pidFile)
             );
 
-            $output = shell_exec($command);
+            shell_exec($command);
 
             // 起動確認（最大10秒待機）
             $attempts = 0;
@@ -207,7 +198,7 @@ class McpServerManagerController extends BcAdminAppController
             }
 
             // プロセスを停止
-            $killResult = shell_exec("kill {$pid} 2>&1");
+            shell_exec("kill {$pid} 2>&1");
 
             // 停止確認
             sleep(1);
@@ -242,7 +233,7 @@ class McpServerManagerController extends BcAdminAppController
         return [
             'running' => $isRunning,
             'pid' => $pid,
-            'proxy_url' => "{$protocol}://{$host}/mcp",
+            'proxy_url' => "{$protocol}://{$host}/cu-mcp",
             'internal_url' => "http://{$config['host']}:{$config['port']}",
             'config' => $config
         ];

@@ -158,4 +158,178 @@ class OAuth2ControllerTest extends TestCase
         $this->assertArrayHasKey('client_id', $response);
         $this->assertArrayHasKey('client_secret', $response);
     }
+
+    /**
+     * JWKSエンドポイントのテスト
+     */
+    public function testJwks(): void
+    {
+        $this->get('/cu-mcp/oauth2/jwks');
+        $this->assertResponseOk();
+        $this->assertContentType('application/json');
+        $body = json_decode((string)$this->_response->getBody(), true);
+        $this->assertArrayHasKey('keys', $body);
+        $this->assertNotEmpty($body['keys']);
+        $key = $body['keys'][0];
+        $this->assertEquals('RSA', $key['kty']);
+        $this->assertEquals('RS256', $key['alg']);
+        $this->assertEquals('sig', $key['use']);
+        $this->assertArrayHasKey('n', $key);
+        $this->assertArrayHasKey('e', $key);
+    }
+
+    /**
+     * Test verify endpoint with valid token
+     *
+     * @return void
+     */
+    public function testVerifyWithValidToken(): void
+    {
+        // まず有効なトークンを取得
+        $this->post('/cu-mcp/oauth2/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => 'mcp-client',
+            'client_secret' => 'mcp-secret-key',
+            'scope' => 'mcp:read mcp:write'
+        ]);
+
+        $this->assertResponseOk();
+        $tokenResponse = json_decode((string)$this->_response->getBody(), true);
+        $accessToken = $tokenResponse['access_token'];
+
+        // 取得したトークンでverifyエンドポイントをテスト
+        $this->configRequest([
+            'headers' => ['Authorization' => 'Bearer ' . $accessToken]
+        ]);
+        $this->get('/cu-mcp/oauth2/verify');
+
+        $this->assertResponseOk();
+        $this->assertContentType('application/json');
+
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($response, 'Response should be valid JSON');
+        $this->assertArrayHasKey('valid', $response);
+        $this->assertTrue($response['valid']);
+        $this->assertArrayHasKey('client_id', $response);
+
+        // client_idが期待される形式かどうかをチェック（URLまたは元のclient_id）
+        $this->assertNotEmpty($response['client_id']);
+
+        $this->assertArrayHasKey('scope', $response);
+        $this->assertStringContainsString('mcp:read', $response['scope']);
+        $this->assertStringContainsString('mcp:write', $response['scope']);
+    }
+
+    /**
+     * Test verify endpoint with missing token
+     *
+     * @return void
+     */
+    public function testVerifyWithMissingToken(): void
+    {
+        $this->get('/cu-mcp/oauth2/verify');
+
+        $this->assertResponseCode(401);
+        $this->assertContentType('application/json');
+
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($response, 'Response should be valid JSON');
+        $this->assertArrayHasKey('error', $response);
+        $this->assertEquals('invalid_token', $response['error']);
+        $this->assertArrayHasKey('error_description', $response);
+        $this->assertEquals('The access token is missing or invalid.', $response['error_description']);
+    }
+
+    /**
+     * Test verify endpoint with invalid token format
+     *
+     * @return void
+     */
+    public function testVerifyWithInvalidTokenFormat(): void
+    {
+        $this->configRequest([
+            'headers' => ['Authorization' => 'InvalidFormat token123']
+        ]);
+        $this->get('/cu-mcp/oauth2/verify');
+
+        $this->assertResponseCode(401);
+        $this->assertContentType('application/json');
+
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($response, 'Response should be valid JSON');
+        $this->assertArrayHasKey('error', $response);
+        $this->assertEquals('invalid_token', $response['error']);
+        $this->assertArrayHasKey('error_description', $response);
+        $this->assertEquals('The access token is missing or invalid.', $response['error_description']);
+    }
+
+    /**
+     * Test verify endpoint with invalid token
+     *
+     * @return void
+     */
+    public function testVerifyWithInvalidToken(): void
+    {
+        $this->configRequest([
+            'headers' => ['Authorization' => 'Bearer invalid_token_string']
+        ]);
+        $this->get('/cu-mcp/oauth2/verify');
+
+        $this->assertResponseCode(401);
+        $this->assertContentType('application/json');
+
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($response, 'Response should be valid JSON');
+        $this->assertArrayHasKey('error', $response);
+        $this->assertEquals('invalid_token', $response['error']);
+        $this->assertArrayHasKey('error_description', $response);
+        $this->assertEquals('The access token is invalid or expired.', $response['error_description']);
+    }
+
+    /**
+     * Test verify endpoint with empty Authorization header
+     *
+     * @return void
+     */
+    public function testVerifyWithEmptyAuthorizationHeader(): void
+    {
+        $this->configRequest([
+            'headers' => ['Authorization' => '']
+        ]);
+        $this->get('/cu-mcp/oauth2/verify');
+
+        $this->assertResponseCode(401);
+        $this->assertContentType('application/json');
+
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($response, 'Response should be valid JSON');
+        $this->assertArrayHasKey('error', $response);
+        $this->assertEquals('invalid_token', $response['error']);
+        $this->assertArrayHasKey('error_description', $response);
+        $this->assertEquals('The access token is missing or invalid.', $response['error_description']);
+    }
+
+    /**
+     * Test verify endpoint with Bearer but no token
+     *
+     * @return void
+     */
+    public function testVerifyWithBearerButNoToken(): void
+    {
+        $this->configRequest([
+            'headers' => ['Authorization' => 'Bearer ']
+        ]);
+        $this->get('/cu-mcp/oauth2/verify');
+
+        $this->assertResponseCode(401);
+        $this->assertContentType('application/json');
+
+        $response = json_decode((string)$this->_response->getBody(), true);
+        $this->assertNotNull($response, 'Response should be valid JSON');
+        $this->assertArrayHasKey('error', $response);
+        $this->assertEquals('invalid_token', $response['error']);
+        $this->assertArrayHasKey('error_description', $response);
+        $this->assertEquals('The access token is invalid or expired.', $response['error_description']);
+    }
+
 }

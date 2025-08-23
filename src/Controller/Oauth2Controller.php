@@ -42,7 +42,6 @@ class Oauth2Controller extends AppController
     public function initialize(): void
     {
         parent::initialize();
-        $this->log($this->request->getPath());
         $this->oauth2Service = new OAuth2Service();
 
         // クライアント登録サービスを初期化
@@ -67,6 +66,37 @@ class Oauth2Controller extends AppController
             ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
             ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
             ->withStatus(200);
+    }
+
+    /**
+     * JWKSエンドポイント
+     * @return \Cake\Http\Response
+     */
+    public function jwks(): \Cake\Http\Response
+    {
+        // 公開鍵の取得（例: config/jwt.pem から）
+        $publicKeyPath = CONFIG . 'jwt.pem';
+        $publicKey = file_get_contents($publicKeyPath);
+        // 公開鍵をJWK形式に変換（簡易例: RS256のみ対応）
+        $details = openssl_pkey_get_details(openssl_pkey_get_public($publicKey));
+
+        // kidを生成（公開鍵のSHA-256ハッシュを使用）
+        $publicKeyDer = $details['key'];
+        $kid = rtrim(strtr(base64_encode(hash('sha256', $publicKeyDer, true)), '+/', '-_'), '=');
+
+        $jwk = [
+            'kty' => 'RSA',
+            'n' => rtrim(strtr(base64_encode($details['rsa']['n']), '+/', '-_'), '='),
+            'e' => rtrim(strtr(base64_encode($details['rsa']['e']), '+/', '-_'), '='),
+            'alg' => 'RS256',
+            'use' => 'sig',
+            'kid' => $kid,
+        ];
+        $jwks = ['keys' => [$jwk]];
+        $response = $this->response
+            ->withType('application/json')
+            ->withStringBody(json_encode($jwks));
+        return $response;
     }
 
     /**
@@ -171,7 +201,7 @@ class Oauth2Controller extends AppController
                     'valid' => true,
                     'client_id' => $tokenData['client_id'],
                     'user_id' => $tokenData['user_id'],
-                    'scopes' => $tokenData['scopes']
+                    'scope' => $tokenData['scope']
                 ]));
 
         } catch (\Exception $exception) {
@@ -255,8 +285,8 @@ class Oauth2Controller extends AppController
             $baseUrl = $scheme . '://' . $host;
 
             $metadata = [
-                'resource' => $baseUrl . '/mcp',
-                'authorization_servers' => [$baseUrl],
+                'resource' => $baseUrl . '/cu-mcp',
+                'authorization_servers' => [$baseUrl . '/cu-mcp/oauth2'],
                 'scopes_supported' => ['mcp:read', 'mcp:write'],
                 'bearer_methods_supported' => ['header'],
                 'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
@@ -267,6 +297,7 @@ class Oauth2Controller extends AppController
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+                ->withHeader('Cache-Control', 'no-cache')
                 ->withType('application/json')
                 ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
 
@@ -300,8 +331,8 @@ class Oauth2Controller extends AppController
 
             $metadata = [
                 // RFC 8414 必須項目
-                'issuer' => $baseUrl,
-                'authorization_endpoint' => $baseUrl . '/baser/admin/cu-mcp/oauth2/authorize',
+                'issuer' => $baseUrl . '/cu-mcp/oauth2',
+                'authorization_endpoint' => $baseUrl . '/cu-mcp/oauth2/authorize',
                 'token_endpoint' => $baseUrl . '/cu-mcp/oauth2/token',
                 'response_types_supported' => ['code'],
 
@@ -321,13 +352,15 @@ class Oauth2Controller extends AppController
                 'revocation_endpoint' => $baseUrl . '/cu-mcp/oauth2/revoke',
                 'revocation_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
 
-                'registration_endpoint' => $baseUrl . '/cu-mcp/oauth2/register'
+                'registration_endpoint' => $baseUrl . '/cu-mcp/oauth2/register',
+                'jwks_uri' => $baseUrl . '/cu-mcp/oauth2/jwks',
             ];
 
             return $this->response
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+                ->withHeader('Cache-Control', 'no-cache')
                 ->withType('application/json')
                 ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
 

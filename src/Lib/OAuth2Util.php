@@ -62,7 +62,10 @@ class OAuth2Util
 
         // クエリパラメータを設定（PKCEパラメータなどを含む）
         $queryParams = $request->getQueryParams();
-        $queryParams['scope'] = $request->getData('scope');
+        if($request->getData('scope')) {
+            // スコープがPOSTデータに含まれている場合、クエリパラメータに追加
+            $queryParams['scope'] = $request->getData('scope');
+        }
         if (!empty($queryParams)) {
             $psrRequest = $psrRequest->withQueryParams($queryParams);
         }

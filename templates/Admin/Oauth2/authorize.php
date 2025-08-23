@@ -3,6 +3,8 @@
  * OAuth2 認可画面テンプレート
  */
 ?>
+
+
 <div class="oauth2-authorize">
   <div class="card">
     <div class="card-header">
@@ -40,27 +42,27 @@
 
       <div class="submit section bca-actions">
         <div class="bca-actions__main">
-        <?= $this->BcAdminForm->button('拒否', [
-          'block' => true,
-          'class' => 'bca-btn bca-actions__item',
-          'data-bca-btn-type' => 'delete',
-          'data-bca-btn-size' => 'lg',
-          'data-bca-btn-color' => "danger",
-          'type' => 'submit',
-          'name' => 'action',
-          'value' => 'deny'
-        ]) ?>
-        <?= $this->BcAdminForm->button('許可', [
-          'div' => false,
-          'class' => 'button bca-btn bca-actions__item',
-          'data-bca-btn-type' => 'save',
-          'data-bca-btn-size' => 'lg',
-          'data-bca-btn-width' => 'lg',
-          'type' => 'submit',
-          'name' => 'action',
-          'value' => 'approve'
-        ]) ?>
-      </div>
+          <?= $this->BcAdminForm->button('拒否', [
+            'block' => true,
+            'class' => 'bca-btn bca-actions__item',
+            'data-bca-btn-type' => 'delete',
+            'data-bca-btn-size' => 'lg',
+            'data-bca-btn-color' => "danger",
+            'type' => 'submit',
+            'name' => 'action',
+            'value' => 'deny'
+          ]) ?>
+          <?= $this->BcAdminForm->button('許可', [
+            'div' => false,
+            'class' => 'button bca-btn bca-actions__item',
+            'data-bca-btn-type' => 'save',
+            'data-bca-btn-size' => 'lg',
+            'data-bca-btn-width' => 'lg',
+            'type' => 'submit',
+            'name' => 'action',
+            'value' => 'approve'
+          ]) ?>
+        </div>
       </div>
 
       <?= $this->BcAdminForm->end() ?>
@@ -99,21 +101,26 @@
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
   }
-  .oauth2-authorize .card-header h3{
+
+  .oauth2-authorize .card-header h3 {
     font-weight: normal;
-    padding-top:15px;
-    padding-bottom:15px;
+    padding-top: 15px;
+    padding-bottom: 15px;
     margin-bottom: 0;
   }
-  .oauth2-authorize .card-body h4{
+
+  .oauth2-authorize .card-body h4 {
     margin-bottom: 0;
   }
+
   .oauth2-authorize .card-body {
     padding: 2rem 2rem 0.5rem 2rem;
   }
+
   .oauth2-authorize .permissions {
-    margin-bottom:40px;
+    margin-bottom: 40px;
   }
+
   .oauth2-authorize .permissions ul {
     list-style-type: none;
     padding-left: 0;
@@ -128,6 +135,7 @@
     color: #59a73b;
     font-weight: bold;
   }
+
   .oauth2-authorize .user-info {
     margin-bottom: 5px;
   }

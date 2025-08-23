@@ -1,23 +1,14 @@
 <?php
 declare(strict_types=1);
-/**
- * baserCMS :  Based Website Development Project <https://basercms.net>
- * Copyright (c) NPO baser foundation <https://baserfoundation.org/>
- *
- * @copyright     Copyright (c) NPO baser foundation
- * @link          https://basercms.net baserCMS Project
- * @since         5.0.7
- * @license       https://basercms.net/license/index.html MIT License
- */
 
 namespace CuMcp\Mcp;
 
 use BaserCore\Utility\BcUtil;
+use CuMcp\Mcp\BaserCore\BaserCoreServer;
 use PhpMcp\Server\Server;
 use PhpMcp\Server\ServerBuilder;
 use PhpMcp\Schema\ServerCapabilities;
 use Cake\Core\Configure;
-use Cake\Datasource\ConnectionManager;
 use PhpMcp\Server\Transports\StdioServerTransport;
 use PhpMcp\Server\Transports\StreamableHttpServerTransport;
 use CuMcp\Mcp\BcBlog\BcBlogServer;
@@ -62,8 +53,9 @@ class McpServer
             ));
 
         $this->registerToolsFromServer(array_merge(
+            BaserCoreServer::getToolClasses(),
             BcBlogServer::getToolClasses(),
-            BcCustomContentServer::getToolClasses()
+            BcCustomContentServer::getToolClasses(),
         ), $builder);
 
         // サーバー情報ツールを追加

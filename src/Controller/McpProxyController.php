@@ -1,23 +1,12 @@
 <?php
 declare(strict_types=1);
-/**
- * baserCMS :  Based Website Development Project <https://basercms.net>
- * Copyright (c) NPO baser foundation <https://baserfoundation.org/>
- *
- * @copyright     Copyright (c) NPO baser foundation
- * @link          https://basercms.net baserCMS Project
- * @since         5.0.7
- * @license       https://basercms.net/license/index.html MIT License
- */
 
 namespace CuMcp\Controller;
 
-use Cake\Http\CallbackStream;
 use Cake\Http\Client;
 use Cake\Controller\Controller;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
-use Cake\Http\Exception\UnauthorizedException;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
 use CuMcp\OAuth2\Service\OAuth2Service;
@@ -42,18 +31,19 @@ class McpProxyController extends Controller
     public function initialize(): void
     {
         parent::initialize();
-
         // OAuth2サービスを初期化
         $this->oauth2Service = new OAuth2Service();
 
         // CORS設定（統一された設定）
-//        $protocolVersion = $this->getProtocolVersion();
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
         $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
         $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin');
-//        $this->response = $this->response->withHeader('MCP-Protocol-Version', $protocolVersion);
     }
 
+    /**
+     * MCPプロトコルバージョンの取得
+     * @return string
+     */
     private function getProtocolVersion(): string
     {
         $protocolVersion = $this->request->getHeaderLine('MCP-Protocol-Version');
@@ -77,7 +67,7 @@ class McpProxyController extends Controller
         parent::beforeFilter($event);
 
         $method = $this->request->getMethod();
-        $this->log(json_encode($this->request->getData(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
         // OPTIONS は認証不要
         if ($method === 'OPTIONS') {
             return null;
@@ -90,10 +80,7 @@ class McpProxyController extends Controller
 
         if(in_array($this->request->getData('method'), [
             'initialize',
-            'notifications/initialized',
-//            'tools/list',
-//            'resources/list',
-//            'prompts/list'
+            'notifications/initialized'
         ])) {
             // MCPサーバーの初期化メソッドは認証不要
             return null;
@@ -133,19 +120,20 @@ class McpProxyController extends Controller
         $this->request = $this->request
             ->withAttribute('oauth_client_id', $tokenData['client_id'])
             ->withAttribute('oauth_user_id', $tokenData['user_id'])
-            ->withAttribute('oauth_scopes', $tokenData['scopes']);
+            ->withAttribute('oauth_scopes', $tokenData['scope']);
         return null;
     }
 
+    /**
+     * 認証エラーのレスポンスを返す
+     * @param string $message
+     * @return Response
+     */
     private function returnUnauthorizedResponse(string $message): \Cake\Http\Response
     {
         $siteUrl = env('SITE_URL', 'https://localhost');
         $baseUrl = rtrim($siteUrl, '/');
-        $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource/mcp';
-
-        $this->log("Setting WWW-Authenticate header: Bearer resource_metadata=\"$resourceMetadataUrl\"");
-        $this->log("SITE_URL: " . $siteUrl);
-        $this->log("Base URL: " . $baseUrl);
+        $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource/cu-mcp';
 
         return $this->response
             ->withStatus(401)
@@ -221,20 +209,7 @@ class McpProxyController extends Controller
             }
 
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
-//            $response = $this->sendMcpRequest($config, $mcpRequest);
-
-            // PHP 側の出力バッファ/圧縮は極力オフ
-            @ini_set('output_buffering', 'off');
-            @ini_set('zlib.output_compression', '0');
-            while (ob_get_level()) { @ob_end_flush(); }
-
-            $stream = new CallbackStream(function () use ($config, $mcpRequest) {
-                $response = $this->sendMcpRequest($config, $mcpRequest);
-                $data = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                $this->log($data);
-                echo $data;
-                @ob_flush(); @flush();  // ここがポイント
-            });
+            $response = $this->sendMcpRequest($config, $mcpRequest);
 
             $this->response = $this->response
                 ->withHeader('Content-Type', 'application/json')
@@ -242,8 +217,8 @@ class McpProxyController extends Controller
                 ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
-//                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
-                ->withBody($stream);
+                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
             if($this->request->getData('method') === 'notifications/initialized') {
                 $this->response = $this->response->withStatus(202);
             }

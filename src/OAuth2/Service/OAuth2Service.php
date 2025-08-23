@@ -153,7 +153,7 @@ class OAuth2Service
             return [
                 'client_id' => $request->getAttribute('oauth_client_id'),
                 'user_id' => $request->getAttribute('oauth_user_id'),
-                'scopes' => $request->getAttribute('oauth_scopes', [])
+                'scope' => $request->getAttribute('oauth_scopes', [])
             ];
         } catch (\Exception $e) {
             return null;

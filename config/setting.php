@@ -1,14 +1,5 @@
 <?php
 declare(strict_types=1);
-/**
- * baserCMS :  Based Website Development Project <https://basercms.net>
- * Copyright (c) NPO baser foundation <https://baserfoundation.org/>
- *
- * @copyright     Copyright (c) NPO baser foundation
- * @link          https://basercms.net baserCMS Project
- * @since         5.0.7
- * @license       https://basercms.net/license/index.html MIT License
- */
 
 return [
     'BcApp' => [
@@ -32,7 +23,7 @@ return [
             ]
         ],
         'skipCsrfUrl' => [
-            'Mcp' => '/mcp',
+            'Mcp' => '/cu-mcp',
             // RFC 7591 動的クライアント登録プロトコル（ワイルドカードパターン使用）
             'OAuth2All' => '/cu-mcp/oauth2/*',
             'OAuth2AdminAll' => '/baser/admin/cu-mcp/oauth2/*'
@@ -40,7 +31,7 @@ return [
     ],
     'BcPermission' => [
         'defaultAllows' => [
-            'Authorize' => '/baser/admin/cu-mcp/oauth2/authorize'
+            'Authorize' => '/cu-mcp/oauth2/authorize'
         ]
     ]
 ];
