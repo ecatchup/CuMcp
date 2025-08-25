@@ -42,6 +42,7 @@ class Oauth2Controller extends AppController
     public function initialize(): void
     {
         parent::initialize();
+        $this->FormProtection->setConfig('validate', false);
         $this->oauth2Service = new OAuth2Service();
 
         // クライアント登録サービスを初期化
