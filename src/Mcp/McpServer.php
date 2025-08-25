@@ -53,7 +53,9 @@ class McpServer
             ));
 
         $this->registerToolsFromServer(array_merge(
-            BaserCoreServer::getToolClasses(),
+            // ChatGPTへの対応のため、search と fetch が実装されているが、
+            //ChatGPTでうまく動作しないためコメントアウト
+//            BaserCoreServer::getToolClasses(),
             BcBlogServer::getToolClasses(),
             BcCustomContentServer::getToolClasses(),
         ), $builder);
