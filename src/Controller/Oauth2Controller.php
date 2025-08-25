@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Controller;
 
-use App\Controller\AppController;
+use BaserCore\Controller\AppController;
 use CuMcp\OAuth2\Service\OAuth2Service;
 use CuMcp\OAuth2\Service\OAuth2ClientRegistrationService;
 use CuMcp\OAuth2\Repository\OAuth2ClientRepository;

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace CuMcp\Controller;
 
+use BaserCore\Controller\AppController;
 use Cake\Http\Client;
-use Cake\Controller\Controller;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
 use Cake\Event\EventInterface;
@@ -16,7 +16,7 @@ use CuMcp\OAuth2\Service\OAuth2Service;
  * SSEクライアントとしてMCPサーバーと通信し、HTTPリクエストをMCPプロトコルに変換
  * OAuth2認証対応
  */
-class McpProxyController extends Controller
+class McpProxyController extends AppController
 {
     /**
      * OAuth2サービス
