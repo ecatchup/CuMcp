@@ -62,7 +62,7 @@ class SearchIndexesToolTest extends BcTestCase
         $this->assertTrue($result['error']);
         $this->assertEquals("Record not found in table `search_indexes`.", $result['message']);
         $result = $this->searchIndexesTool->fetch("2");
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('id', $result);
     }
 
     public function testSearch()
@@ -83,7 +83,7 @@ class SearchIndexesToolTest extends BcTestCase
         ]])->persist();
 
         $result = $this->searchIndexesTool->search("詳細");
-        $this->assertCount(1, $result['data']);
+        $this->assertCount(1, $result['results']);
     }
 
 }
