@@ -37,38 +37,6 @@ $this->BcAdmin->setTitle('MCPサーバー設定');
     </div>
   </div>
 
-  <div class="bca-form-table__row">
-    <div class="bca-form-table__head">
-      自動起動
-    </div>
-    <div class="bca-form-table__col">
-      <?= $this->BcAdminForm->control('auto_start', [
-        'type' => 'checkbox',
-        'checked' => $config['auto_start'],
-        'label' => 'baserCMS起動時にMCPサーバーも自動起動する',
-        'help' => '有効にすると、Webサーバー起動時に自動でMCPサーバーも起動します'
-      ]) ?>
-    </div>
-  </div>
-
-  <div class="bca-form-table__row">
-    <div class="bca-form-table__head">
-      ログレベル
-    </div>
-    <div class="bca-form-table__col">
-      <?= $this->BcAdminForm->control('log_level', [
-        'type' => 'select',
-        'options' => [
-          'error' => 'エラーのみ',
-          'warning' => '警告以上',
-          'info' => '情報以上',
-          'debug' => 'デバッグ情報も含む'
-        ],
-        'value' => $config['log_level'],
-        'help' => 'ログに出力する情報のレベルを設定'
-      ]) ?>
-    </div>
-  </div>
 </div>
 </div>
 

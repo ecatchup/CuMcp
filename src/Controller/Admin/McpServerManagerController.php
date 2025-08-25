@@ -272,9 +272,7 @@ class McpServerManagerController extends BcAdminAppController
 
         $defaultConfig = [
             'host' => '127.0.0.1',
-            'port' => '3000',
-            'auto_start' => false,
-            'log_level' => 'info'
+            'port' => '3000'
         ];
 
         if (file_exists($configFile)) {
