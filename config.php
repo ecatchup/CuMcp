@@ -7,7 +7,7 @@ return [
     'description' => 'baserCMSをAIエージェントから操作するためのMCPサーバーを提供します。',
     'author' => 'Catchup, Inc.',
     'url' => 'https://catchup.co.jp',
-    'installMessage' => '',
+    'installMessage' =>!is_writable(CONFIG)? CONFIG . ' に書き込み権限がありません。インストールする前に書き込み権限を与えてください。': '',
     'adminLink' => [
         'plugin' => 'CuMcp',
         'controller' => 'McpServerManager',

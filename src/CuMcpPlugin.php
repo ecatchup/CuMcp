@@ -4,6 +4,9 @@ declare(strict_types=1);
 namespace CuMcp;
 
 use BaserCore\BcPlugin;
+use BaserCore\Service\SiteConfigsService;
+use BaserCore\Service\SiteConfigsServiceInterface;
+use BaserCore\Utility\BcContainerTrait;
 use BaserCore\Utility\BcUtil;
 use Cake\Console\CommandCollection;
 use Cake\Routing\RouteBuilder;
@@ -14,6 +17,18 @@ use Cake\Routing\Route\InflectedRoute;
  */
 class CuMcpPlugin extends BcPlugin
 {
+
+    use BcContainerTrait;
+
+    public function install($options = []): bool
+    {
+        parent::install($options);
+        /* @var SiteConfigsService $siteConfigsService */
+        $siteConfigsService  = $this->getService(SiteConfigsServiceInterface::class);
+        $oauth2EncKey = base64_encode(random_bytes(32));
+        $siteConfigsService->putEnv('OAUTH2_ENC_KEY', $oauth2EncKey);
+        return true;
+    }
 
     /**
      * Add commands for the plugin.
