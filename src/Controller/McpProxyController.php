@@ -31,6 +31,7 @@ class McpProxyController extends AppController
     public function initialize(): void
     {
         parent::initialize();
+        $this->FormProtection->setConfig('validate', false);
         // OAuth2サービスを初期化
         $this->oauth2Service = new OAuth2Service();
 
