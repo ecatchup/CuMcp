@@ -1,7 +1,9 @@
 <?php
 /**
  * OAuth2 認可画面テンプレート
+ * @var \BaserCore\View\BcAdminAppView $this
  */
+$this->BcBaser->setTitle('CuMcp アプリケーション認可');
 ?>
 
 
