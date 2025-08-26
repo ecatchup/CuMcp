@@ -80,19 +80,6 @@ class McpProxyController extends AppController
             return null;
         }
 
-//        if(in_array($this->request->getData('method'), [
-//            'initialize',
-//            'notifications/initialized'
-//        ])) {
-//            // MCPサーバーの初期化メソッドは認証不要
-//            return null;
-//        } elseif($this->request->getData('method') === 'tools/call') {
-//            $toolName = $this->request->getData('params.name');
-//            if(in_array($toolName, ['search', 'fetch'])) {
-//                return null;
-//            }
-//        }
-
         $response = $this->validateOAuth2Token();
         if ($response) {
             return $response;
@@ -175,7 +162,7 @@ class McpProxyController extends AppController
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
-                ->withStatus(401);
+                ->withStatus(405);
             return $this->response;
         }
 
@@ -211,20 +198,7 @@ class McpProxyController extends AppController
             }
 
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
-//            $response = $this->sendMcpRequest($config, $mcpRequest);
-
-            // PHP 側の出力バッファ/圧縮は極力オフ
-            @ini_set('output_buffering', 'off');
-            @ini_set('zlib.output_compression', '0');
-            while (ob_get_level()) { @ob_end_flush(); }
-
-            $stream = new CallbackStream(function () use ($config, $mcpRequest) {
-                $response = $this->sendMcpRequest($config, $mcpRequest);
-                $data = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                $this->log($data);
-                echo $data;
-                @ob_flush(); @flush();  // ここがポイント
-            });
+            $response = $this->sendMcpRequest($config, $mcpRequest);
 
             $this->response = $this->response
                 ->withHeader('Content-Type', 'application/json')
@@ -232,8 +206,7 @@ class McpProxyController extends AppController
                 ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
                 ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
-//                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
-                ->withBody($stream);
+                ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
             if($this->request->getData('method') === 'notifications/initialized') {
                 $this->response = $this->response->withStatus(202);
