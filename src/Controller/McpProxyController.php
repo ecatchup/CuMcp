@@ -80,18 +80,18 @@ class McpProxyController extends AppController
             return null;
         }
 
-        if(in_array($this->request->getData('method'), [
-            'initialize',
-            'notifications/initialized'
-        ])) {
-            // MCPサーバーの初期化メソッドは認証不要
-            return null;
-        } elseif($this->request->getData('method') === 'tools/call') {
-            $toolName = $this->request->getData('params.name');
-            if(in_array($toolName, ['search', 'fetch'])) {
-                return null;
-            }
-        }
+//        if(in_array($this->request->getData('method'), [
+//            'initialize',
+//            'notifications/initialized'
+//        ])) {
+//            // MCPサーバーの初期化メソッドは認証不要
+//            return null;
+//        } elseif($this->request->getData('method') === 'tools/call') {
+//            $toolName = $this->request->getData('params.name');
+//            if(in_array($toolName, ['search', 'fetch'])) {
+//                return null;
+//            }
+//        }
 
         $response = $this->validateOAuth2Token();
         if ($response) {
