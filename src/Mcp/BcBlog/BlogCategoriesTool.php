@@ -33,9 +33,7 @@ class BlogCategoriesTool
                         'name' => ['type' => 'string', 'description' => 'カテゴリ名（省略時はタイトルから自動生成）'],
                         'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
                         'parentId' => ['type' => 'number', 'description' => '親カテゴリID（省略時はルートカテゴリ）'],
-                        'status' => ['type' => 'number', 'default' => 1, 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
-                        'lft' => ['type' => 'number', 'description' => '左値（省略時は自動設定）'],
-                        'rght' => ['type' => 'number', 'description' => '右値（省略時は自動設定）']
+                        'status' => ['type' => 'number', 'default' => 1, 'description' => '公開ステータス（0: 非公開, 1: 公開）']
                     ],
                     'required' => ['title']
                 ]
@@ -102,7 +100,13 @@ class BlogCategoriesTool
             );
     }
 
-    public function addBlogCategory(string $title, ?string $name = null, ?int $blogContentId = 1, ?int $parentId = null, ?int $status = 1, ?int $lft = null, ?int $rght = null): array
+    public function addBlogCategory(
+        string $title, ?string
+        $name = null, ?int
+        $blogContentId = 1, ?int
+        $parentId = null, ?int
+        $status = 1
+    ): array
     {
         try {
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
@@ -115,22 +119,12 @@ class BlogCategoriesTool
                 ];
             }
 
-            // nameが指定されていない場合、タイトルからスラッグを生成
-            if (empty($name)) {
-                $name = $this->generateSlug($title);
-            }
-
-            $data = [
+            $result = $blogCategoriesService->create($blogContentId, [
                 'title' => $title,
-                'name' => $name,
+                'name' => $name?? 'category_' . uniqid(),
                 'parent_id' => $parentId,
-                'status' => $status,
-                'lft' => $lft,
-                'rght' => $rght
-            ];
-
-            // BlogCategoriesService::create() は blog_content_id を最初の引数として期待している
-            $result = $blogCategoriesService->create($blogContentId, $data);
+                'status' => $status
+            ]);
 
             if ($result) {
                 return [
@@ -373,38 +367,4 @@ class BlogCategoriesTool
         }
     }
 
-    /**
-     * タイトルからURLスラッグを生成
-     */
-    private function generateSlug(string $title): string
-    {
-        // 日本語文字を英数字に変換（簡易版）
-        $slug = mb_convert_kana($title, 'a', 'UTF-8'); // ひらがなをカタカナに
-
-        // 一般的な日本語をローマ字に変換（基本的なもののみ）
-        $replacements = [
-            'テスト' => 'test',
-            'サンプル' => 'sample',
-            'カテゴリ' => 'category',
-            'ブログ' => 'blog',
-            'ニュース' => 'news',
-            '記事' => 'article'
-        ];
-
-        foreach ($replacements as $japanese => $english) {
-            $slug = str_replace($japanese, $english, $slug);
-        }
-
-        // 日本語が残っている場合は、ランダムな文字列を生成
-        if (preg_match('/[^\x00-\x7F]/', $slug)) {
-            $slug = 'category_' . uniqid();
-        }
-
-        // 英数字、ハイフン、アンダースコアのみにする
-        $slug = preg_replace('/[^a-zA-Z0-9\-_]/', '_', $slug);
-        $slug = preg_replace('/_{2,}/', '_', $slug); // 連続するアンダースコアを1つに
-        $slug = trim($slug, '_'); // 前後のアンダースコアを削除
-
-        return $slug ?: 'category_' . uniqid();
-    }
 }
