@@ -116,8 +116,10 @@ class CustomLinksToolTest extends BcTestCase
         $result = $this->CustomLinksTool->getCustomLink(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals(1, $result['data']['id']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals(1, $result['content']['id']);
     }
 
     /**
@@ -145,9 +147,9 @@ class CustomLinksToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        if ($result['success']) {
-            $this->assertArrayHasKey('data', $result);
-            $this->assertEquals($newTitle, $result['data']['title']);
+        if (!$result['isError']) {
+            $this->assertArrayHasKey('content', $result);
+            $this->assertEquals($newTitle, $result['content']['title']);
         }
     }
 
@@ -177,7 +179,8 @@ class CustomLinksToolTest extends BcTestCase
         ]);
         $databaseService->addColumn('custom_entry_1_contact', 'test_link', 'text');
         $result = $this->CustomLinksTool->deleteCustomLink(1);
-        $this->assertTrue($result['success']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
         $databaseService->dropTable('custom_entry_1_contact');
     }
 
@@ -196,8 +199,8 @@ class CustomLinksToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -212,8 +215,8 @@ class CustomLinksToolTest extends BcTestCase
         $result = $this->CustomLinksTool->getCustomLink($nonExistentId);
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -240,8 +243,9 @@ class CustomLinksToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('success', $result);
-        $this->assertCount(2, $result['data']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertCount(2, $result['content']);
         $this->assertArrayHasKey('pagination', $result);
     }
 }

@@ -136,13 +136,13 @@ class McpServer
             ];
 
             return [
-                'success' => true,
-                'data' => $info
+                'isError' => false,
+                'content' => $info
             ];
         } catch (\Exception $e) {
             return [
-                'error' => true,
-                'message' => $e->getMessage(),
+                'isError' => true,
+                'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

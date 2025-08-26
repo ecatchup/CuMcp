@@ -71,7 +71,8 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('success', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
     }
 
     /**
@@ -93,8 +94,9 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->getBlogCategories(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('success', $result);
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -117,8 +119,8 @@ class BlogCategoriesToolTest extends BcTestCase
 
         $this->assertIsArray($result);
         // IDが存在する場合は成功を想定
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals(1, $result['data']['id']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals(1, $result['content']['id']);
     }
 
     /**
@@ -145,8 +147,10 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals($newTitle, $result['data']['title']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals($newTitle, $result['content']['title']);
     }
 
     /**
@@ -168,7 +172,9 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->deleteBlogCategory(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -181,8 +187,8 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->addBlogCategory('');
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -197,7 +203,7 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->getBlogCategory($nonExistentId);
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 }

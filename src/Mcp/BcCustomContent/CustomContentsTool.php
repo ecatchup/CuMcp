@@ -149,20 +149,17 @@ class CustomContentsTool
             $result = $customContentsService->create($data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムコンテンツの保存に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムコンテンツの保存に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -204,9 +201,8 @@ class CustomContentsTool
 
             $results = $customContentsService->getIndex($conditions)->toArray();
 
-            return [
-                'success' => true,
-                'data' => $results,
+            return ['isError' => false,
+                    'content' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
@@ -214,9 +210,8 @@ class CustomContentsTool
                 ]
             ];
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -233,20 +228,17 @@ class CustomContentsTool
             $result = $customContentsService->get($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムコンテンツが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムコンテンツが見つかりません'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -263,9 +255,8 @@ class CustomContentsTool
             $entity = $customContentsService->get($id);
 
             if (!$entity) {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムコンテンツが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムコンテンツが見つかりません'
                 ];
             }
 
@@ -293,20 +284,17 @@ class CustomContentsTool
             $result = $customContentsService->update($entity, $data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムコンテンツの更新に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムコンテンツの更新に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -323,20 +311,17 @@ class CustomContentsTool
             $result = $customContentsService->delete($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'message' => 'カスタムコンテンツを削除しました'
+                return ['isError' => false,
+                    'content' => 'カスタムコンテンツを削除しました'
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムコンテンツの削除に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムコンテンツの削除に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

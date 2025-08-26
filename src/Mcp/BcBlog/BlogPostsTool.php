@@ -127,16 +127,14 @@ class BlogPostsTool
         try {
             // 必須パラメータのチェック
             if (empty($title)) {
-                return [
-                    'error' => true,
-                    'message' => 'タイトルは必須です'
+                return ['isError' => true,
+                    'content' => 'タイトルは必須です'
                 ];
             }
 
             if (empty($detail)) {
-                return [
-                    'error' => true,
-                    'message' => '詳細は必須です'
+                return ['isError' => true,
+                    'content' => '詳細は必須です'
                 ];
             }
 
@@ -172,20 +170,17 @@ class BlogPostsTool
             $result = $blogPostsService->create($data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'ブログ記事の保存に失敗しました'
+                return ['isError' => true,
+                    'content' => 'ブログ記事の保存に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -217,9 +212,8 @@ class BlogPostsTool
 
             $results = $blogPostsService->getIndex($conditions)->toArray();
 
-            return [
-                'success' => true,
-                'data' => $results,
+            return ['isError' => false,
+                    'content' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? 10,
@@ -227,9 +221,8 @@ class BlogPostsTool
                 ]
             ];
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -243,9 +236,8 @@ class BlogPostsTool
         try {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return [
-                    'error' => true,
-                    'message' => 'IDは必須です'
+                return ['isError' => true,
+                    'content' => 'IDは必須です'
                 ];
             }
 
@@ -260,26 +252,22 @@ class BlogPostsTool
                 // ブログコンテンツIDが指定されている場合は条件をチェック
                 if (!empty($blogContentId) &&
                     $result->blog_content_id != $blogContentId) {
-                    return [
-                        'error' => true,
-                        'message' => '指定されたIDのブログ記事が見つかりません'
+                    return ['isError' => true,
+                    'content' => '指定されたIDのブログ記事が見つかりません'
                     ];
                 }
 
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのブログ記事が見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのブログ記事が見つかりません'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -306,9 +294,8 @@ class BlogPostsTool
         try {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return [
-                    'error' => true,
-                    'message' => 'IDは必須です'
+                return ['isError' => true,
+                    'content' => 'IDは必須です'
                 ];
             }
 
@@ -317,9 +304,8 @@ class BlogPostsTool
             $entity = $blogPostsService->get($id);
 
             if (!$entity) {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのブログ記事が見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのブログ記事が見つかりません'
                 ];
             }
 
@@ -356,20 +342,17 @@ class BlogPostsTool
             $result = $blogPostsService->update($entity, $data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'ブログ記事の更新に失敗しました'
+                return ['isError' => true,
+                    'content' => 'ブログ記事の更新に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -383,9 +366,8 @@ class BlogPostsTool
         try {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return [
-                    'error' => true,
-                    'message' => 'IDは必須です'
+                return ['isError' => true,
+                    'content' => 'IDは必須です'
                 ];
             }
 
@@ -394,20 +376,17 @@ class BlogPostsTool
             $result = $blogPostsService->delete($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'message' => 'ブログ記事を削除しました'
+                return ['isError' => false,
+                    'content' => 'ブログ記事を削除しました'
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'ブログ記事の削除に失敗しました'
+                return ['isError' => true,
+                    'content' => 'ブログ記事の削除に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

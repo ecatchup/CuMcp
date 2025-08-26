@@ -114,8 +114,8 @@ class BlogCategoriesTool
             // 必須パラメータのチェック
             if (empty($title)) {
                 return [
-                    'error' => true,
-                    'message' => 'titleは必須です'
+                    'isError' => true,
+                    'content' => 'titleは必須です'
                 ];
             }
 
@@ -128,19 +128,19 @@ class BlogCategoriesTool
 
             if ($result) {
                 return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                    'isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
                 return [
-                    'error' => true,
-                    'message' => 'ブログカテゴリの保存に失敗しました'
+                    'isError' => true,
+                    'content' => 'ブログカテゴリの保存に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
             return [
-                'error' => true,
-                'message' => $e->getMessage(),
+                'isError' => true,
+                'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -172,8 +172,8 @@ class BlogCategoriesTool
             $results = $blogCategoriesService->getIndex($blogContentId ?? 1, $conditions)->toArray();
 
             return [
-                'success' => true,
-                'data' => $results,
+                'isError' => false,
+                'content' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
@@ -182,8 +182,8 @@ class BlogCategoriesTool
             ];
         } catch (\Exception $e) {
             return [
-                'error' => true,
-                'message' => $e->getMessage(),
+                'isError' => true,
+                'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -195,8 +195,8 @@ class BlogCategoriesTool
             // 必須パラメータのチェック
             if (empty($id)) {
                 return [
-                    'error' => true,
-                    'message' => 'idは必須です'
+                    'isError' => true,
+                    'content' => 'idは必須です'
                 ];
             }
 
@@ -209,25 +209,25 @@ class BlogCategoriesTool
                 if (!empty($blogContentId) &&
                     $result->blog_content_id != $blogContentId) {
                     return [
-                        'error' => true,
-                        'message' => '指定されたIDのブログカテゴリが見つかりません'
+                        'isError' => true,
+                        'content' => '指定されたIDのブログカテゴリが見つかりません'
                     ];
                 }
 
                 return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                    'isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
                 return [
-                    'error' => true,
-                    'message' => '指定されたIDのブログカテゴリが見つかりません'
+                    'isError' => true,
+                    'content' => '指定されたIDのブログカテゴリが見つかりません'
                 ];
             }
         } catch (\Exception $e) {
             return [
-                'error' => true,
-                'message' => $e->getMessage(),
+                'isError' => true,
+                'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -239,8 +239,8 @@ class BlogCategoriesTool
             // 必須パラメータのチェック
             if (empty($id)) {
                 return [
-                    'error' => true,
-                    'message' => 'idは必須です'
+                    'isError' => true,
+                    'content' => 'idは必須です'
                 ];
             }
 
@@ -250,8 +250,8 @@ class BlogCategoriesTool
 
             if (!$entity) {
                 return [
-                    'error' => true,
-                    'message' => '指定されたIDのブログカテゴリが見つかりません'
+                    'isError' => true,
+                    'content' => '指定されたIDのブログカテゴリが見つかりません'
                 ];
             }
 
@@ -286,8 +286,8 @@ class BlogCategoriesTool
 
                 if ($existingCategory && $existingCategory->id !== $id) {
                     return [
-                        'error' => true,
-                        'message' => '指定されたカテゴリ名は既に使用されています'
+                        'isError' => true,
+                        'content' => '指定されたカテゴリ名は既に使用されています'
                     ];
                 }
             }
@@ -296,19 +296,19 @@ class BlogCategoriesTool
 
             if ($result) {
                 return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                    'isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
                 return [
-                    'error' => true,
-                    'message' => 'ブログカテゴリの更新に失敗しました'
+                    'isError' => true,
+                    'content' => 'ブログカテゴリの更新に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
             return [
-                'error' => true,
-                'message' => $e->getMessage(),
+                'isError' => true,
+                'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -320,8 +320,8 @@ class BlogCategoriesTool
             // 必須パラメータのチェック
             if (empty($id)) {
                 return [
-                    'error' => true,
-                    'message' => 'idは必須です'
+                    'isError' => true,
+                    'content' => 'idは必須です'
                 ];
             }
 
@@ -331,16 +331,16 @@ class BlogCategoriesTool
 
             if (!$entity) {
                 return [
-                    'error' => true,
-                    'message' => '指定されたIDのブログカテゴリが見つかりません'
+                    'isError' => true,
+                    'content' => '指定されたIDのブログカテゴリが見つかりません'
                 ];
             }
 
             // ブログコンテンツIDが指定されている場合は条件をチェック
             if (!empty($blogContentId) && $entity->blog_content_id != $blogContentId) {
                 return [
-                    'error' => true,
-                    'message' => '指定されたIDのブログカテゴリが見つかりません'
+                    'isError' => true,
+                    'content' => '指定されたIDのブログカテゴリが見つかりません'
                 ];
             }
 
@@ -349,19 +349,19 @@ class BlogCategoriesTool
 
             if ($result) {
                 return [
-                    'success' => true,
-                    'message' => 'ブログカテゴリを削除しました'
+                    'isError' => false,
+                    'content' => 'ブログカテゴリを削除しました'
                 ];
             } else {
                 return [
-                    'error' => true,
-                    'message' => 'ブログカテゴリの削除に失敗しました'
+                    'isError' => true,
+                    'content' => 'ブログカテゴリの削除に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
             return [
-                'error' => true,
-                'message' => $e->getMessage(),
+                'isError' => true,
+                'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

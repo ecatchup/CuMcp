@@ -132,20 +132,17 @@ class CustomLinksTool
             $result = $customLinksService->create($data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムリンクの保存に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムリンクの保存に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -188,9 +185,8 @@ class CustomLinksTool
             // CustomLinksService::getIndex() は custom_table_id を最初の引数として期待している
             $results = $customLinksService->getIndex($customTableId ?? 1, $conditions)->toArray();
 
-            return [
-                'success' => true,
-                'data' => $results,
+            return ['isError' => false,
+                    'content' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
@@ -198,9 +194,8 @@ class CustomLinksTool
                 ]
             ];
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -217,20 +212,17 @@ class CustomLinksTool
             $result = $customLinksService->get($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムリンクが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムリンクが見つかりません'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -247,9 +239,8 @@ class CustomLinksTool
             $entity = $customLinksService->get($id);
 
             if (!$entity) {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムリンクが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムリンクが見つかりません'
                 ];
             }
 
@@ -268,20 +259,17 @@ class CustomLinksTool
             $result = $customLinksService->update($entity, $data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムリンクの更新に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムリンクの更新に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -298,20 +286,17 @@ class CustomLinksTool
             $result = $customLinksService->delete($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'message' => 'カスタムリンクを削除しました'
+                return ['isError' => false,
+                    'content' => 'カスタムリンクを削除しました'
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムリンクの削除に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムリンクの削除に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

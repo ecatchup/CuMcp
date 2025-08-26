@@ -75,8 +75,8 @@ class SearchIndexesTool
             }
         } catch (\Exception $e) {
             return [
-                'error' => true,
-                'message' => $e->getMessage(),
+                'isError' => true,
+                'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -103,8 +103,8 @@ class SearchIndexesTool
             return ['results' => $result];
         } catch (\Exception $e) {
             return [
-                'error' => true,
-                'message' => $e->getMessage(),
+                'isError' => true,
+                'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

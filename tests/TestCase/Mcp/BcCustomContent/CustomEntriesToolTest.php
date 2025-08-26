@@ -97,13 +97,13 @@ class CustomEntriesToolTest extends BcTestCase
 
         $this->assertIsArray($result);
         if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('data', $result);
-            $this->assertEquals($title, $result['data']['title']);
-            $this->assertEquals($customTableId, $result['data']['custom_table_id']);
+            $this->assertArrayHasKey('content', $result);
+            $this->assertEquals($title, $result['content']['title']);
+            $this->assertEquals($customTableId, $result['content']['custom_table_id']);
         } else {
             // エラーケースでもレスポンス構造をテスト
-            $this->assertArrayHasKey('error', $result);
-            $this->assertArrayHasKey('message', $result);
+            $this->assertArrayHasKey('isError', $result);
+            $this->assertArrayHasKey('content', $result);
         }
 
         // テーブルをクリーンアップ
@@ -143,12 +143,12 @@ class CustomEntriesToolTest extends BcTestCase
 
         $this->assertIsArray($result);
         if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('data', $result);
-            $this->assertEquals($title, $result['data']['title']);
+            $this->assertArrayHasKey('content', $result);
+            $this->assertEquals($title, $result['content']['title']);
         } else {
             // エラーケースでもレスポンス構造をテスト
-            $this->assertArrayHasKey('error', $result);
-            $this->assertArrayHasKey('message', $result);
+            $this->assertArrayHasKey('isError', $result);
+            $this->assertArrayHasKey('content', $result);
         }
 
         // テーブルをクリーンアップ
@@ -168,8 +168,8 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -197,14 +197,14 @@ class CustomEntriesToolTest extends BcTestCase
 
         $this->assertIsArray($result);
         if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('data', $result);
+            $this->assertArrayHasKey('content', $result);
             $this->assertArrayHasKey('pagination', $result);
             $this->assertEquals(10, $result['pagination']['limit']);
             $this->assertEquals(1, $result['pagination']['page']);
         } else {
             // エラーケースでもレスポンス構造をテスト
-            $this->assertArrayHasKey('error', $result);
-            $this->assertArrayHasKey('message', $result);
+            $this->assertArrayHasKey('isError', $result);
+            $this->assertArrayHasKey('content', $result);
         }
     }
 
@@ -233,12 +233,12 @@ class CustomEntriesToolTest extends BcTestCase
 
             $this->assertIsArray($result);
             if (isset($result['success']) && $result['success']) {
-                $this->assertArrayHasKey('data', $result);
+                $this->assertArrayHasKey('content', $result);
                 $this->assertEquals(5, $result['pagination']['limit']);
             } else {
                 // エラーケースでもレスポンス構造をテスト
-                $this->assertArrayHasKey('error', $result);
-                $this->assertArrayHasKey('message', $result);
+                $this->assertArrayHasKey('isError', $result);
+                $this->assertArrayHasKey('content', $result);
             }
     }
 
@@ -257,10 +257,10 @@ class CustomEntriesToolTest extends BcTestCase
         $this->assertIsArray($result);
         // 存在しないエントリーの場合はエラーが返される
         if (isset($result['error']) && $result['error']) {
-            $this->assertArrayHasKey('message', $result);
+            $this->assertArrayHasKey('content', $result);
         } else if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('data', $result);
-            $this->assertEquals(1, $result['data']['id']);
+            $this->assertArrayHasKey('content', $result);
+            $this->assertEquals(1, $result['content']['id']);
         }
     }
 
@@ -279,8 +279,8 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -303,10 +303,10 @@ class CustomEntriesToolTest extends BcTestCase
         $this->assertIsArray($result);
         // 存在しないエントリーの場合はエラーが返される
         if (isset($result['error']) && $result['error']) {
-            $this->assertArrayHasKey('message', $result);
+            $this->assertArrayHasKey('content', $result);
         } else if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('data', $result);
-            $this->assertEquals($newTitle, $result['data']['title']);
+            $this->assertArrayHasKey('content', $result);
+            $this->assertEquals($newTitle, $result['content']['title']);
         }
     }
 
@@ -331,9 +331,9 @@ class CustomEntriesToolTest extends BcTestCase
         $this->assertIsArray($result);
         // 存在しないエントリーの場合はエラーが返される
         if (isset($result['error']) && $result['error']) {
-            $this->assertArrayHasKey('message', $result);
+            $this->assertArrayHasKey('content', $result);
         } else if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('data', $result);
+            $this->assertArrayHasKey('content', $result);
         }
     }
 
@@ -353,8 +353,8 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -372,9 +372,9 @@ class CustomEntriesToolTest extends BcTestCase
         $this->assertIsArray($result);
         // 削除処理は存在しないエントリーでもエラーハンドリングされる
         if (isset($result['error']) && $result['error']) {
-            $this->assertArrayHasKey('message', $result);
+            $this->assertArrayHasKey('content', $result);
         } else if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('message', $result);
+            $this->assertArrayHasKey('content', $result);
         }
     }
 
@@ -393,8 +393,8 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**

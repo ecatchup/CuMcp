@@ -59,8 +59,8 @@ class SearchIndexesToolTest extends BcTestCase
         ]])->persist();
 
         $result = $this->searchIndexesTool->fetch("1");
-        $this->assertTrue($result['error']);
-        $this->assertEquals("Record not found in table `search_indexes`.", $result['message']);
+        $this->assertTrue($result['isError']);
+        $this->assertEquals("Record not found in table `search_indexes`.", $result['content']);
         $result = $this->searchIndexesTool->fetch("2");
         $this->assertArrayHasKey('id', $result);
     }

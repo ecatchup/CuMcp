@@ -102,20 +102,17 @@ class BlogTagsTool
             $result = $blogTagsService->create($data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'ブログタグの保存に失敗しました'
+                return ['isError' => true,
+                    'content' => 'ブログタグの保存に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -149,9 +146,8 @@ class BlogTagsTool
 
             $results = $blogTagsService->getIndex($conditions)->toArray();
 
-            return [
-                'success' => true,
-                'data' => $results,
+            return ['isError' => false,
+                    'content' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
@@ -159,9 +155,8 @@ class BlogTagsTool
                 ]
             ];
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -178,20 +173,17 @@ class BlogTagsTool
             $result = $blogTagsService->get($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのブログタグが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのブログタグが見つかりません'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -208,9 +200,8 @@ class BlogTagsTool
             $entity = $blogTagsService->get($id);
 
             if (!$entity) {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのブログタグが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのブログタグが見つかりません'
                 ];
             }
 
@@ -221,20 +212,17 @@ class BlogTagsTool
             $result = $blogTagsService->update($entity, $data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'ブログタグの更新に失敗しました'
+                return ['isError' => true,
+                    'content' => 'ブログタグの更新に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -251,20 +239,17 @@ class BlogTagsTool
             $result = $blogTagsService->delete($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'message' => 'ブログタグを削除しました'
+                return ['isError' => false,
+                    'content' => 'ブログタグを削除しました'
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'ブログタグの削除に失敗しました'
+                return ['isError' => true,
+                    'content' => 'ブログタグの削除に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

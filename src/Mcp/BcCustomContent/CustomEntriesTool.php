@@ -140,20 +140,17 @@ class CustomEntriesTool
             $result = $customEntriesService->create($data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムエントリーの保存に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムエントリーの保存に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -179,9 +176,8 @@ class CustomEntriesTool
 
             $results = $customEntriesService->getIndex($conditions)->toArray();
 
-            return [
-                'success' => true,
-                'data' => $results,
+            return ['isError' => false,
+                    'content' => $results,
                 'pagination' => [
                     'page' => $conditions['page'],
                     'limit' => $conditions['limit'],
@@ -189,9 +185,8 @@ class CustomEntriesTool
                 ]
             ];
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -210,20 +205,17 @@ class CustomEntriesTool
             ]);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムエントリーが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムエントリーが見つかりません'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -242,9 +234,8 @@ class CustomEntriesTool
             ]);
 
             if (!$entity) {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムエントリーが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムエントリーが見つかりません'
                 ];
             }
 
@@ -265,20 +256,17 @@ class CustomEntriesTool
             $result = $customEntriesService->update($entity, $data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムエントリーの更新に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムエントリーの更新に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -295,20 +283,17 @@ class CustomEntriesTool
             $result = $customEntriesService->delete($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'message' => 'カスタムエントリーを削除しました'
+                return ['isError' => false,
+                    'content' => 'カスタムエントリーを削除しました'
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムエントリーの削除に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムエントリーの削除に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

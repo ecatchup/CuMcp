@@ -130,20 +130,17 @@ class CustomTablesTool
             }
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムテーブルの保存に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムテーブルの保存に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -207,9 +204,8 @@ class CustomTablesTool
 
             $results = $customTablesService->getIndex($conditions)->toArray();
 
-            return [
-                'success' => true,
-                'data' => $results,
+            return ['isError' => false,
+                    'content' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
@@ -217,9 +213,8 @@ class CustomTablesTool
                 ]
             ];
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -236,20 +231,17 @@ class CustomTablesTool
             $result = $customTablesService->get($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムテーブルが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムテーブルが見つかりません'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -266,9 +258,8 @@ class CustomTablesTool
             $entity = $customTablesService->get($id);
 
             if (!$entity) {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムテーブルが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムテーブルが見つかりません'
                 ];
             }
 
@@ -293,20 +284,17 @@ class CustomTablesTool
             }
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムテーブルの更新に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムテーブルの更新に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -323,20 +311,17 @@ class CustomTablesTool
             $result = $customTablesService->delete($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'message' => 'カスタムテーブルを削除しました'
+                return ['isError' => false,
+                    'content' => 'カスタムテーブルを削除しました'
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムテーブルの削除に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムテーブルの削除に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

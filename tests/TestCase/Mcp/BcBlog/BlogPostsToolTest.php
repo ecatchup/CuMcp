@@ -77,8 +77,8 @@ class BlogPostsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        // エラーかSuccess、どちらかのキーが存在することを確認
-        $this->assertTrue(isset($result['success']) || isset($result['error']));
+        // isErrorキーが存在することを確認
+        $this->assertArrayHasKey('isError', $result);
     }
 
     /**
@@ -91,10 +91,11 @@ class BlogPostsToolTest extends BcTestCase
         ])->persist();
         $result = $this->BlogPostsTool->getBlogPosts(1);
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
-        $this->assertIsArray($result['data']);
+        $this->assertIsArray($result['content']);
     }
 
     /**
@@ -105,9 +106,10 @@ class BlogPostsToolTest extends BcTestCase
         $this->loadFixtureScenario(BlogPostsAdminServiceScenario::class);
         $result = $this->BlogPostsTool->getBlogPost(1);
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals(1, $result['data']['id']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals(1, $result['content']['id']);
     }
 
     /**
@@ -126,10 +128,11 @@ class BlogPostsToolTest extends BcTestCase
             null
         );
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals('更新されたタイトル', $result['data']['title']);
-        $this->assertEquals('更新された詳細', $result['data']['detail']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('更新されたタイトル', $result['content']['title']);
+        $this->assertEquals('更新された詳細', $result['content']['detail']);
     }
 
     /**
@@ -140,8 +143,9 @@ class BlogPostsToolTest extends BcTestCase
         $this->loadFixtureScenario(BlogPostsAdminServiceScenario::class);
         $result = $this->BlogPostsTool->deleteBlogPost(1);
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**

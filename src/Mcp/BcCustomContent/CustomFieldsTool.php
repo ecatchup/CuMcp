@@ -131,20 +131,17 @@ class CustomFieldsTool
             $result = $customFieldsService->create($data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムフィールドの保存に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムフィールドの保存に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -174,14 +171,12 @@ class CustomFieldsTool
 
             $results = $customFieldsService->getIndex($conditions)->toArray();
 
-            return [
-                'success' => true,
-                'data' => $results
+            return ['isError' => false,
+                    'content' => $results
             ];
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -198,20 +193,17 @@ class CustomFieldsTool
             $result = $customFieldsService->get($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムフィールドが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムフィールドが見つかりません'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -228,9 +220,8 @@ class CustomFieldsTool
             $entity = $customFieldsService->get($id);
 
             if (!$entity) {
-                return [
-                    'error' => true,
-                    'message' => '指定されたIDのカスタムフィールドが見つかりません'
+                return ['isError' => true,
+                    'content' => '指定されたIDのカスタムフィールドが見つかりません'
                 ];
             }
 
@@ -244,20 +235,17 @@ class CustomFieldsTool
             $result = $customFieldsService->update($entity, $data);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'data' => $result->toArray()
+                return ['isError' => false,
+                    'content' => $result->toArray()
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムフィールドの更新に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムフィールドの更新に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }
@@ -274,20 +262,17 @@ class CustomFieldsTool
             $result = $customFieldsService->delete($id);
 
             if ($result) {
-                return [
-                    'success' => true,
-                    'message' => 'カスタムフィールドを削除しました'
+                return ['isError' => false,
+                    'content' => 'カスタムフィールドを削除しました'
                 ];
             } else {
-                return [
-                    'error' => true,
-                    'message' => 'カスタムフィールドの削除に失敗しました'
+                return ['isError' => true,
+                    'content' => 'カスタムフィールドの削除に失敗しました'
                 ];
             }
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => $e->getMessage(),
+            return ['isError' => true,
+                    'content' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ];
         }

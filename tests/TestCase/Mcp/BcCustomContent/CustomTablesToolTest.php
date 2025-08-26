@@ -70,10 +70,11 @@ class CustomTablesToolTest extends BcTestCase
             ['field1', 'field2']
         );
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals('test_table', $result['data']['name']);
-        $this->assertEquals('テストテーブル', $result['data']['title']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('test_table', $result['content']['name']);
+        $this->assertEquals('テストテーブル', $result['content']['title']);
     }
 
     /**
@@ -84,10 +85,11 @@ class CustomTablesToolTest extends BcTestCase
         $this->loadFixtureScenario(CustomTablesScenario::class);
         $result = $this->CustomTablesTool->getCustomTables();
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
-        $this->assertIsArray($result['data']);
+        $this->assertIsArray($result['content']);
     }
 
     /**
@@ -98,9 +100,10 @@ class CustomTablesToolTest extends BcTestCase
         $this->loadFixtureScenario(CustomTablesScenario::class);
         $result = $this->CustomTablesTool->getCustomTable(2);
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals(2, $result['data']['id']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals(2, $result['content']['id']);
     }
 
     /**
@@ -119,10 +122,11 @@ class CustomTablesToolTest extends BcTestCase
             ['field3', 'field4']
         );
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals('updated_table', $result['data']['name']);
-        $this->assertEquals('更新されたテーブル', $result['data']['title']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('updated_table', $result['content']['name']);
+        $this->assertEquals('更新されたテーブル', $result['content']['title']);
     }
 
     /**
@@ -140,9 +144,10 @@ class CustomTablesToolTest extends BcTestCase
         $customEntriesService->setup(1);
         $result = $this->CustomTablesTool->deleteCustomTable(1);
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('message', $result);
-        $this->assertEquals('カスタムテーブルを削除しました', $result['message']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('カスタムテーブルを削除しました', $result['content']);
     }
 
     /**
@@ -153,8 +158,9 @@ class CustomTablesToolTest extends BcTestCase
         $this->loadFixtureScenario(CustomTablesScenario::class);
         $result = $this->CustomTablesTool->getCustomTables('test', 1, 'default', 10, 1);
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
         $this->assertEquals(1, $result['pagination']['page']);
         $this->assertEquals(10, $result['pagination']['limit']);
@@ -167,9 +173,9 @@ class CustomTablesToolTest extends BcTestCase
     {
         $result = $this->CustomTablesTool->getCustomTable(999);
 
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
-        $this->assertEquals('Record not found in table `custom_tables`.', $result['message']);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('Record not found in table `custom_tables`.', $result['content']);
     }
 
     /**
@@ -179,9 +185,9 @@ class CustomTablesToolTest extends BcTestCase
     {
         $result = $this->CustomTablesTool->editCustomTable(999, 'test', 'Test Table');
 
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
-        $this->assertEquals('Record not found in table `custom_tables`.', $result['message']);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('Record not found in table `custom_tables`.', $result['content']);
     }
 
     /**
@@ -191,9 +197,9 @@ class CustomTablesToolTest extends BcTestCase
     {
         $result = $this->CustomTablesTool->deleteCustomTable(999);
 
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
-        $this->assertEquals('Record not found in table `custom_tables`.', $result['message']);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('Record not found in table `custom_tables`.', $result['content']);
     }
 
     /**
@@ -206,9 +212,10 @@ class CustomTablesToolTest extends BcTestCase
             'シンプルテーブル'
         );
 
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
-        $this->assertEquals('simple_table', $result['data']['name']);
-        $this->assertEquals('シンプルテーブル', $result['data']['title']);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('simple_table', $result['content']['name']);
+        $this->assertEquals('シンプルテーブル', $result['content']['title']);
     }
 }

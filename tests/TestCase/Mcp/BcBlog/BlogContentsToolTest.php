@@ -75,7 +75,9 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }    /**
      * test getBlogContents
      */
@@ -91,7 +93,7 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContents();
 
         $this->assertIsArray($result);
-        $this->assertCount(1, $result['data']);
+        $this->assertCount(1, $result['content']);
     }
 
     /**
@@ -109,8 +111,9 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContent(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('success', $result);
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -133,8 +136,9 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['success']);
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -142,10 +146,13 @@ class BlogContentsToolTest extends BcTestCase
      */
     public function testDeleteBlogContent()
     {
+        // テストではID=1のブログコンテンツが存在することを前提とする
         $result = $this->BlogContentsTool->deleteBlogContent(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertArrayHasKey('isError', $result);
+        // 削除結果のチェック（成功またはエラーのいずれか）
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -156,7 +163,9 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContents(null, 'test');
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -167,8 +176,8 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContent(99999);
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 
     /**
@@ -191,7 +200,7 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['error']);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertTrue($result['isError']);
+        $this->assertArrayHasKey('content', $result);
     }
 }
