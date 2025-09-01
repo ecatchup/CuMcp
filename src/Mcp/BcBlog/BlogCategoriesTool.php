@@ -59,8 +59,7 @@ class BlogCategoriesTool extends BaseMcpTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'id' => ['type' => 'number', 'description' => 'カテゴリID（必須）'],
-                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                        'id' => ['type' => 'number', 'description' => 'カテゴリID（必須）']
                     ],
                     'required' => ['id']
                 ]
@@ -77,9 +76,7 @@ class BlogCategoriesTool extends BaseMcpTool
                         'name' => ['type' => 'string', 'description' => 'カテゴリ名'],
                         'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
                         'parentId' => ['type' => 'number', 'description' => '親カテゴリID（省略時はルートカテゴリ）'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
-                        'lft' => ['type' => 'number', 'description' => '左値'],
-                        'rght' => ['type' => 'number', 'description' => '右値']
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）']
                     ],
                     'required' => ['id']
                 ]
@@ -91,14 +88,22 @@ class BlogCategoriesTool extends BaseMcpTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'id' => ['type' => 'number', 'description' => 'カテゴリID（必須）'],
-                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）']
+                        'id' => ['type' => 'number', 'description' => 'カテゴリID（必須）']
                     ],
                     'required' => ['id']
                 ]
             );
     }
 
+    /**
+     * ブログカテゴリを追加
+     * @param string $title
+     * @param string|null $name
+     * @param int|null $blogContentId
+     * @param int|null $parentId
+     * @param int|null $status
+     * @return array
+     */
     public function addBlogCategory(
         string $title,
         ?string $name = null,
@@ -130,7 +135,22 @@ class BlogCategoriesTool extends BaseMcpTool
         });
     }
 
-    public function getBlogCategories(?int $blogContentId = 1, ?int $limit = null, ?int $page = null, ?string $keyword = null, ?int $status = null): array
+    /**
+     * ブログカテゴリの一覧を取得
+     * @param int|null $blogContentId
+     * @param int|null $limit
+     * @param int|null $page
+     * @param string|null $keyword
+     * @param int|null $status
+     * @return array
+     */
+    public function getBlogCategories(
+        ?int $blogContentId = 1,
+        ?int $limit = null,
+        ?int $page = null,
+        ?string $keyword = null,
+        ?int $status = null
+    ): array
     {
         return $this->executeWithErrorHandling(function() use ($blogContentId, $limit, $page, $keyword, $status) {
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
@@ -165,25 +185,24 @@ class BlogCategoriesTool extends BaseMcpTool
         });
     }
 
-    public function getBlogCategory(int $id, ?int $blogContentId = null): array
+    /**
+     * 指定されたIDのブログカテゴリを取得
+     * @param int $id
+     * @param int|null $blogContentId
+     * @return array
+     */
+    public function getBlogCategory(int $id): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $blogContentId) {
+        return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
             if (empty($id)) {
                 return $this->createErrorResponse('idは必須です');
             }
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
-
             $result = $blogCategoriesService->get($id);
 
             if ($result) {
-                // ブログコンテンツIDが指定されている場合は条件をチェック
-                if (!empty($blogContentId) &&
-                    $result->blog_content_id != $blogContentId) {
-                    return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
-                }
-
                 return $this->createSuccessResponse($result->toArray());
             } else {
                 return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
@@ -191,9 +210,26 @@ class BlogCategoriesTool extends BaseMcpTool
         });
     }
 
-    public function editBlogCategory(int $id, ?string $title = null, ?string $name = null, ?int $blogContentId = null, ?int $parentId = null, ?int $status = null, ?int $lft = null, ?int $rght = null): array
+    /**
+     * ブログカテゴリを編集
+     * @param int $id
+     * @param string|null $title
+     * @param string|null $name
+     * @param int|null $blogContentId
+     * @param int|null $parentId
+     * @param int|null $status
+     * @return array
+     */
+    public function editBlogCategory(
+        int $id,
+        ?string $title = null,
+        ?string $name = null,
+        ?int $blogContentId = null,
+        ?int $parentId = null,
+        ?int $status = null
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $title, $name, $blogContentId, $parentId, $status, $lft, $rght) {
+        return $this->executeWithErrorHandling(function() use ($id, $title, $name, $blogContentId, $parentId, $status) {
             // 必須パラメータのチェック
             if (empty($id)) {
                 return $this->createErrorResponse('idは必須です');
@@ -214,8 +250,6 @@ class BlogCategoriesTool extends BaseMcpTool
             if ($blogContentId !== null) $data['blog_content_id'] = $blogContentId;
             if ($parentId !== null) $data['parent_id'] = $parentId;
             if ($status !== null) $data['status'] = $status;
-            if ($lft !== null) $data['lft'] = $lft;
-            if ($rght !== null) $data['rght'] = $rght;
 
             // nameを更新する場合、バリデーションエラーを避けるために
             // 現在のblog_content_idを明示的に含める
@@ -251,24 +285,23 @@ class BlogCategoriesTool extends BaseMcpTool
         });
     }
 
-    public function deleteBlogCategory(int $id, ?int $blogContentId = null): array
+    /**
+     * ブログカテゴリを削除
+     * @param int $id
+     * @return array
+     */
+    public function deleteBlogCategory(int $id): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $blogContentId) {
+        return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
             if (empty($id)) {
                 return $this->createErrorResponse('idは必須です');
             }
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
-
             $entity = $blogCategoriesService->get($id);
 
             if (!$entity) {
-                return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
-            }
-
-            // ブログコンテンツIDが指定されている場合は条件をチェック
-            if (!empty($blogContentId) && $entity->blog_content_id != $blogContentId) {
                 return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
             }
 
