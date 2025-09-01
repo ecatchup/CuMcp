@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcBlog;
 
-use BaserCore\Utility\BcContainerTrait;
+use CuMcp\Mcp\BaseMcpTool;
 use BcBlog\Service\BlogContentsServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 
@@ -12,9 +12,8 @@ use PhpMcp\Server\ServerBuilder;
  *
  * ブログコンテンツのCRUD操作を提供
  */
-class BlogContentsTool
+class BlogContentsTool extends BaseMcpTool
 {
-    use BcContainerTrait;
 
     /**
      * ブログコンテンツ関連のツールを ServerBuilder に追加
@@ -121,7 +120,7 @@ class BlogContentsTool
      */
     public function addBlogContent(string $name, string $title, ?int $siteId = 1, ?int $parentId = 1, ?string $description = null, ?string $template = 'default', ?int $listCount = 10, ?string $listDirection = 'DESC', ?int $feedCount = 10, ?bool $commentUse = false, ?bool $commentApprove = false, ?bool $tagUse = false, ?string $eyeCatchSize = null, ?bool $useContent = false, ?int $status = 1, ?int $widgetArea = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($name, $title, $siteId, $parentId, $description, $template, $listCount, $listDirection, $feedCount, $commentUse, $commentApprove, $tagUse, $eyeCatchSize, $useContent, $status, $widgetArea) {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
             // baserCMSでは、BlogContentとContentの両方を作成する必要があります
@@ -167,20 +166,11 @@ class BlogContentsTool
             $result = $blogContentsService->create($data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログコンテンツの保存に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログコンテンツの保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -188,7 +178,7 @@ class BlogContentsTool
      */
     public function getBlogContents(?int $siteId = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($siteId, $keyword, $status, $limit, $page) {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
             $conditions = [];
@@ -215,20 +205,15 @@ class BlogContentsTool
 
             $results = $blogContentsService->getIndex($conditions)->toArray();
 
-            return ['isError' => false,
-                    'content' => $results,
+            return $this->createSuccessResponse([
+                'data' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
-            ];
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            ]);
+        });
     }
 
     /**
@@ -236,12 +221,10 @@ class BlogContentsTool
      */
     public function getBlogContent(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return ['isError' => true,
-                    'content' => 'IDは必須です'
-                ];
+                return $this->createErrorResponse('IDは必須です');
             }
 
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
@@ -249,20 +232,11 @@ class BlogContentsTool
             $result = $blogContentsService->get($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => '指定されたIDのブログコンテンツが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログコンテンツが見つかりません');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -270,12 +244,10 @@ class BlogContentsTool
      */
     public function editBlogContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $listCount = null, ?string $listDirection = null, ?int $feedCount = null, ?bool $commentUse = null, ?bool $commentApprove = null, ?bool $tagUse = null, ?string $eyeCatchSize = null, ?bool $useContent = null, ?int $status = null, ?int $widgetArea = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $description, $template, $listCount, $listDirection, $feedCount, $commentUse, $commentApprove, $tagUse, $eyeCatchSize, $useContent, $status, $widgetArea) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return ['isError' => true,
-                    'content' => 'IDは必須です'
-                ];
+                return $this->createErrorResponse('IDは必須です');
             }
 
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
@@ -283,9 +255,7 @@ class BlogContentsTool
             $entity = $blogContentsService->get($id);
 
             if (!$entity) {
-                return ['isError' => true,
-                    'content' => '指定されたIDのブログコンテンツが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログコンテンツが見つかりません');
             }
 
             // 更新データを構築（null以外の値のみ）
@@ -316,20 +286,11 @@ class BlogContentsTool
             $result = $blogContentsService->update($entity, $data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログコンテンツの更新に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログコンテンツの更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -337,12 +298,10 @@ class BlogContentsTool
      */
     public function deleteBlogContent(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return ['isError' => true,
-                    'content' => 'IDは必須です'
-                ];
+                return $this->createErrorResponse('IDは必須です');
             }
 
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
@@ -350,19 +309,10 @@ class BlogContentsTool
             $result = $blogContentsService->delete($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => 'ブログコンテンツを削除しました'
-                ];
+                return $this->createSuccessResponse('ブログコンテンツを削除しました');
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログコンテンツの削除に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログコンテンツの削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 }

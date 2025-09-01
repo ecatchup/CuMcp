@@ -245,7 +245,7 @@ class CustomLinksToolTest extends BcTestCase
         $this->assertIsArray($result);
         $this->assertArrayHasKey('isError', $result);
         $this->assertFalse($result['isError']);
-        $this->assertCount(2, $result['content']);
-        $this->assertArrayHasKey('pagination', $result);
+        $this->assertCount(2, $result['content']['results']);
+        $this->assertArrayHasKey('pagination', $result['content']);
     }
 }

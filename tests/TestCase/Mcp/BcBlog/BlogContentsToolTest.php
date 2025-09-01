@@ -93,7 +93,7 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContents();
 
         $this->assertIsArray($result);
-        $this->assertCount(1, $result['content']);
+        $this->assertCount(1, $result['content']['data']);
     }
 
     /**

@@ -6,15 +6,15 @@ namespace CuMcp\Mcp\BcCustomContent;
 use BcCustomContent\Service\CustomEntriesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 use BaserCore\Utility\BcContainerTrait;
+use CuMcp\Mcp\BaseMcpTool;
 
 /**
  * カスタムエントリーツールクラス
  *
  * カスタムエントリーのCRUD操作を提供
  */
-class CustomEntriesTool
+class CustomEntriesTool extends BaseMcpTool
 {
-    use BcContainerTrait;
     /**
      * カスタムエントリー関連のツールを ServerBuilder に追加
      */
@@ -118,7 +118,7 @@ class CustomEntriesTool
      */
     public function addCustomEntry(int $customTableId, string $title, ?string $name = '', ?bool $status = false, ?string $published = null, ?string $publishBegin = null, ?string $publishEnd = null, ?int $creatorId = 1, ?array $customFields = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $title, $name, $status, $published, $publishBegin, $publishEnd, $creatorId, $customFields) {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
             $data = [
@@ -140,20 +140,11 @@ class CustomEntriesTool
             $result = $customEntriesService->create($data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムエントリーの保存に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムエントリーの保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -161,7 +152,7 @@ class CustomEntriesTool
      */
     public function getCustomEntries(int $customTableId, ?int $limit = 20, ?int $page = 1, ?int $status = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $limit, $page, $status) {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
             $conditions = [
@@ -176,20 +167,15 @@ class CustomEntriesTool
 
             $results = $customEntriesService->getIndex($conditions)->toArray();
 
-            return ['isError' => false,
-                    'content' => $results,
+            return $this->createSuccessResponse([
+                'results' => $results,
                 'pagination' => [
                     'page' => $conditions['page'],
                     'limit' => $conditions['limit'],
                     'count' => count($results)
                 ]
-            ];
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            ]);
+        });
     }
 
     /**
@@ -197,7 +183,7 @@ class CustomEntriesTool
      */
     public function getCustomEntry(int $customTableId, int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $id) {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
             $result = $customEntriesService->get($id, [
@@ -205,20 +191,11 @@ class CustomEntriesTool
             ]);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムエントリーが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -226,7 +203,7 @@ class CustomEntriesTool
      */
     public function editCustomEntry(int $customTableId, int $id, ?string $title = null, ?string $name = null, ?bool $status = null, ?string $published = null, ?string $publishBegin = null, ?string $publishEnd = null, ?int $creatorId = null, ?array $customFields = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $id, $title, $name, $status, $published, $publishBegin, $publishEnd, $creatorId, $customFields) {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
             $entity = $customEntriesService->get($id, [
@@ -234,9 +211,7 @@ class CustomEntriesTool
             ]);
 
             if (!$entity) {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムエントリーが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
             }
 
             $data = [];
@@ -256,20 +231,11 @@ class CustomEntriesTool
             $result = $customEntriesService->update($entity, $data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムエントリーの更新に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムエントリーの更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -277,25 +243,16 @@ class CustomEntriesTool
      */
     public function deleteCustomEntry(int $customTableId, int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $id) {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
             $result = $customEntriesService->delete($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => 'カスタムエントリーを削除しました'
-                ];
+                return $this->createSuccessResponse('カスタムエントリーを削除しました');
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムエントリーの削除に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムエントリーの削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 }

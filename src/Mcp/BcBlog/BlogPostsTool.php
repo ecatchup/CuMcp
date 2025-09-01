@@ -10,16 +10,15 @@ use BcBlog\Service\BlogCategoriesServiceInterface;
 use BaserCore\Service\UsersServiceInterface;
 use Cake\Log\LogTrait;
 use PhpMcp\Server\ServerBuilder;
+use CuMcp\Mcp\BaseMcpTool;
 
 /**
  * ブログ記事ツールクラス
  *
  * ブログ記事のCRUD操作を提供
  */
-class BlogPostsTool
+class BlogPostsTool extends BaseMcpTool
 {
-    use BcContainerTrait;
-    use LogTrait;
 
     /**
      * ブログ記事関連のツールを ServerBuilder に追加
@@ -124,18 +123,14 @@ class BlogPostsTool
         ?string $posted = null
     ): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($title, $detail, $blogContent, $category, $email, $posted) {
             // 必須パラメータのチェック
             if (empty($title)) {
-                return ['isError' => true,
-                    'content' => 'タイトルは必須です'
-                ];
+                return $this->createErrorResponse('タイトルは必須です');
             }
 
             if (empty($detail)) {
-                return ['isError' => true,
-                    'content' => '詳細は必須です'
-                ];
+                return $this->createErrorResponse('詳細は必須です');
             }
 
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
@@ -170,20 +165,11 @@ class BlogPostsTool
             $result = $blogPostsService->create($data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログ記事の保存に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログ記事の保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -191,7 +177,7 @@ class BlogPostsTool
      */
     public function getBlogPosts(?int $blogContentId = null, ?string $keyword = null, ?int $status = null, ?int $limit = 10, ?int $page = 1): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($blogContentId, $keyword, $status, $limit, $page) {
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
             $conditions = [];
@@ -212,20 +198,15 @@ class BlogPostsTool
 
             $results = $blogPostsService->getIndex($conditions)->toArray();
 
-            return ['isError' => false,
-                    'content' => $results,
+            return $this->createSuccessResponse([
+                'data' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? 10,
                     'count' => count($results)
                 ]
-            ];
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            ]);
+        });
     }
 
     /**
@@ -233,12 +214,10 @@ class BlogPostsTool
      */
     public function getBlogPost(int $id, ?int $blogContentId = null, $status = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $blogContentId, $status) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return ['isError' => true,
-                    'content' => 'IDは必須です'
-                ];
+                return $this->createErrorResponse('IDは必須です');
             }
 
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
@@ -252,25 +231,14 @@ class BlogPostsTool
                 // ブログコンテンツIDが指定されている場合は条件をチェック
                 if (!empty($blogContentId) &&
                     $result->blog_content_id != $blogContentId) {
-                    return ['isError' => true,
-                    'content' => '指定されたIDのブログ記事が見つかりません'
-                    ];
+                    return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
                 }
 
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => '指定されたIDのブログ記事が見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -291,12 +259,10 @@ class BlogPostsTool
         ?string $posted = null
     ): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $title, $detail, $content, $status, $name, $eyeCatch, $category, $blogContentId, $email, $userId, $posted) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return ['isError' => true,
-                    'content' => 'IDは必須です'
-                ];
+                return $this->createErrorResponse('IDは必須です');
             }
 
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
@@ -304,9 +270,7 @@ class BlogPostsTool
             $entity = $blogPostsService->get($id);
 
             if (!$entity) {
-                return ['isError' => true,
-                    'content' => '指定されたIDのブログ記事が見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
             }
 
             // 更新データを構築（null以外の値のみ）
@@ -342,20 +306,11 @@ class BlogPostsTool
             $result = $blogPostsService->update($entity, $data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログ記事の更新に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログ記事の更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -363,12 +318,10 @@ class BlogPostsTool
      */
     public function deleteBlogPost(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return ['isError' => true,
-                    'content' => 'IDは必須です'
-                ];
+                return $this->createErrorResponse('IDは必須です');
             }
 
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
@@ -376,20 +329,11 @@ class BlogPostsTool
             $result = $blogPostsService->delete($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => 'ブログ記事を削除しました'
-                ];
+                return $this->createSuccessResponse('ブログ記事を削除しました');
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログ記事の削除に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログ記事の削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**

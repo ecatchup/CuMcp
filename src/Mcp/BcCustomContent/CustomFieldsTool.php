@@ -6,15 +6,15 @@ namespace CuMcp\Mcp\BcCustomContent;
 use BaserCore\Utility\BcContainerTrait;
 use BcCustomContent\Service\CustomFieldsServiceInterface;
 use PhpMcp\Server\ServerBuilder;
+use CuMcp\Mcp\BaseMcpTool;
 
 /**
  * カスタムフィールドツールクラス
  *
  * カスタムフィールドのCRUD操作を提供
  */
-class CustomFieldsTool
+class CustomFieldsTool extends BaseMcpTool
 {
-    use BcContainerTrait;
 
     /**
      * カスタムフィールド関連のツールを ServerBuilder に追加
@@ -118,7 +118,7 @@ class CustomFieldsTool
      */
     public function addCustomField(string $name, string $title, string $type, ?string $source = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($name, $title, $type, $source) {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
             $data = [
@@ -131,20 +131,11 @@ class CustomFieldsTool
             $result = $customFieldsService->create($data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムフィールドの保存に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムフィールドの保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -152,7 +143,7 @@ class CustomFieldsTool
      */
     public function getCustomFields(?string $name = null, ?string $type = null, ?int $status = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($name, $type, $status) {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
             $conditions = [];
@@ -171,15 +162,8 @@ class CustomFieldsTool
 
             $results = $customFieldsService->getIndex($conditions)->toArray();
 
-            return ['isError' => false,
-                    'content' => $results
-            ];
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            return $this->createSuccessResponse($results);
+        });
     }
 
     /**
@@ -187,26 +171,17 @@ class CustomFieldsTool
      */
     public function getCustomField(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
             $result = $customFieldsService->get($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムフィールドが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムフィールドが見つかりません');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -214,15 +189,13 @@ class CustomFieldsTool
      */
     public function editCustomField(int $id, ?string $name = null, ?string $title = null, ?string $type = null, ?string $source = null, ?int $status = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $type, $source, $status) {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
             $entity = $customFieldsService->get($id);
 
             if (!$entity) {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムフィールドが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムフィールドが見つかりません');
             }
 
             $data = [];
@@ -235,20 +208,11 @@ class CustomFieldsTool
             $result = $customFieldsService->update($entity, $data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムフィールドの更新に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムフィールドの更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -256,25 +220,16 @@ class CustomFieldsTool
      */
     public function deleteCustomField(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
             $result = $customFieldsService->delete($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => 'カスタムフィールドを削除しました'
-                ];
+                return $this->createSuccessResponse('カスタムフィールドを削除しました');
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムフィールドの削除に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムフィールドの削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 }

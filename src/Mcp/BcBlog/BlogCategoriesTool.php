@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcBlog;
 
-use BaserCore\Utility\BcContainerTrait;
+use CuMcp\Mcp\BaseMcpTool;
 use BcBlog\Service\BlogCategoriesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 
@@ -12,9 +12,8 @@ use PhpMcp\Server\ServerBuilder;
  *
  * ブログカテゴリのCRUD操作を提供
  */
-class BlogCategoriesTool
+class BlogCategoriesTool extends BaseMcpTool
 {
-    use BcContainerTrait;
 
     /**
      * ブログカテゴリ関連のツールを ServerBuilder に追加
@@ -101,54 +100,39 @@ class BlogCategoriesTool
     }
 
     public function addBlogCategory(
-        string $title, ?string
-        $name = null, ?int
-        $blogContentId = 1, ?int
-        $parentId = null, ?int
-        $status = 1
+        string $title,
+        ?string $name = null,
+        ?int $blogContentId = 1,
+        ?int $parentId = null,
+        ?int $status = 1
     ): array
     {
-        try {
-            $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
-
+        return $this->executeWithErrorHandling(function() use ($title, $name, $blogContentId, $parentId, $status) {
             // 必須パラメータのチェック
             if (empty($title)) {
-                return [
-                    'isError' => true,
-                    'content' => 'titleは必須です'
-                ];
+                return $this->createErrorResponse('titleは必須です');
             }
+
+            $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
 
             $result = $blogCategoriesService->create($blogContentId, [
                 'title' => $title,
-                'name' => $name?? 'category_' . uniqid(),
+                'name' => $name ?? 'category_' . uniqid(),
                 'parent_id' => $parentId,
                 'status' => $status
             ]);
 
             if ($result) {
-                return [
-                    'isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return [
-                    'isError' => true,
-                    'content' => 'ブログカテゴリの保存に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログカテゴリの保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return [
-                'isError' => true,
-                'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     public function getBlogCategories(?int $blogContentId = 1, ?int $limit = null, ?int $page = null, ?string $keyword = null, ?int $status = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($blogContentId, $limit, $page, $keyword, $status) {
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
 
             $conditions = [];
@@ -171,33 +155,22 @@ class BlogCategoriesTool
             // BlogCategoriesService::getIndex() は blog_content_id を最初の引数として期待している
             $results = $blogCategoriesService->getIndex($blogContentId ?? 1, $conditions)->toArray();
 
-            return [
-                'isError' => false,
-                'content' => $results,
+            return $this->createSuccessResponse($results, [
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
-            ];
-        } catch (\Exception $e) {
-            return [
-                'isError' => true,
-                'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            ]);
+        });
     }
 
     public function getBlogCategory(int $id, ?int $blogContentId = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $blogContentId) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return [
-                    'isError' => true,
-                    'content' => 'idは必須です'
-                ];
+                return $this->createErrorResponse('idは必須です');
             }
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
@@ -208,40 +181,22 @@ class BlogCategoriesTool
                 // ブログコンテンツIDが指定されている場合は条件をチェック
                 if (!empty($blogContentId) &&
                     $result->blog_content_id != $blogContentId) {
-                    return [
-                        'isError' => true,
-                        'content' => '指定されたIDのブログカテゴリが見つかりません'
-                    ];
+                    return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
                 }
 
-                return [
-                    'isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return [
-                    'isError' => true,
-                    'content' => '指定されたIDのブログカテゴリが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
             }
-        } catch (\Exception $e) {
-            return [
-                'isError' => true,
-                'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     public function editBlogCategory(int $id, ?string $title = null, ?string $name = null, ?int $blogContentId = null, ?int $parentId = null, ?int $status = null, ?int $lft = null, ?int $rght = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $title, $name, $blogContentId, $parentId, $status, $lft, $rght) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return [
-                    'isError' => true,
-                    'content' => 'idは必須です'
-                ];
+                return $this->createErrorResponse('idは必須です');
             }
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
@@ -249,10 +204,7 @@ class BlogCategoriesTool
             $entity = $blogCategoriesService->get($id);
 
             if (!$entity) {
-                return [
-                    'isError' => true,
-                    'content' => '指定されたIDのブログカテゴリが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
             }
 
             // 更新データを構築（null以外の値のみ）
@@ -285,44 +237,26 @@ class BlogCategoriesTool
                 ])->first();
 
                 if ($existingCategory && $existingCategory->id !== $id) {
-                    return [
-                        'isError' => true,
-                        'content' => '指定されたカテゴリ名は既に使用されています'
-                    ];
+                    return $this->createErrorResponse('指定されたカテゴリ名は既に使用されています');
                 }
             }
 
             $result = $blogCategoriesService->update($entity, $data, $options);
 
             if ($result) {
-                return [
-                    'isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return [
-                    'isError' => true,
-                    'content' => 'ブログカテゴリの更新に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログカテゴリの更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return [
-                'isError' => true,
-                'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     public function deleteBlogCategory(int $id, ?int $blogContentId = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $blogContentId) {
             // 必須パラメータのチェック
             if (empty($id)) {
-                return [
-                    'isError' => true,
-                    'content' => 'idは必須です'
-                ];
+                return $this->createErrorResponse('idは必須です');
             }
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
@@ -330,41 +264,22 @@ class BlogCategoriesTool
             $entity = $blogCategoriesService->get($id);
 
             if (!$entity) {
-                return [
-                    'isError' => true,
-                    'content' => '指定されたIDのブログカテゴリが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
             }
 
             // ブログコンテンツIDが指定されている場合は条件をチェック
             if (!empty($blogContentId) && $entity->blog_content_id != $blogContentId) {
-                return [
-                    'isError' => true,
-                    'content' => '指定されたIDのブログカテゴリが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
             }
 
             // BlogCategoriesService::delete() は ID を期待している
             $result = $blogCategoriesService->delete($id);
 
             if ($result) {
-                return [
-                    'isError' => false,
-                    'content' => 'ブログカテゴリを削除しました'
-                ];
+                return $this->createSuccessResponse('ブログカテゴリを削除しました');
             } else {
-                return [
-                    'isError' => true,
-                    'content' => 'ブログカテゴリの削除に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログカテゴリの削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return [
-                'isError' => true,
-                'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
-
 }

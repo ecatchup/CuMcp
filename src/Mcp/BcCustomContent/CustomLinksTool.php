@@ -6,15 +6,15 @@ namespace CuMcp\Mcp\BcCustomContent;
 use BaserCore\Utility\BcContainerTrait;
 use BcCustomContent\Service\CustomLinksServiceInterface;
 use PhpMcp\Server\ServerBuilder;
+use CuMcp\Mcp\BaseMcpTool;
 
 /**
  * カスタムリンクツールクラス
  *
  * カスタムリンクのCRUD操作を提供
  */
-class CustomLinksTool
+class CustomLinksTool extends BaseMcpTool
 {
-    use BcContainerTrait;
 
     /**
      * カスタムリンク関連のツールを ServerBuilder に追加
@@ -113,7 +113,7 @@ class CustomLinksTool
      */
     public function addCustomLink(string $name, string $title, int $customTableId, int $customFieldId, ?bool $status = null, ?bool $useApi = null, ?bool $searchTargetFront = null, ?bool $searchTargetAdmin = null, ?bool $displayFront = null, ?string $type = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($name, $title, $customTableId, $customFieldId, $status, $useApi, $searchTargetFront, $searchTargetAdmin, $displayFront, $type) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $data = [
@@ -132,20 +132,11 @@ class CustomLinksTool
             $result = $customLinksService->create($data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムリンクの保存に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムリンクの保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -153,7 +144,7 @@ class CustomLinksTool
      */
     public function getCustomLinks(?int $customTableId = null, ?int $customFieldId = null, ?string $keyword = null, ?int $status = null, ?string $type = null, ?int $limit = null, ?int $page = 1): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $customFieldId, $keyword, $status, $type, $limit, $page) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $conditions = [];
@@ -185,20 +176,15 @@ class CustomLinksTool
             // CustomLinksService::getIndex() は custom_table_id を最初の引数として期待している
             $results = $customLinksService->getIndex($customTableId ?? 1, $conditions)->toArray();
 
-            return ['isError' => false,
-                    'content' => $results,
+            return $this->createSuccessResponse([
+                'results' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
-            ];
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            ]);
+        });
     }
 
     /**
@@ -206,26 +192,17 @@ class CustomLinksTool
      */
     public function getCustomLink(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $result = $customLinksService->get($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムリンクが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムリンクが見つかりません');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -233,15 +210,13 @@ class CustomLinksTool
      */
     public function editCustomLink(int $id, ?string $name = null, ?string $title = null, ?int $customTableId = null, ?int $customFieldId = null, ?bool $status = null, ?bool $useApi = null, ?bool $searchTargetFront = null, ?bool $searchTargetAdmin = null, ?bool $displayFront = null, ?string $type = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $customTableId, $customFieldId, $status, $useApi, $searchTargetFront, $searchTargetAdmin, $displayFront, $type) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $entity = $customLinksService->get($id);
 
             if (!$entity) {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムリンクが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムリンクが見つかりません');
             }
 
             $data = [];
@@ -259,20 +234,11 @@ class CustomLinksTool
             $result = $customLinksService->update($entity, $data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムリンクの更新に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムリンクの更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -280,25 +246,16 @@ class CustomLinksTool
      */
     public function deleteCustomLink(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $result = $customLinksService->delete($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => 'カスタムリンクを削除しました'
-                ];
+                return $this->createSuccessResponse('カスタムリンクを削除しました');
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムリンクの削除に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムリンクの削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 }

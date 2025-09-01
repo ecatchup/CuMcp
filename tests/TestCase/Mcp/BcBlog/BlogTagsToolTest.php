@@ -72,8 +72,8 @@ class BlogTagsToolTest extends BcTestCase
         $this->assertArrayHasKey('isError', $result);
         $this->assertFalse($result['isError']);
         $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result);
-        $this->assertIsArray($result['content']);
+        $this->assertArrayHasKey('pagination', $result['content']);
+        $this->assertIsArray($result['content']['data']);
     }
 
     /**
@@ -129,9 +129,9 @@ class BlogTagsToolTest extends BcTestCase
         $this->assertArrayHasKey('isError', $result);
         $this->assertFalse($result['isError']);
         $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result);
-        $this->assertEquals(1, $result['pagination']['page']);
-        $this->assertEquals(10, $result['pagination']['limit']);
+        $this->assertArrayHasKey('pagination', $result['content']);
+        $this->assertEquals(1, $result['content']['pagination']['page']);
+        $this->assertEquals(10, $result['content']['pagination']['limit']);
     }
 
     /**

@@ -6,15 +6,15 @@ namespace CuMcp\Mcp\BcBlog;
 use BaserCore\Utility\BcContainerTrait;
 use BcBlog\Service\BlogTagsServiceInterface;
 use PhpMcp\Server\ServerBuilder;
+use CuMcp\Mcp\BaseMcpTool;
 
 /**
  * ブログタグツールクラス
  *
  * ブログタグのCRUD操作を提供
  */
-class BlogTagsTool
+class BlogTagsTool extends BaseMcpTool
 {
-    use BcContainerTrait;
 
     /**
      * ブログタグ関連のツールを ServerBuilder に追加
@@ -92,7 +92,7 @@ class BlogTagsTool
      */
     public function addBlogTag(string $name): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($name) {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $data = [
@@ -102,20 +102,11 @@ class BlogTagsTool
             $result = $blogTagsService->create($data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログタグの保存に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログタグの保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -123,7 +114,7 @@ class BlogTagsTool
      */
     public function getBlogTags(?string $keyword = null, ?string $name = null, ?int $limit = null, ?int $page = 1): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($keyword, $name, $limit, $page) {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $conditions = [];
@@ -146,20 +137,15 @@ class BlogTagsTool
 
             $results = $blogTagsService->getIndex($conditions)->toArray();
 
-            return ['isError' => false,
-                    'content' => $results,
+            return $this->createSuccessResponse([
+                'data' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
-            ];
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            ]);
+        });
     }
 
     /**
@@ -167,26 +153,17 @@ class BlogTagsTool
      */
     public function getBlogTag(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $result = $blogTagsService->get($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => '指定されたIDのブログタグが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログタグが見つかりません');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -194,15 +171,13 @@ class BlogTagsTool
      */
     public function editBlogTag(int $id, string $name): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $name) {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $entity = $blogTagsService->get($id);
 
             if (!$entity) {
-                return ['isError' => true,
-                    'content' => '指定されたIDのブログタグが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのブログタグが見つかりません');
             }
 
             $data = [
@@ -212,20 +187,11 @@ class BlogTagsTool
             $result = $blogTagsService->update($entity, $data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログタグの更新に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログタグの更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -233,25 +199,16 @@ class BlogTagsTool
      */
     public function deleteBlogTag(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $result = $blogTagsService->delete($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => 'ブログタグを削除しました'
-                ];
+                return $this->createSuccessResponse('ブログタグを削除しました');
             } else {
-                return ['isError' => true,
-                    'content' => 'ブログタグの削除に失敗しました'
-                ];
+                return $this->createErrorResponse('ブログタグの削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 }

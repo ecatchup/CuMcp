@@ -7,15 +7,15 @@ use BaserCore\Utility\BcContainerTrait;
 use BcCustomContent\Service\CustomFieldsServiceInterface;
 use BcCustomContent\Service\CustomTablesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
+use CuMcp\Mcp\BaseMcpTool;
 
 /**
  * カスタムテーブルツールクラス
  *
  * カスタムテーブルのCRUD操作を提供
  */
-class CustomTablesTool
+class CustomTablesTool extends BaseMcpTool
 {
-    use BcContainerTrait;
 
     /**
      * カスタムテーブル関連のツールを ServerBuilder に追加
@@ -109,7 +109,7 @@ class CustomTablesTool
      */
     public function addCustomTable(string $name, string $title, ?array $customFieldNames = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($name, $title, $customFieldNames) {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $data = [
@@ -130,20 +130,11 @@ class CustomTablesTool
             }
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムテーブルの保存に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムテーブルの保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     private function createCustomLinks($customFieldNames)
@@ -177,7 +168,7 @@ class CustomTablesTool
      */
     public function getCustomTables(?string $keyword = null, ?int $status = null, ?string $type = null, ?int $limit = null, ?int $page = 1): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($keyword, $status, $type, $limit, $page) {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $conditions = [];
@@ -204,20 +195,15 @@ class CustomTablesTool
 
             $results = $customTablesService->getIndex($conditions)->toArray();
 
-            return ['isError' => false,
-                    'content' => $results,
+            return $this->createSuccessResponse([
+                'results' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
-            ];
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            ]);
+        });
     }
 
     /**
@@ -225,26 +211,17 @@ class CustomTablesTool
      */
     public function getCustomTable(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $result = $customTablesService->get($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムテーブルが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムテーブルが見つかりません');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -252,15 +229,13 @@ class CustomTablesTool
      */
     public function editCustomTable(int $id, ?string $name = null, ?string $title = null, ?string $type = null, ?string $displayField = null, ?int $hasChild = null, ?array $customFieldNames = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $type, $displayField, $hasChild, $customFieldNames) {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $entity = $customTablesService->get($id);
 
             if (!$entity) {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムテーブルが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムテーブルが見つかりません');
             }
 
             $data = [];
@@ -284,20 +259,11 @@ class CustomTablesTool
             }
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムテーブルの更新に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムテーブルの更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -305,25 +271,16 @@ class CustomTablesTool
      */
     public function deleteCustomTable(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $result = $customTablesService->delete($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => 'カスタムテーブルを削除しました'
-                ];
+                return $this->createSuccessResponse('カスタムテーブルを削除しました');
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムテーブルの削除に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムテーブルの削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 }

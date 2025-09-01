@@ -6,15 +6,15 @@ namespace CuMcp\Mcp\BcCustomContent;
 use BaserCore\Utility\BcContainerTrait;
 use BcCustomContent\Service\CustomContentsServiceInterface;
 use PhpMcp\Server\ServerBuilder;
+use CuMcp\Mcp\BaseMcpTool;
 
 /**
  * カスタムコンテンツツールクラス
  *
  * カスタムコンテンツのCRUD操作を提供
  */
-class CustomContentsTool
+class CustomContentsTool extends BaseMcpTool
 {
-    use BcContainerTrait;
 
     /**
      * カスタムコンテンツ関連のツールを ServerBuilder に追加
@@ -111,7 +111,7 @@ class CustomContentsTool
      */
     public function addCustomContent(string $name, string $title, int $customTableId, ?int $siteId = 1, ?int $parentId = 1, ?string $description = null, ?string $template = 'default', ?int $listCount = 10, ?string $listDirection = 'DESC', ?string $listOrder = 'id', ?int $status = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($name, $title, $customTableId, $siteId, $parentId, $description, $template, $listCount, $listDirection, $listOrder, $status) {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             // Content entity data structure required by baserCMS
@@ -149,20 +149,11 @@ class CustomContentsTool
             $result = $customContentsService->create($data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムコンテンツの保存に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムコンテンツの保存に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -170,7 +161,7 @@ class CustomContentsTool
      */
     public function getCustomContents(?int $customTableId = null, ?int $siteId = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = 1): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $siteId, $keyword, $status, $limit, $page) {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             $conditions = [];
@@ -201,20 +192,15 @@ class CustomContentsTool
 
             $results = $customContentsService->getIndex($conditions)->toArray();
 
-            return ['isError' => false,
-                    'content' => $results,
+            return $this->createSuccessResponse([
+                'data' => $results,
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
                     'count' => count($results)
                 ]
-            ];
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+            ]);
+        });
     }
 
     /**
@@ -222,26 +208,17 @@ class CustomContentsTool
      */
     public function getCustomContent(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             $result = $customContentsService->get($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムコンテンツが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムコンテンツが見つかりません');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -249,15 +226,13 @@ class CustomContentsTool
      */
     public function editCustomContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $listCount = null, ?string $listDirection = null, ?string $listOrder = null, ?int $status = null): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $description, $template, $listCount, $listDirection, $listOrder, $status) {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             $entity = $customContentsService->get($id);
 
             if (!$entity) {
-                return ['isError' => true,
-                    'content' => '指定されたIDのカスタムコンテンツが見つかりません'
-                ];
+                return $this->createErrorResponse('指定されたIDのカスタムコンテンツが見つかりません');
             }
 
             $data = [];
@@ -270,34 +245,14 @@ class CustomContentsTool
             if ($listOrder !== null) $data['listOrder'] = $listOrder;
             if ($status !== null) $data['status'] = $status;
 
-            // Include Content entity updates when necessary
-            if ($name !== null || $title !== null || $description !== null || $status !== null) {
-                $contentData = [];
-                if ($name !== null) $contentData['name'] = $name;
-                if ($title !== null) $contentData['title'] = $title;
-                if ($description !== null) $contentData['description'] = $description;
-                if ($status !== null) $contentData['status'] = $status;
-
-                $data['content'] = $contentData;
-            }
-
             $result = $customContentsService->update($entity, $data);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => $result->toArray()
-                ];
+                return $this->createSuccessResponse($result->toArray());
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムコンテンツの更新に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムコンテンツの更新に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 
     /**
@@ -305,25 +260,16 @@ class CustomContentsTool
      */
     public function deleteCustomContent(int $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             $result = $customContentsService->delete($id);
 
             if ($result) {
-                return ['isError' => false,
-                    'content' => 'カスタムコンテンツを削除しました'
-                ];
+                return $this->createSuccessResponse('カスタムコンテンツを削除しました');
             } else {
-                return ['isError' => true,
-                    'content' => 'カスタムコンテンツの削除に失敗しました'
-                ];
+                return $this->createErrorResponse('カスタムコンテンツの削除に失敗しました');
             }
-        } catch (\Exception $e) {
-            return ['isError' => true,
-                    'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+        });
     }
 }

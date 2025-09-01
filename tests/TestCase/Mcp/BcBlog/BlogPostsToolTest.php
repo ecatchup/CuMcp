@@ -94,8 +94,8 @@ class BlogPostsToolTest extends BcTestCase
         $this->assertArrayHasKey('isError', $result);
         $this->assertFalse($result['isError']);
         $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result);
-        $this->assertIsArray($result['content']);
+        $this->assertArrayHasKey('pagination', $result['content']);
+        $this->assertIsArray($result['content']['data']);
     }
 
     /**
