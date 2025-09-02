@@ -161,7 +161,11 @@ class BlogCategoriesTool extends BaseMcpTool
             }
 
             if (isset($status)) {
-                $conditions['status'] = $status;
+                // 数値の1の場合は'publish'に変換、それ以外は無視
+                if ($status === 1) {
+                    $conditions['status'] = 'publish';
+                }
+                // 注意: status=0やその他の数値は対応しない
             }
 
             if (!empty($limit)) {
@@ -235,7 +239,14 @@ class BlogCategoriesTool extends BaseMcpTool
         ?int $status = null
     ): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $title, $name, $blogContentId, $parentId, $status) {
+        return $this->executeWithErrorHandling(function() use (
+            $id,
+            $title,
+            $name,
+            $blogContentId,
+            $parentId,
+            $status
+        ) {
             // 必須パラメータのチェック
             if (empty($id)) {
                 return $this->createErrorResponse('idは必須です');

@@ -352,4 +352,138 @@ class BlogCategoriesToolTest extends BcTestCase
         $this->assertEquals(0, $result['pagination']['count']); // 実際に返された件数
         $this->assertEquals(5, $result['pagination']['total']); // 総件数
     }
+
+    /**
+     * Test getBlogCategories method - 公開状態フィルタテスト
+     *
+     * @return void
+     */
+    public function testGetBlogCategoriesWithPublishStatus()
+    {
+        // BlogContentScenarioを使用してBlogContentとContentを作成
+        $this->loadFixtureScenario(\BcBlog\Test\Scenario\BlogContentScenario::class, 1, 1, 1, 'blog', '/blog/', 'ブログ');
+
+        // 2つのカテゴリを作成（1つは公開、1つは非公開）
+        BlogCategoryFactory::make([
+            'id' => 1,
+            'blog_content_id' => 1,
+            'title' => '公開カテゴリ',
+            'name' => 'public-category',
+            'status' => 1 // 公開
+        ])->persist();
+
+        BlogCategoryFactory::make([
+            'id' => 2,
+            'blog_content_id' => 1,
+            'title' => '非公開カテゴリ',
+            'name' => 'private-category',
+            'status' => 0 // 非公開
+        ])->persist();
+
+        // status=1を指定すると'publish'に変換される
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            blogContentId: 1,
+            status: 1
+        );
+
+        $this->assertIsArray($result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result);
+
+        // 結果の確認：公開されているカテゴリのみが取得される
+        $categories = $result['content'];
+        $this->assertCount(1, $categories); // 公開されているカテゴリのみ1件
+        $this->assertEquals('公開カテゴリ', $categories[0]['title']);
+        $this->assertEquals(1, $categories[0]['status']);
+
+        // ページネーション情報の確認
+        $this->assertEquals(1, $result['pagination']['count']); // 実際に返された件数
+        $this->assertEquals(1, $result['pagination']['total']); // 公開状態の総件数
+    }    /**
+     * Test getBlogCategories method - 全ての状態のカテゴリ取得テスト
+     *
+     * @return void
+     */
+    public function testGetBlogCategoriesWithAllStatus()
+    {
+        // 2つのカテゴリを作成（1つは公開、1つは非公開）
+        BlogCategoryFactory::make([
+            'id' => 1,
+            'blog_content_id' => 1,
+            'title' => '公開カテゴリ',
+            'name' => 'public-category',
+            'status' => 1 // 公開
+        ])->persist();
+
+        BlogCategoryFactory::make([
+            'id' => 2,
+            'blog_content_id' => 1,
+            'title' => '非公開カテゴリ',
+            'name' => 'private-category',
+            'status' => 0 // 非公開
+        ])->persist();
+
+        // 全ての状態のカテゴリを取得（status指定なし）
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            blogContentId: 1
+        );
+
+        $this->assertIsArray($result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result);
+
+        // 結果の確認
+        $categories = $result['content'];
+        $this->assertCount(2, $categories); // 公開・非公開両方取得される
+
+        // ページネーション情報の確認
+        $this->assertEquals(2, $result['pagination']['count']); // 実際に返された件数
+        $this->assertEquals(2, $result['pagination']['total']); // 全件数
+    }
+
+    /**
+     * Test getBlogCategories method - status=0（非公開）は対応しないテスト
+     *
+     * @return void
+     */
+    public function testGetBlogCategoriesWithUnpublishStatusNotSupported()
+    {
+        // 2つのカテゴリを作成（1つは公開、1つは非公開）
+        BlogCategoryFactory::make([
+            'id' => 1,
+            'blog_content_id' => 1,
+            'title' => '公開カテゴリ',
+            'name' => 'public-category',
+            'status' => 1 // 公開
+        ])->persist();
+
+        BlogCategoryFactory::make([
+            'id' => 2,
+            'blog_content_id' => 1,
+            'title' => '非公開カテゴリ',
+            'name' => 'private-category',
+            'status' => 0 // 非公開
+        ])->persist();
+
+        // status=0を指定（対応しないため、全てのカテゴリが取得される）
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            blogContentId: 1,
+            status: 0
+        );
+
+        $this->assertIsArray($result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result);
+
+        // 結果の確認：status=0は対応しないため、全てのカテゴリが取得される
+        $categories = $result['content'];
+        $this->assertCount(2, $categories); // 公開・非公開両方取得される
+
+        // ページネーション情報の確認
+        $this->assertEquals(2, $result['pagination']['count']); // 実際に返された件数
+        $this->assertEquals(2, $result['pagination']['total']); // 全件数
+    }
 }
