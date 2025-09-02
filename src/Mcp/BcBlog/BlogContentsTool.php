@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcBlog;
 
+use BaserCore\Utility\BcUtil;
+use Cake\Core\Configure;
 use CuMcp\Mcp\BaseMcpTool;
 use BcBlog\Service\BlogContentsServiceInterface;
 use PhpMcp\Server\ServerBuilder;
@@ -24,7 +26,7 @@ class BlogContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'addBlogContent'],
                 name: 'addBlogContent',
-                description: 'ブログコンテンツを追加します',
+                description: 'baserCMSは複数のブログを持つことができます。一つ一つのブログをブログコンテンツと呼び、そのブログコンテンツを追加します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
@@ -34,16 +36,19 @@ class BlogContentsTool extends BaseMcpTool
                         'parentId' => ['type' => 'number', 'description' => '親ID'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
                         'template' => ['type' => 'string', 'description' => 'テンプレート名'],
-                        'listCount' => ['type' => 'number', 'description' => 'リスト表示件数'],
-                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
-                        'feedCount' => ['type' => 'number', 'description' => 'フィード件数'],
+                        'listCount' => ['type' => 'number', 'description' => '一覧表示件数'],
+                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => '一覧表示方向（ASC|DESC）'],
+                        'feedCount' => ['type' => 'number', 'description' => 'RSSフィードに表示する件数'],
                         'commentUse' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか'],
-                        'commentApprove' => ['type' => 'boolean', 'description' => 'コメント承認制にするか'],
+                        'commentApprove' => ['type' => 'boolean', 'description' => 'コメント機能について各コメントの公開について承認制にするか'],
                         'tagUse' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか'],
-                        'eyeCatchSize' => ['type' => 'string', 'description' => 'アイキャッチサイズ'],
-                        'useContent' => ['type' => 'boolean', 'description' => 'コンテンツを使用するか'],
+                        'eyeCatchSizeThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（PC）（省略時はシステムデフォルト値）'],
+                        'eyeCatchSizeThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（PC）（省略時はシステムデフォルト値）'],
+                        'eyeCatchSizeMobileThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（モバイル）（省略時はシステムデフォルト値）'],
+                        'eyeCatchSizeMobileThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（モバイル）（省略時はシステムデフォルト値）'],
+                        'useContent' => ['type' => 'boolean', 'description' => '概要入力欄を使用するか'],
                         'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）'],
-                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリア']
+                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリアID']
                     ],
                     'required' => ['name', 'title']
                 ]
@@ -51,7 +56,7 @@ class BlogContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'getBlogContents'],
                 name: 'getBlogContents',
-                description: 'ブログコンテンツの一覧を取得します',
+                description: 'baserCMSは複数のブログを持つことができます。一つ一つのブログをブログコンテンツと呼び、そのブログコンテンツの一覧を取得します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
@@ -66,7 +71,7 @@ class BlogContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'getBlogContent'],
                 name: 'getBlogContent',
-                description: '指定されたIDのブログコンテンツを取得します',
+                description: 'baserCMSは複数のブログを持つことができます。一つ一つのブログをブログコンテンツと呼び、指定されたIDのブログコンテンツを取得します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
@@ -78,25 +83,30 @@ class BlogContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'editBlogContent'],
                 name: 'editBlogContent',
-                description: '指定されたIDのブログコンテンツを編集します',
+                description: 'baserCMSは複数のブログを持つことができます。一つ一つのブログをブログコンテンツと呼び、指定されたIDのブログコンテンツを編集します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => 'ブログコンテンツID（必須）'],
-                        'name' => ['type' => 'string', 'description' => 'ブログコンテンツ名'],
-                        'title' => ['type' => 'string', 'description' => 'ブログコンテンツのタイトル'],
+                        'name' => ['type' => 'string', 'description' => 'ブログコンテンツ名、URLに影響します（必須）'],
+                        'title' => ['type' => 'string', 'description' => 'ブログコンテンツのタイトル（必須）'],
+                        'siteId' => ['type' => 'number', 'description' => 'サイトID'],
+                        'parentId' => ['type' => 'number', 'description' => '親ID'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
                         'template' => ['type' => 'string', 'description' => 'テンプレート名'],
-                        'listCount' => ['type' => 'number', 'description' => 'リスト表示件数'],
-                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
-                        'feedCount' => ['type' => 'number', 'description' => 'フィード件数'],
+                        'listCount' => ['type' => 'number', 'description' => '一覧表示件数'],
+                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => '一覧表示方向（ASC|DESC）'],
+                        'feedCount' => ['type' => 'number', 'description' => 'RSSフィードに表示する件数'],
                         'commentUse' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか'],
-                        'commentApprove' => ['type' => 'boolean', 'description' => 'コメント承認制にするか'],
+                        'commentApprove' => ['type' => 'boolean', 'description' => 'コメント機能について各コメントの公開について承認制にするか'],
                         'tagUse' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか'],
-                        'eyeCatchSize' => ['type' => 'string', 'description' => 'アイキャッチサイズ'],
-                        'useContent' => ['type' => 'boolean', 'description' => 'コンテンツを使用するか'],
+                        'eyeCatchSizeThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（PC）（省略時はシステムデフォルト値）'],
+                        'eyeCatchSizeThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（PC）（省略時はシステムデフォルト値）'],
+                        'eyeCatchSizeMobileThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（モバイル）（省略時はシステムデフォルト値）'],
+                        'eyeCatchSizeMobileThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（モバイル）（省略時はシステムデフォルト値）'],
+                        'useContent' => ['type' => 'boolean', 'description' => '概要入力欄を使用するか'],
                         'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）'],
-                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリア']
+                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリアID']
                     ],
                     'required' => ['id']
                 ]
@@ -104,7 +114,7 @@ class BlogContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'deleteBlogContent'],
                 name: 'deleteBlogContent',
-                description: '指定されたIDのブログコンテンツを削除します',
+                description: 'baserCMSは複数のブログを持つことができます。一つ一つのブログをブログコンテンツと呼び、指定されたIDのブログコンテンツを削除します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
@@ -118,9 +128,48 @@ class BlogContentsTool extends BaseMcpTool
     /**
      * ブログコンテンツを追加
      */
-    public function addBlogContent(string $name, string $title, ?int $siteId = 1, ?int $parentId = 1, ?string $description = null, ?string $template = 'default', ?int $listCount = 10, ?string $listDirection = 'DESC', ?int $feedCount = 10, ?bool $commentUse = false, ?bool $commentApprove = false, ?bool $tagUse = false, ?string $eyeCatchSize = null, ?bool $useContent = false, ?int $status = 1, ?int $widgetArea = null): array
-    {
-        return $this->executeWithErrorHandling(function() use ($name, $title, $siteId, $parentId, $description, $template, $listCount, $listDirection, $feedCount, $commentUse, $commentApprove, $tagUse, $eyeCatchSize, $useContent, $status, $widgetArea) {
+    public function addBlogContent(
+        string $name,
+        string $title,
+        ?int $siteId = 1,
+        ?int $parentId = 1,
+        ?string $description = null,
+        ?string $template = 'default',
+        ?int $listCount = 10,
+        ?string $listDirection = 'DESC',
+        ?int $feedCount = 10,
+        ?bool $commentUse = false,
+        ?bool $commentApprove = false,
+        ?bool $tagUse = false,
+        ?int $eyeCatchSizeThumbWidth = null,
+        ?int $eyeCatchSizeThumbHeight = null,
+        ?int $eyeCatchSizeMobileThumbWidth = null,
+        ?int $eyeCatchSizeMobileThumbHeight = null,
+        ?bool $useContent = false,
+        ?int $status = 1,
+        ?int $widgetArea = null
+    ): array {
+        return $this->executeWithErrorHandling(function() use (
+            $name,
+            $title,
+            $siteId,
+            $parentId,
+            $description,
+            $template,
+            $listCount,
+            $listDirection,
+            $feedCount,
+            $commentUse,
+            $commentApprove,
+            $tagUse,
+            $eyeCatchSizeThumbWidth,
+            $eyeCatchSizeThumbHeight,
+            $eyeCatchSizeMobileThumbWidth,
+            $eyeCatchSizeMobileThumbHeight,
+            $useContent,
+            $status,
+            $widgetArea
+        ) {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
             // baserCMSでは、BlogContentとContentの両方を作成する必要があります
@@ -143,6 +192,19 @@ class BlogContentsTool extends BaseMcpTool
                 'blank_link' => false
             ];
 
+            if($eyeCatchSizeThumbWidth !== null &&
+                $eyeCatchSizeThumbHeight !== null &&
+                $eyeCatchSizeMobileThumbWidth !== null &&
+                $eyeCatchSizeMobileThumbHeight !== null
+            ) {
+                $eyeCatchSize = [
+                    'eye_catch_size_thumb_width' => $eyeCatchSizeThumbWidth,
+                    'eye_catch_size_thumb_height' => $eyeCatchSizeThumbHeight,
+                    'eye_catch_size_mobile_thumb_width' => $eyeCatchSizeMobileThumbWidth,
+                    'eye_catch_size_mobile_thumb_height' => $eyeCatchSizeMobileThumbHeight,
+                ];
+            }
+
             // BlogContentエンティティの基本データ
             $blogContentData = [
                 'description' => $description ?? '',
@@ -153,7 +215,12 @@ class BlogContentsTool extends BaseMcpTool
                 'comment_use' => $commentUse,
                 'comment_approve' => $commentApprove,
                 'tag_use' => $tagUse,
-                'eye_catch_size' => $eyeCatchSize,
+                'eye_catch_size' => $eyeCatchSize?? [
+                    'eye_catch_size_thumb_width' => Configure::read('BcBlog.eye_catch_size_thumb_width'),
+                    'eye_catch_size_thumb_height' => Configure::read('BcBlog.eye_catch_size_thumb_height'),
+                    'eye_catch_size_mobile_thumb_width' => Configure::read('BcBlog.eye_catch_size_mobile_thumb_width'),
+                    'eye_catch_size_mobile_thumb_height' => Configure::read('BcBlog.eye_catch_size_mobile_thumb_height'),
+                ],
                 'use_content' => $useContent,
                 'widgetArea' => $widgetArea
             ];
@@ -176,7 +243,13 @@ class BlogContentsTool extends BaseMcpTool
     /**
      * ブログコンテンツ一覧を取得
      */
-    public function getBlogContents(?int $siteId = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = null): array
+    public function getBlogContents(
+        ?int $siteId = null,
+        ?string $keyword = null,
+        ?int $status = null,
+        ?int $limit = null,
+        ?int $page = null
+    ): array
     {
         return $this->executeWithErrorHandling(function() use ($siteId, $keyword, $status, $limit, $page) {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
@@ -242,9 +315,50 @@ class BlogContentsTool extends BaseMcpTool
     /**
      * ブログコンテンツを編集
      */
-    public function editBlogContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $listCount = null, ?string $listDirection = null, ?int $feedCount = null, ?bool $commentUse = null, ?bool $commentApprove = null, ?bool $tagUse = null, ?string $eyeCatchSize = null, ?bool $useContent = null, ?int $status = null, ?int $widgetArea = null): array
+    public function editBlogContent(
+        int $id,
+        ?string $name = null,
+        ?string $title = null,
+        ?int $siteId = null,
+        ?int $parentId = null,
+        ?string $description = null,
+        ?string $template = null,
+        ?int $listCount = null,
+        ?string $listDirection = null,
+        ?int $feedCount = null,
+        ?bool $commentUse = null,
+        ?bool $commentApprove = null,
+        ?bool $tagUse = null,
+        ?int $eyeCatchSizeThumbWidth = null,
+        ?int $eyeCatchSizeThumbHeight = null,
+        ?int $eyeCatchSizeMobileThumbWidth = null,
+        ?int $eyeCatchSizeMobileThumbHeight = null,
+        ?bool $useContent = null,
+        ?int $status = null,
+        ?int $widgetArea = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $description, $template, $listCount, $listDirection, $feedCount, $commentUse, $commentApprove, $tagUse, $eyeCatchSize, $useContent, $status, $widgetArea) {
+        return $this->executeWithErrorHandling(function() use (
+            $id,
+            $name,
+            $title,
+            $siteId,
+            $parentId,
+            $description,
+            $template,
+            $listCount,
+            $listDirection,
+            $feedCount,
+            $commentUse,
+            $commentApprove,
+            $tagUse,
+            $eyeCatchSizeThumbWidth,
+            $eyeCatchSizeThumbHeight,
+            $eyeCatchSizeMobileThumbWidth,
+            $eyeCatchSizeMobileThumbHeight,
+            $useContent,
+            $status,
+            $widgetArea
+        ) {
             // 必須パラメータのチェック
             if (empty($id)) {
                 return $this->createErrorResponse('IDは必須です');
@@ -268,7 +382,19 @@ class BlogContentsTool extends BaseMcpTool
             if ($commentUse !== null) $data['commentUse'] = $commentUse;
             if ($commentApprove !== null) $data['commentApprove'] = $commentApprove;
             if ($tagUse !== null) $data['tagUse'] = $tagUse;
-            if ($eyeCatchSize !== null) $data['eyeCatchSize'] = $eyeCatchSize;
+
+            $eyeCatchSize = BcUtil::unserialize($entity->eye_catch_size);
+            if($eyeCatchSizeThumbWidth !== null) $eyeCatchSize['thumb_width'] = $eyeCatchSizeThumbWidth;
+            if($eyeCatchSizeThumbHeight !== null) $eyeCatchSize['thumb_height'] = $eyeCatchSizeThumbHeight;
+            if($eyeCatchSizeMobileThumbWidth !== null) $eyeCatchSize['mobile_thumb_width'] = $eyeCatchSizeMobileThumbWidth;
+            if($eyeCatchSizeMobileThumbHeight !== null) $eyeCatchSize['mobile_thumb_height'] = $eyeCatchSizeMobileThumbHeight;
+            $data['eye_catch_size'] = [
+                'eye_catch_size_thumb_width' => $eyeCatchSize['thumb_width'],
+                'eye_catch_size_thumb_height' => $eyeCatchSize['thumb_height'],
+                'eye_catch_size_mobile_thumb_width' => $eyeCatchSize['mobile_thumb_width'],
+                'eye_catch_size_mobile_thumb_height' => $eyeCatchSize['mobile_thumb_height'],
+            ];
+
             if ($useContent !== null) $data['useContent'] = $useContent;
             if ($widgetArea !== null) $data['widgetArea'] = $widgetArea;
 
