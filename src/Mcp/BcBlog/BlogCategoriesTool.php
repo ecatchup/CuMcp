@@ -173,13 +173,19 @@ class BlogCategoriesTool extends BaseMcpTool
             }
 
             // BlogCategoriesService::getIndex() は blog_content_id を最初の引数として期待している
-            $results = $blogCategoriesService->getIndex($blogContentId ?? 1, $conditions)->toArray();
+            $query = $blogCategoriesService->getIndex($blogContentId ?? 1, $conditions);
+
+            // 総件数を取得（ページネーション前）
+            $totalCount = $blogCategoriesService->getIndex($blogContentId ?? 1, array_diff_key($conditions, array_flip(['limit', 'page'])))->count();
+
+            $results = $query->toArray();
 
             return $this->createSuccessResponse($results, [
                 'pagination' => [
                     'page' => $page ?? 1,
                     'limit' => $limit ?? null,
-                    'count' => count($results)
+                    'count' => count($results),
+                    'total' => $totalCount
                 ]
             ]);
         });

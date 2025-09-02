@@ -206,4 +206,150 @@ class BlogCategoriesToolTest extends BcTestCase
         $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
     }
+
+    /**
+     * Test getBlogCategories method - ページネーションテスト（limit指定）
+     *
+     * @return void
+     */
+    public function testGetBlogCategoriesWithLimit()
+    {
+        // 複数のテストデータを作成
+        for ($i = 1; $i <= 5; $i++) {
+            BlogCategoryFactory::make([
+                'id' => $i,
+                'blog_content_id' => 1,
+                'title' => "テストカテゴリ{$i}",
+                'name' => "test-category-{$i}",
+                'status' => 1
+            ])->persist();
+        }
+
+        // limit=3で取得
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            blogContentId: 1,
+            limit: 3
+        );
+
+        $this->assertIsArray($result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result);
+
+        // ページネーション情報の確認
+        $this->assertEquals(1, $result['pagination']['page']);
+        $this->assertEquals(3, $result['pagination']['limit']);
+        $this->assertEquals(3, $result['pagination']['count']); // 実際に返された件数
+        $this->assertEquals(5, $result['pagination']['total']); // 総件数
+    }
+
+    /**
+     * Test getBlogCategories method - ページネーションテスト（page指定）
+     *
+     * @return void
+     */
+    public function testGetBlogCategoriesWithPage()
+    {
+        // 複数のテストデータを作成
+        for ($i = 1; $i <= 10; $i++) {
+            BlogCategoryFactory::make([
+                'id' => $i,
+                'blog_content_id' => 1,
+                'title' => "テストカテゴリ{$i}",
+                'name' => "test-category-{$i}",
+                'status' => 1
+            ])->persist();
+        }
+
+        // page=2, limit=3で取得
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            blogContentId: 1,
+            limit: 3,
+            page: 2
+        );
+
+        $this->assertIsArray($result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result);
+
+        // ページネーション情報の確認
+        $this->assertEquals(2, $result['pagination']['page']);
+        $this->assertEquals(3, $result['pagination']['limit']);
+        $this->assertEquals(3, $result['pagination']['count']); // 実際に返された件数
+        $this->assertEquals(10, $result['pagination']['total']); // 総件数
+    }
+
+    /**
+     * Test getBlogCategories method - ページネーションテスト（limit未指定）
+     *
+     * @return void
+     */
+    public function testGetBlogCategoriesWithoutLimit()
+    {
+        // 複数のテストデータを作成
+        for ($i = 1; $i <= 5; $i++) {
+            BlogCategoryFactory::make([
+                'id' => $i,
+                'blog_content_id' => 1,
+                'title' => "テストカテゴリ{$i}",
+                'name' => "test-category-{$i}",
+                'status' => 1
+            ])->persist();
+        }
+
+        // limitを指定せずに取得
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            blogContentId: 1,
+            page: 1
+        );
+
+        $this->assertIsArray($result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result);
+
+        // ページネーション情報の確認
+        $this->assertEquals(1, $result['pagination']['page']);
+        $this->assertNull($result['pagination']['limit']);
+        $this->assertEquals(5, $result['pagination']['count']);
+        $this->assertEquals(5, $result['pagination']['total']); // 総件数
+    }
+
+    /**
+     * Test getBlogCategories method - ページネーションテスト（空のページ）
+     *
+     * @return void
+     */
+    public function testGetBlogCategoriesEmptyPage()
+    {
+        // 5件のテストデータを作成
+        for ($i = 1; $i <= 5; $i++) {
+            BlogCategoryFactory::make([
+                'id' => $i,
+                'blog_content_id' => 1,
+                'title' => "テストカテゴリ{$i}",
+                'name' => "test-category-{$i}",
+                'status' => 1
+            ])->persist();
+        }
+
+        // 存在しないページ（page=10, limit=3）で取得
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            blogContentId: 1,
+            limit: 3,
+            page: 10
+        );
+
+        $this->assertIsArray($result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result);
+
+        // ページネーション情報の確認
+        $this->assertEquals(10, $result['pagination']['page']);
+        $this->assertEquals(3, $result['pagination']['limit']);
+        $this->assertEquals(0, $result['pagination']['count']); // 実際に返された件数
+        $this->assertEquals(5, $result['pagination']['total']); // 総件数
+    }
 }
