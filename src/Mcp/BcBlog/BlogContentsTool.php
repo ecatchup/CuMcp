@@ -32,22 +32,22 @@ class BlogContentsTool extends BaseMcpTool
                     'properties' => [
                         'name' => ['type' => 'string', 'description' => 'ブログコンテンツ名、URLに影響します（必須）'],
                         'title' => ['type' => 'string', 'description' => 'ブログコンテンツのタイトル（必須）'],
-                        'siteId' => ['type' => 'number', 'description' => 'サイトID'],
-                        'parentId' => ['type' => 'number', 'description' => '親ID'],
+                        'siteId' => ['type' => 'number', 'description' => 'サイトID（省略時は1）'],
+                        'parentId' => ['type' => 'number', 'description' => '親ID（省略時は1）'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
-                        'template' => ['type' => 'string', 'description' => 'テンプレート名'],
-                        'listCount' => ['type' => 'number', 'description' => '一覧表示件数'],
-                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => '一覧表示方向（ASC|DESC）'],
-                        'feedCount' => ['type' => 'number', 'description' => 'RSSフィードに表示する件数'],
-                        'commentUse' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか'],
-                        'commentApprove' => ['type' => 'boolean', 'description' => 'コメント機能について各コメントの公開について承認制にするか'],
-                        'tagUse' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか'],
+                        'template' => ['type' => 'string', 'description' => 'テンプレート名（省略時は "default"）'],
+                        'listCount' => ['type' => 'number', 'description' => '一覧表示件数（省略時は10）'],
+                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => '一覧表示方向（ASC|DESC）、（省略時はDESC）'],
+                        'feedCount' => ['type' => 'number', 'description' => 'RSSフィードに表示する件数（省略時は10）'],
+                        'commentUse' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか（省略時はfalse）'],
+                        'commentApprove' => ['type' => 'boolean', 'description' => 'コメント機能について各コメントの公開について承認制にするか（省略時はfalse）'],
+                        'tagUse' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか（省略時はfalse）'],
                         'eyeCatchSizeThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（PC）（省略時はシステムデフォルト値）'],
                         'eyeCatchSizeThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（PC）（省略時はシステムデフォルト値）'],
                         'eyeCatchSizeMobileThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（モバイル）（省略時はシステムデフォルト値）'],
                         'eyeCatchSizeMobileThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（モバイル）（省略時はシステムデフォルト値）'],
                         'useContent' => ['type' => 'boolean', 'description' => '概要入力欄を使用するか'],
-                        'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）'],
+                        'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）、（省略時は0）'],
                         'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリアID']
                     ],
                     'required' => ['name', 'title']
@@ -100,10 +100,10 @@ class BlogContentsTool extends BaseMcpTool
                         'commentUse' => ['type' => 'boolean', 'description' => 'コメント機能を使用するか'],
                         'commentApprove' => ['type' => 'boolean', 'description' => 'コメント機能について各コメントの公開について承認制にするか'],
                         'tagUse' => ['type' => 'boolean', 'description' => 'タグ機能を使用するか'],
-                        'eyeCatchSizeThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（PC）（省略時はシステムデフォルト値）'],
-                        'eyeCatchSizeThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（PC）（省略時はシステムデフォルト値）'],
-                        'eyeCatchSizeMobileThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（モバイル）（省略時はシステムデフォルト値）'],
-                        'eyeCatchSizeMobileThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（モバイル）（省略時はシステムデフォルト値）'],
+                        'eyeCatchSizeThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（PC）'],
+                        'eyeCatchSizeThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（PC）'],
+                        'eyeCatchSizeMobileThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（モバイル）'],
+                        'eyeCatchSizeMobileThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（モバイル）'],
                         'useContent' => ['type' => 'boolean', 'description' => '概要入力欄を使用するか'],
                         'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）'],
                         'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリアID']
@@ -146,7 +146,7 @@ class BlogContentsTool extends BaseMcpTool
         ?int $eyeCatchSizeMobileThumbWidth = null,
         ?int $eyeCatchSizeMobileThumbHeight = null,
         ?bool $useContent = false,
-        ?int $status = 1,
+        ?int $status = 0,
         ?int $widgetArea = null
     ): array {
         return $this->executeWithErrorHandling(function() use (
@@ -192,19 +192,6 @@ class BlogContentsTool extends BaseMcpTool
                 'blank_link' => false
             ];
 
-            if($eyeCatchSizeThumbWidth !== null &&
-                $eyeCatchSizeThumbHeight !== null &&
-                $eyeCatchSizeMobileThumbWidth !== null &&
-                $eyeCatchSizeMobileThumbHeight !== null
-            ) {
-                $eyeCatchSize = [
-                    'eye_catch_size_thumb_width' => $eyeCatchSizeThumbWidth,
-                    'eye_catch_size_thumb_height' => $eyeCatchSizeThumbHeight,
-                    'eye_catch_size_mobile_thumb_width' => $eyeCatchSizeMobileThumbWidth,
-                    'eye_catch_size_mobile_thumb_height' => $eyeCatchSizeMobileThumbHeight,
-                ];
-            }
-
             // BlogContentエンティティの基本データ
             $blogContentData = [
                 'description' => $description ?? '',
@@ -215,14 +202,12 @@ class BlogContentsTool extends BaseMcpTool
                 'comment_use' => $commentUse,
                 'comment_approve' => $commentApprove,
                 'tag_use' => $tagUse,
-                'eye_catch_size' => $eyeCatchSize?? [
-                    'eye_catch_size_thumb_width' => Configure::read('BcBlog.eye_catch_size_thumb_width'),
-                    'eye_catch_size_thumb_height' => Configure::read('BcBlog.eye_catch_size_thumb_height'),
-                    'eye_catch_size_mobile_thumb_width' => Configure::read('BcBlog.eye_catch_size_mobile_thumb_width'),
-                    'eye_catch_size_mobile_thumb_height' => Configure::read('BcBlog.eye_catch_size_mobile_thumb_height'),
-                ],
+                'eye_catch_size_thumb_width' => $eyeCatchSizeThumbWidth?? Configure::read('BcBlog.eye_catch_size_thumb_width'),
+                'eye_catch_size_thumb_height' => $eyeCatchSizeThumbHeight?? Configure::read('BcBlog.eye_catch_size_thumb_height'),
+                'eye_catch_size_mobile_thumb_width' => $eyeCatchSizeMobileThumbWidth?? Configure::read('BcBlog.eye_catch_size_mobile_thumb_width'),
+                'eye_catch_size_mobile_thumb_height' => $eyeCatchSizeMobileThumbHeight?? Configure::read('BcBlog.eye_catch_size_mobile_thumb_height'),
                 'use_content' => $useContent,
-                'widgetArea' => $widgetArea
+                'widget_area' => $widgetArea
             ];
 
             // Contentデータを含めた統合データ構造
@@ -382,21 +367,12 @@ class BlogContentsTool extends BaseMcpTool
             if ($commentUse !== null) $data['commentUse'] = $commentUse;
             if ($commentApprove !== null) $data['commentApprove'] = $commentApprove;
             if ($tagUse !== null) $data['tagUse'] = $tagUse;
-
-            $eyeCatchSize = BcUtil::unserialize($entity->eye_catch_size);
-            if($eyeCatchSizeThumbWidth !== null) $eyeCatchSize['thumb_width'] = $eyeCatchSizeThumbWidth;
-            if($eyeCatchSizeThumbHeight !== null) $eyeCatchSize['thumb_height'] = $eyeCatchSizeThumbHeight;
-            if($eyeCatchSizeMobileThumbWidth !== null) $eyeCatchSize['mobile_thumb_width'] = $eyeCatchSizeMobileThumbWidth;
-            if($eyeCatchSizeMobileThumbHeight !== null) $eyeCatchSize['mobile_thumb_height'] = $eyeCatchSizeMobileThumbHeight;
-            $data['eye_catch_size'] = [
-                'eye_catch_size_thumb_width' => $eyeCatchSize['thumb_width'],
-                'eye_catch_size_thumb_height' => $eyeCatchSize['thumb_height'],
-                'eye_catch_size_mobile_thumb_width' => $eyeCatchSize['mobile_thumb_width'],
-                'eye_catch_size_mobile_thumb_height' => $eyeCatchSize['mobile_thumb_height'],
-            ];
-
-            if ($useContent !== null) $data['useContent'] = $useContent;
-            if ($widgetArea !== null) $data['widgetArea'] = $widgetArea;
+            if($eyeCatchSizeThumbWidth !== null) $data['eye_catch_size_thumb_width'] = $eyeCatchSizeThumbWidth;
+            if($eyeCatchSizeThumbHeight !== null) $data['eye_catch_size_thumb_height'] = $eyeCatchSizeThumbHeight;
+            if($eyeCatchSizeMobileThumbWidth !== null) $data['eye_catch_size_mobile_thumb_width'] = $eyeCatchSizeMobileThumbWidth;
+            if($eyeCatchSizeMobileThumbHeight !== null) $data['eye_catch_size_mobile_thumb_height'] = $eyeCatchSizeMobileThumbHeight;
+            if ($useContent !== null) $data['use_content'] = $useContent;
+            if ($widgetArea !== null) $data['widget_area'] = $widgetArea;
 
             // Contentエンティティの更新データも含める（もし関連するContentフィールドが変更される場合）
             $contentData = [];
