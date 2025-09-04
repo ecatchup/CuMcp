@@ -45,10 +45,10 @@ class BlogCategoriesTool extends BaseMcpTool
                     'type' => 'object',
                     'properties' => [
                         'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（null: 全て, publish: 公開）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（null: 全て, publish: 公開）']
                     ]
                 ]
             )
@@ -114,9 +114,7 @@ class BlogCategoriesTool extends BaseMcpTool
     {
         return $this->executeWithErrorHandling(function() use ($title, $name, $blogContentId, $parentId, $status) {
             // 必須パラメータのチェック
-            if (empty($title)) {
-                return $this->createErrorResponse('titleは必須です');
-            }
+            if (empty($title)) return $this->createErrorResponse('titleは必須です');
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
 
@@ -146,33 +144,28 @@ class BlogCategoriesTool extends BaseMcpTool
      */
     public function getBlogCategories(
         ?int $blogContentId = 1,
-        ?int $limit = null,
-        ?int $page = null,
         ?string $keyword = null,
-        ?string $status = null
+        ?string $status = null,
+        ?int $limit = null,
+        ?int $page = null
     ): array
     {
-        return $this->executeWithErrorHandling(function() use ($blogContentId, $limit, $page, $keyword, $status) {
-            $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
+        return $this->executeWithErrorHandling(function() use (
+            $blogContentId,
+            $keyword,
+            $status,
+            $limit,
+            $page
+        ) {
+        $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
 
             $conditions = [];
-            if (!empty($keyword)) {
-                $conditions['keyword'] = $keyword;
-            }
+            if (!empty($keyword)) $conditions['keyword'] = $keyword;
+            if (!empty($status)) $conditions['status'] = $status;
+            if (!empty($limit)) $conditions['limit'] = $limit;
+            if (!empty($page)) $conditions['page'] = $page;
 
-            if (!empty($status)) {
-                $conditions['status'] = $status;
-            }
-
-            if (!empty($limit)) {
-                $conditions['limit'] = $limit;
-            }
-
-            if (!empty($page)) {
-                $conditions['page'] = $page;
-            }
-
-            // BlogCategoriesService::getIndex() は blog_content_id を最初の引数として期待している
+            //
             $query = $blogCategoriesService->getIndex($blogContentId ?? 1, $conditions);
 
             // 総件数を取得（ページネーション前）
@@ -201,9 +194,7 @@ class BlogCategoriesTool extends BaseMcpTool
     {
         return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
-            if (empty($id)) {
-                return $this->createErrorResponse('idは必須です');
-            }
+            if (empty($id)) return $this->createErrorResponse('idは必須です');
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
             $result = $blogCategoriesService->get($id);
@@ -244,17 +235,12 @@ class BlogCategoriesTool extends BaseMcpTool
             $status
         ) {
             // 必須パラメータのチェック
-            if (empty($id)) {
-                return $this->createErrorResponse('idは必須です');
-            }
+            if (empty($id)) return $this->createErrorResponse('idは必須です');
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
-
             $entity = $blogCategoriesService->get($id);
 
-            if (!$entity) {
-                return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
-            }
+            if (!$entity) return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
 
             // 更新データを構築（null以外の値のみ）
             $data = [];
@@ -272,9 +258,7 @@ class BlogCategoriesTool extends BaseMcpTool
 
             // バリデーションコンテキストを設定
             $options = [];
-            if (isset($data['name'])) {
-                $options['validate'] = false; // 重複チェックのバリデーションを一時的に無効化
-            }
+            if (isset($data['name'])) $options['validate'] = false; // 重複チェックのバリデーションを一時的に無効化
 
             // バリデーションを無効化した場合は手動で重複チェックを実行
             if (isset($data['name']) && isset($options['validate']) && $options['validate'] === false) {
@@ -307,18 +291,13 @@ class BlogCategoriesTool extends BaseMcpTool
     {
         return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
-            if (empty($id)) {
-                return $this->createErrorResponse('idは必須です');
-            }
+            if (empty($id)) return $this->createErrorResponse('idは必須です');
 
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
             $entity = $blogCategoriesService->get($id);
 
-            if (!$entity) {
-                return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
-            }
+            if (!$entity) return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
 
-            // BlogCategoriesService::delete() は ID を期待している
             $result = $blogCategoriesService->delete($id);
 
             if ($result) {

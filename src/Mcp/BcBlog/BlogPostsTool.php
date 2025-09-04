@@ -8,7 +8,6 @@ use BcBlog\Service\BlogPostsServiceInterface;
 use BcBlog\Service\BlogContentsServiceInterface;
 use BcBlog\Service\BlogCategoriesServiceInterface;
 use BaserCore\Service\UsersServiceInterface;
-use Cake\Log\LogTrait;
 use PhpMcp\Server\ServerBuilder;
 use CuMcp\Mcp\BaseMcpTool;
 
@@ -24,25 +23,9 @@ class BlogPostsTool extends BaseMcpTool
      * ブログ記事関連のツールを ServerBuilder に追加
      */
     public function addToolsToBuilder(ServerBuilder $builder): ServerBuilder
+
     {
         return $builder
-            ->withTool(
-                handler: [self::class, 'addBlogPost'],
-                name: 'addBlogPost',
-                description: 'ブログ記事を追加します',
-                inputSchema: [
-                    'type' => 'object',
-                    'properties' => [
-                        'title' => ['type' => 'string', 'description' => '記事タイトル（必須）'],
-                        'detail' => ['type' => 'string', 'description' => '記事詳細（必須）'],
-                        'category' => ['type' => 'string', 'description' => 'カテゴリ名（省略時はカテゴリなし）'],
-                        'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名（省略時はデフォルト）'],
-                        'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス（省略時はデフォルトユーザー）'],
-                        'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日（省略時は現在日時）']
-                    ],
-                    'required' => ['title', 'detail']
-                ]
-            )
             ->withTool(
                 handler: [self::class, 'getBlogPosts'],
                 name: 'getBlogPosts',
@@ -51,10 +34,10 @@ class BlogPostsTool extends BaseMcpTool
                     'type' => 'object',
                     'properties' => [
                         'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
+                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（null: 全て, publish: 公開）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は10件）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）']
                     ]
                 ]
             )
@@ -65,11 +48,32 @@ class BlogPostsTool extends BaseMcpTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
-                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）']
+                        'id' => ['type' => 'number', 'description' => '記事ID（必須）']
                     ],
                     'required' => ['id']
+                ]
+            )
+            ->withTool(
+                handler: [self::class, 'addBlogPost'],
+                name: 'addBlogPost',
+                description: 'ブログ記事を追加します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'title' => ['type' => 'string', 'description' => '記事タイトル（必須）'],
+                        'detail' => ['type' => 'string', 'description' => '記事詳細（必須）'],
+                        'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名（省略時はデフォルト）'],
+                        'name' => ['type' => 'string', 'description' => '記事のスラッグ。URLにおける記事を特定する識別子（省略時はなし）'],
+                        'content' => ['type' => 'string', 'description' => '記事概要（省略時はなし）'],
+                        'category' => ['type' => 'string', 'description' => 'カテゴリ名（省略時はカテゴリなし）'],
+                        'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス（省略時はログインユーザー）'],
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）、（省略時は0）'],
+                        'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日（省略時は現在日時）'],
+                        'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時（省略時はなし）'],
+                        'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時（省略時はなし）'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像（URL）'],
+                    ],
+                    'required' => ['title', 'detail']
                 ]
             )
             ->withTool(
@@ -82,17 +86,16 @@ class BlogPostsTool extends BaseMcpTool
                         'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
                         'title' => ['type' => 'string', 'description' => '記事タイトル'],
                         'detail' => ['type' => 'string', 'description' => '記事詳細'],
+                        'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名'],
+                        'name' => ['type' => 'string', 'description' => '記事のスラッグ。URLにおける記事を特定する識別子'],
                         'content' => ['type' => 'string', 'description' => '記事概要'],
                         'category' => ['type' => 'string', 'description' => 'カテゴリ名'],
-                        'blogCategoryId' => ['type' => 'number', 'description' => 'カテゴリID（categoryと併用不可）'],
-                        'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名'],
-                        'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
-                        'name' => ['type' => 'string', 'description' => '記事のスラッグ'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像（URL）'],
-                        'userId' => ['type' => 'number', 'description' => 'ユーザーID（emailと併用不可）'],
                         'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス'],
-                        'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日']
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
+                        'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日'],
+                        'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時'],
+                        'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像（URL）'],
                     ],
                     'required' => ['id']
                 ]
@@ -110,7 +113,6 @@ class BlogPostsTool extends BaseMcpTool
                 ]
             );
     }
-
     /**
      * ブログ記事を追加
      */
@@ -118,52 +120,60 @@ class BlogPostsTool extends BaseMcpTool
         string $title,
         string $detail,
         ?string $blogContent = null,
+        ?string $name = null,
+        ?string $content = null,
         ?string $category = null,
         ?string $email = null,
-        ?string $posted = null
+        ?int $status = 0,
+        ?string $posted = null,
+        ?string $publishBegin = null,
+        ?string $publishEnd = null,
+        ?string $eyeCatch = null,
+        ?int $loginUserId = null
     ): array
     {
-        return $this->executeWithErrorHandling(function() use ($title, $detail, $blogContent, $category, $email, $posted) {
+        return $this->executeWithErrorHandling(function() use (
+            $title,
+            $detail,
+            $blogContent,
+            $name,
+            $content,
+            $category,
+            $email,
+            $status,
+            $posted,
+            $publishBegin,
+            $publishEnd,
+            $eyeCatch,
+            $loginUserId
+        ) {
             // 必須パラメータのチェック
             if (empty($title)) {
                 return $this->createErrorResponse('タイトルは必須です');
             }
-
             if (empty($detail)) {
                 return $this->createErrorResponse('詳細は必須です');
             }
 
-            $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
-
-            // ユーザーIDを取得
-            $userId = 1; // デフォルトユーザー
-            if (!empty($email)) {
-                try {
-                    $usersService = $this->getService(UsersServiceInterface::class);
-                    $conditions = ['email' => $email];
-                    $user = $usersService->getIndex($conditions)->first();
-                    $userId = $user? $user->id : 1;
-                } catch (\Exception $e) {
-                    $userId = 1; // エラー時はデフォルト
-                }
-            }
-
+            $blogContentId = $this->getBlogContentId($blogContent);
+            $blogCategoryId = $this->getBlogCategoryId($category, $blogContentId);
             $data = [
                 'title' => $title,
                 'detail' => $detail,
-                'blog_content_id' => $this->getBlogContentId($blogContent),
-                'user_id' => $userId,
-                'status' => 1, // 公開
-                'posted' => $posted ?? date('Y-m-d H:i:s')
+                'blog_content_id' => $blogContentId,
+                'name' => $name,
+                'content' => $content,
+                'blog_category_id' => $blogCategoryId,
+                'user_id' => $this->getAuthorId($email, $loginUserId),
+                'status' => $status,
+                'posted' => $posted ?? date('Y-m-d H:i:s'),
+                'publish_begin' => $publishBegin,
+                'publish_end' => $publishEnd,
+                'eye_catch' => $eyeCatch
             ];
 
-            // カテゴリ設定
-            if (!empty($category)) {
-                $data['blog_category_id'] = $this->getBlogCategoryId($category, $data['blog_content_id']);
-            }
-
+            $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
             $result = $blogPostsService->create($data);
-
             if ($result) {
                 return $this->createSuccessResponse($result->toArray());
             } else {
@@ -172,12 +182,117 @@ class BlogPostsTool extends BaseMcpTool
         });
     }
 
+
+    /**
+     * ブログ記事を編集
+     */
+    public function editBlogPost(
+        int $id,
+        ?string $title = null,
+        ?string $detail = null,
+        ?string $blogContent = null,
+        ?string $name = null,
+        ?string $content = null,
+        ?string $category = null,
+        ?string $email = null,
+        ?int $status = 0,
+        ?string $posted = null,
+        ?string $publishBegin = null,
+        ?string $publishEnd = null,
+        ?string $eyeCatch = null
+    ): array
+    {
+        return $this->executeWithErrorHandling(function() use (
+            $id,
+            $title,
+            $detail,
+            $blogContent,
+            $name,
+            $content,
+            $category,
+            $email,
+            $status,
+            $posted,
+            $publishBegin,
+            $publishEnd,
+            $eyeCatch
+        ) {
+            // 必須パラメータのチェック
+            if (empty($id)) {
+                return $this->createErrorResponse('IDは必須です');
+            }
+
+            $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
+            $entity = $blogPostsService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
+            }
+
+            // 更新データを構築（null以外の値のみ）
+            $data = [];
+            if ($title !== null) $data['title'] = $title;
+            if ($detail !== null) $data['detail'] = $detail;
+            if ($blogContent !== null) $data['blog_content_id'] = $this->getBlogContentId($blogContent);
+            if ($name !== null) $data['name'] = $name;
+            if ($content !== null) $data['content'] = $content;
+            if ($category !== null) $data['blog_category_id'] = $this->getBlogCategoryId($category, $data['blog_content_id']);
+            if ($email !== null) $data['email'] = $this->getAuthorId($email);
+            if ($status !== null) $data['status'] = $status;
+            if ($posted !== null) $data['posted'] = $posted;
+            if ($publishBegin !== null) $data['publish_begin'] = $publishBegin;
+            if ($publishEnd !== null) $data['publish_end'] = $publishEnd;
+            if ($eyeCatch !== null) $data['eyeCatch'] = $eyeCatch;
+
+            $result = $blogPostsService->update($entity, $data);
+
+            if ($result) {
+                return $this->createSuccessResponse($result->toArray());
+            } else {
+                return $this->createErrorResponse('ブログ記事の更新に失敗しました');
+            }
+        });
+    }
+
+    /**
+     * 投稿者のユーザーIDを取得
+     * @param string|null $email
+     * @param int $loginUserId
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getAuthorId(?string $email, int $loginUserId = null)
+    {
+        $usersService = $this->getService(UsersServiceInterface::class);
+        if (!empty($email)) {
+            $conditions = ['email' => $email];
+            $user = $usersService->getIndex($conditions)->first();
+        } elseif($loginUserId) {
+            $user = $usersService->get($loginUserId);
+        }
+        if(!$user) {
+            throw new \Exception('投稿者を指定できませんでした。');
+        }
+        return $user->id;
+    }
+
     /**
      * ブログ記事一覧を取得
      */
-    public function getBlogPosts(?int $blogContentId = null, ?string $keyword = null, ?int $status = null, ?int $limit = 10, ?int $page = 1): array
+    public function getBlogPosts(
+        ?int $blogContentId = null,
+        ?string $keyword = null,
+        ?int $status = null,
+        ?int $limit = 10,
+        ?int $page = 1
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($blogContentId, $keyword, $status, $limit, $page) {
+        return $this->executeWithErrorHandling(function() use (
+            $blogContentId,
+            $keyword,
+            $status,
+            $limit,
+            $page
+        ) {
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
             $conditions = [];
@@ -237,78 +352,6 @@ class BlogPostsTool extends BaseMcpTool
                 return $this->createSuccessResponse($result->toArray());
             } else {
                 return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
-            }
-        });
-    }
-
-    /**
-     * ブログ記事を編集
-     */
-    public function editBlogPost(
-        int $id,
-        ?string $title = null,
-        ?string $detail = null,
-        ?string $content = null,
-        ?int $status = null,
-        ?string $name = null,
-        ?string $eyeCatch = null,
-        ?string $category = null,
-        ?int $blogContentId = null,
-        ?string $email = null,
-        ?int $userId = null,
-        ?string $posted = null
-    ): array
-    {
-        return $this->executeWithErrorHandling(function() use ($id, $title, $detail, $content, $status, $name, $eyeCatch, $category, $blogContentId, $email, $userId, $posted) {
-            // 必須パラメータのチェック
-            if (empty($id)) {
-                return $this->createErrorResponse('IDは必須です');
-            }
-
-            $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
-
-            $entity = $blogPostsService->get($id);
-
-            if (!$entity) {
-                return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
-            }
-
-            // 更新データを構築（null以外の値のみ）
-            $data = [];
-            if ($title !== null) $data['title'] = $title;
-            if ($detail !== null) $data['detail'] = $detail;
-            if ($content !== null) $data['content'] = $content;
-            if ($status !== null) $data['status'] = $status;
-            if ($name !== null) $data['name'] = $name;
-            if ($eyeCatch !== null) $data['eyeCatch'] = $eyeCatch;
-            if ($posted !== null) $data['posted'] = $posted;
-
-            if (!empty($category)) {
-                $data['blog_category_id'] = $this->getBlogCategoryId(
-                    $category,
-                    $blogContentId ?? $entity->blog_content_id
-                );
-            }
-
-            if (!empty($email)) {
-                try {
-                    $usersService = $this->getService(UsersServiceInterface::class);
-                    $conditions = ['email' => $email];
-                    $user = $usersService->getIndex($conditions)->first();
-                    $data['user_id'] = $user? $user->id : 1;
-                } catch (\Exception $e) {
-                    $data['user_id'] = 1; // エラー時はデフォルト
-                }
-            } elseif ($userId !== null) {
-                $data['user_id'] = $userId;
-            }
-
-            $result = $blogPostsService->update($entity, $data);
-
-            if ($result) {
-                return $this->createSuccessResponse($result->toArray());
-            } else {
-                return $this->createErrorResponse('ブログ記事の更新に失敗しました');
             }
         });
     }

@@ -197,6 +197,8 @@ class McpProxyController extends AppController
                 throw new BadRequestException('Invalid MCP request format');
             }
 
+            $mcpRequest['params']['arguments']['loginUserId'] = $this->request->getAttribute('oauth_user_id');
+
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
             $response = $this->sendMcpRequest($config, $mcpRequest);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CuMcp\Mcp\BcBlog;
 
 use BaserCore\Utility\BcUtil;
+use BcBlog\Service\BlogContentsService;
 use Cake\Core\Configure;
 use CuMcp\Mcp\BaseMcpTool;
 use BcBlog\Service\BlogContentsServiceInterface;
@@ -60,10 +61,10 @@ class BlogContentsTool extends BaseMcpTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
+                        'title' => ['type' => 'string', 'description' => 'ブログコンテンツのタイトル（部分一致）'],
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（null: 全て, publish: 公開）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'title' => ['type' => 'string', 'description' => 'ブログコンテンツのタイトル（部分一致）'],
-                        'status' => ['type' => 'number', 'description' => 'ステータス（null: 全て, publish: 公開）']
                     ]
                 ]
             )
@@ -235,12 +236,13 @@ class BlogContentsTool extends BaseMcpTool
     ): array
     {
         return $this->executeWithErrorHandling(function() use ($title, $status, $limit, $page) {
+            /** @var BlogContentsService $blogContentsService */
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
             $conditions = [];
 
             if (!empty($title)) $conditions['title'] = $title;
-            if (isset($status)) $conditions['status'] = $status;
+            if (!empty($status)) $conditions['status'] = $status;
             if (!empty($limit)) $conditions['limit'] = $limit;
             if (!empty($page)) $conditions['page'] = $page;
 
