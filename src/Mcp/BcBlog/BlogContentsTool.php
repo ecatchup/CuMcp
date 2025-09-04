@@ -60,11 +60,10 @@ class BlogContentsTool extends BaseMcpTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'siteId' => ['type' => 'number', 'description' => 'サイトID'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'status' => ['type' => 'number', 'description' => 'ステータス（0: 非公開, 1: 公開）']
+                        'title' => ['type' => 'string', 'description' => 'ブログコンテンツのタイトル（部分一致）'],
+                        'status' => ['type' => 'number', 'description' => 'ステータス（null: 全て, publish: 公開）']
                     ]
                 ]
             )
@@ -229,37 +228,21 @@ class BlogContentsTool extends BaseMcpTool
      * ブログコンテンツ一覧を取得
      */
     public function getBlogContents(
-        ?int $siteId = null,
-        ?string $keyword = null,
+        ?string $title = null,
         ?int $status = null,
         ?int $limit = null,
         ?int $page = null
     ): array
     {
-        return $this->executeWithErrorHandling(function() use ($siteId, $keyword, $status, $limit, $page) {
+        return $this->executeWithErrorHandling(function() use ($title, $status, $limit, $page) {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
             $conditions = [];
 
-            if (!empty($siteId)) {
-                $conditions['siteId'] = $siteId;
-            }
-
-            if (!empty($keyword)) {
-                $conditions['keyword'] = $keyword;
-            }
-
-            if (isset($status)) {
-                $conditions['status'] = $status;
-            }
-
-            if (!empty($limit)) {
-                $conditions['limit'] = $limit;
-            }
-
-            if (!empty($page)) {
-                $conditions['page'] = $page;
-            }
+            if (!empty($title)) $conditions['title'] = $title;
+            if (isset($status)) $conditions['status'] = $status;
+            if (!empty($limit)) $conditions['limit'] = $limit;
+            if (!empty($page)) $conditions['page'] = $page;
 
             $results = $blogContentsService->getIndex($conditions)->toArray();
 

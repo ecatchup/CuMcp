@@ -48,7 +48,7 @@ class BlogCategoriesTool extends BaseMcpTool
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
                         'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）']
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（null: 全て, publish: 公開）']
                     ]
                 ]
             )
@@ -141,7 +141,7 @@ class BlogCategoriesTool extends BaseMcpTool
      * @param int|null $limit
      * @param int|null $page
      * @param string|null $keyword
-     * @param int|null $status
+     * @param string|null $status
      * @return array
      */
     public function getBlogCategories(
@@ -149,7 +149,7 @@ class BlogCategoriesTool extends BaseMcpTool
         ?int $limit = null,
         ?int $page = null,
         ?string $keyword = null,
-        ?int $status = null
+        ?string $status = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use ($blogContentId, $limit, $page, $keyword, $status) {
@@ -160,12 +160,8 @@ class BlogCategoriesTool extends BaseMcpTool
                 $conditions['keyword'] = $keyword;
             }
 
-            if (isset($status)) {
-                // 数値の1の場合は'publish'に変換、それ以外は無視
-                if ($status === 1) {
-                    $conditions['status'] = 'publish';
-                }
-                // 注意: status=0やその他の数値は対応しない
+            if (!empty($status)) {
+                $conditions['status'] = $status;
             }
 
             if (!empty($limit)) {
