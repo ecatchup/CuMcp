@@ -75,6 +75,7 @@ $this->BcBaser->setTitle('CuMcp アプリケーション認可');
 <style>
   #cboxOverlay {
     display: block !important;
+    background: rgba(10, 10, 10, .9);
   }
 
   .bca-nav {
@@ -90,10 +91,15 @@ $this->BcBaser->setTitle('CuMcp アプリケーション認可');
     margin-left: auto;
     display: block;
     border-radius: 5px;
+    font-family: Arial, Geneva, sans-serif, "メイリオ", Verdana, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "ＭＳ Ｐゴシック";
+    color:#424f44;
   }
 
   .oauth2-authorize .card {
     border: none;
+  }
+  .oauth2-authorize strong {
+    font-weight: bold;
   }
 
   .oauth2-authorize .card-header {
@@ -105,14 +111,21 @@ $this->BcBaser->setTitle('CuMcp アプリケーション認可');
   }
 
   .oauth2-authorize .card-header h3 {
+    font-size: 1.17em;
     font-weight: normal;
     padding-top: 15px;
     padding-bottom: 15px;
     margin-bottom: 0;
+    background: none;
+    line-height: 1.4;
   }
 
   .oauth2-authorize .card-body h4 {
     margin-bottom: 0;
+    font-size:1.4rem;
+    margin-top:20px;
+    border:none;
+    padding-bottom: 0;
   }
 
   .oauth2-authorize .card-body {
@@ -126,16 +139,23 @@ $this->BcBaser->setTitle('CuMcp アプリケーション認可');
   .oauth2-authorize .permissions ul {
     list-style-type: none;
     padding-left: 0;
+    margin-top:10px;
   }
 
   .oauth2-authorize .permissions li {
     padding: 0.25rem 0;
+    margin:0;
   }
 
   .oauth2-authorize .permissions li:before {
     content: "✓ ";
     color: #59a73b;
     font-weight: bold;
+    background: none;
+    position: relative;
+    display: inline;
+    top:0;
+    left:0;
   }
 
   .oauth2-authorize .user-info {
