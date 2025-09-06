@@ -38,7 +38,7 @@ class Oauth2Controller extends BcAdminAppController
         // CORS設定
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
         $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, MCP-Protocol-Version');
     }
 
     /**

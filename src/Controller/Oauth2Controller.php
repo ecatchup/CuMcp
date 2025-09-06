@@ -52,7 +52,7 @@ class Oauth2Controller extends AppController
         // CORS設定
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
         $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, MCP-Protocol-Version');
     }
 
     /**
@@ -62,11 +62,7 @@ class Oauth2Controller extends AppController
      */
     public function options(): Response
     {
-        return $this->response
-            ->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-            ->withStatus(200);
+        return $this->response->withStatus(200);
     }
 
     /**
@@ -295,9 +291,6 @@ class Oauth2Controller extends AppController
             ];
 
             return $this->response
-                ->withHeader('Access-Control-Allow-Origin', '*')
-                ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
                 ->withHeader('Cache-Control', 'no-cache')
                 ->withType('application/json')
                 ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));
@@ -358,9 +351,6 @@ class Oauth2Controller extends AppController
             ];
 
             return $this->response
-                ->withHeader('Access-Control-Allow-Origin', '*')
-                ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
                 ->withHeader('Cache-Control', 'no-cache')
                 ->withType('application/json')
                 ->withStringBody(json_encode($metadata, JSON_PRETTY_PRINT));

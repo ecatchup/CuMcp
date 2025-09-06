@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace CuMcp\Controller;
 
 use BaserCore\Controller\AppController;
-use Cake\Http\CallbackStream;
 use Cake\Http\Client;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
@@ -38,8 +37,8 @@ class McpProxyController extends AppController
 
         // CORS設定（統一された設定）
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
-        $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        $this->response = $this->response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, MCP-Protocol-Version');
     }
 
     /**
@@ -128,9 +127,6 @@ class McpProxyController extends AppController
             ->withStatus(401)
             ->withHeader('Content-Type', 'application/json')
             ->withHeader('WWW-Authenticate', 'Bearer resource_metadata="' . $resourceMetadataUrl . '"')
-            ->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
             ->withStringBody(json_encode([
                 'jsonrpc' => '2.0',
                 'error' => [
@@ -157,12 +153,7 @@ class McpProxyController extends AppController
 
         // POST以外のメソッドは許可しない
         if ($this->request->getMethod() !== 'POST') {
-            $this->response = $this->response
-                ->withHeader('Allow', 'POST, OPTIONS')
-                ->withHeader('Access-Control-Allow-Origin', '*')
-                ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
-                ->withStatus(405);
+            $this->response = $this->response->withStatus(405);
             return $this->response;
         }
 
@@ -182,13 +173,7 @@ class McpProxyController extends AppController
 
             if (empty($requestBody)) {
                 // 空ボディは不正
-                $this->response = $this->response
-                    ->withHeader('Allow', 'POST, OPTIONS')
-                    ->withHeader('Access-Control-Allow-Origin', '*')
-                    ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                    ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
-                    ->withStatus(400);
-                return $this->response;
+                return $this->response->withStatus(400);
             }
 
             // JSONをパースしてMCPリクエストを検証
@@ -204,9 +189,6 @@ class McpProxyController extends AppController
 
             $this->response = $this->response
                 ->withHeader('Content-Type', 'application/json')
-                ->withHeader('Access-Control-Allow-Origin', '*')
-                ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-                ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
                 ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
@@ -274,12 +256,8 @@ class McpProxyController extends AppController
     private function _handleOptionsRequest()
     {
         $this->response = $this->response
-            ->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With, Origin')
             ->withHeader('Access-Control-Max-Age', '86400')
             ->withStatus(200);
-
         return $this->response;
     }
 
