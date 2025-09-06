@@ -153,8 +153,7 @@ class McpProxyController extends AppController
 
         // POST以外のメソッドは許可しない
         if ($this->request->getMethod() !== 'POST') {
-            $this->response = $this->response->withStatus(405);
-            return $this->response;
+            return $this->returnUnauthorizedResponse('Method Not Allowed');
         }
 
         try {
