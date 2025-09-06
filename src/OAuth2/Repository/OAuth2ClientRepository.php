@@ -29,31 +29,30 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
         $this->clientsTable = TableRegistry::getTableLocator()->get('CuMcp.Oauth2Clients');
 
         // 初期化時にデフォルトクライアントが存在しない場合のみ追加
-        $this->ensureDefaultClientsExist();
+//        $this->ensureDefaultClientsExist();
     }
 
     /**
      * デフォルトクライアントが存在することを確認し、なければ作成
      */
-    private function ensureDefaultClientsExist(): void
-    {
-        $defaultClient = $this->clientsTable->findByClientId('mcp-client');
-        if (!$defaultClient) {
-            // JSON型マッピングにより配列で渡せば自動的にJSONとして保存される
-            $clientData = [
-                'client_id' => 'mcp-client',
-                'client_secret' => 'mcp-secret-key',
-                'name' => 'MCP Server Client',
-                'redirect_uris' => ['http://localhost'],
-                'grants' => ['client_credentials'],
-                'scopes' => ['read', 'write'],
-                'is_confidential' => true
-            ];
-
-            $client = $this->clientsTable->newEntity($clientData);
-            $this->clientsTable->save($client);
-        }
-    }
+//    private function ensureDefaultClientsExist(): void
+//    {
+//        $defaultClient = $this->clientsTable->findByClientId('mcp-client');
+//        if (!$defaultClient) {
+//            // JSON型マッピングにより配列で渡せば自動的にJSONとして保存される
+//            $clientData = [
+//                'client_id' => 'mcp-client',
+//                'client_secret' => 'mcp-secret-key',
+//                'name' => 'MCP Server Client',
+//                'grants' => ['client_credentials'],
+//                'scopes' => ['mcp:read', 'mcp:write'],
+//                'is_confidential' => true
+//            ];
+//
+//            $client = $this->clientsTable->newEntity($clientData);
+//            $this->clientsTable->save($client);
+//        }
+//    }
 
     /**
      * クライアントエンティティを取得

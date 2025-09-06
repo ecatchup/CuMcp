@@ -19,6 +19,13 @@ class OAuth2Service
     private ?AuthorizationServer $authorizationServer = null;
     private ?ResourceServer $resourceServer = null;
 
+    public function __construct()
+    {
+        if (!file_exists(CONFIG . 'oauth2_public.key')) {
+            $this->generateKeyPair();
+        }
+    }
+
     public function getAuthorizationServer(): AuthorizationServer
     {
         if ($this->authorizationServer === null) {
