@@ -283,7 +283,7 @@ class Oauth2Controller extends AppController
 
             $metadata = [
                 'resource' => $baseUrl . '/cu-mcp',
-                'authorization_servers' => [$baseUrl . '/cu-mcp'],
+                'authorization_servers' => [$baseUrl . '/cu-mcp/oauth2'],
                 'scopes_supported' => ['mcp:read', 'mcp:write'],
                 'bearer_methods_supported' => ['header'],
                 'introspection_endpoint' => $baseUrl . '/cu-mcp/oauth2/verify',
@@ -325,7 +325,7 @@ class Oauth2Controller extends AppController
 
             $metadata = [
                 // RFC 8414 必須項目
-                'issuer' => $baseUrl . '/cu-mcp',
+                'issuer' => $baseUrl . '/cu-mcp/oauth2',
                 'authorization_endpoint' => $baseUrl . '/cu-mcp/oauth2/authorize',
                 'token_endpoint' => $baseUrl . '/cu-mcp/oauth2/token',
                 'registration_endpoint' => $baseUrl . '/cu-mcp/oauth2/register',
