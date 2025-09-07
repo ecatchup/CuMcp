@@ -334,7 +334,7 @@ class Oauth2Controller extends AppController
 
                 // 両方のGrantをサポート
                 'grant_types_supported' => ['authorization_code', 'refresh_token'],
-                'token_endpoint_auth_methods_supported' => ['none', 'client_secret_post'],
+                'token_endpoint_auth_methods_supported' => ['none'],
                 // PKCE サポート（ChatGPTで推奨される）
                 'code_challenge_methods_supported' => ['S256'],
                 'scopes_supported' => ['mcp:read', 'mcp:write'],
