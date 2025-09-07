@@ -114,17 +114,28 @@ class Oauth2Controller extends BcAdminAppController
             $client = $clientRepository->getClientEntity($clientId);
 
             if (!$client) {
-                $siteUrl = env('SITE_URL', 'https://localhost');
-                $baseUrl = rtrim($siteUrl, '/');
-                $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource/cu-mcp';
-                return $this->response
-                    ->withStatus(401)
-                    ->withType('application/json')
-                    ->withHeader('WWW-Authenticate', 'Bearer resource_metadata="' . $resourceMetadataUrl . '"')
-                    ->withStringBody(json_encode([
-                        'error' => 'invalid_client',
-                        'error_description' => 'Client registration required. Please register a new client.'
-                    ]));
+                // アクセス拒否
+                $params = [
+                    'error' => 'invalid_client',
+                    'error_description' => 'Client registration required. Please register a new client.'
+                ];
+                if ($state) {
+                    $params['state'] = $state;
+                }
+
+                $redirectUrl = $redirectUri . '?' . http_build_query($params);
+                return $this->redirect($redirectUrl);
+//                $siteUrl = env('SITE_URL', 'https://localhost');
+//                $baseUrl = rtrim($siteUrl, '/');
+//                $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource/cu-mcp';
+//                return $this->response
+//                    ->withStatus(401)
+//                    ->withType('application/json')
+//                    ->withHeader('WWW-Authenticate', 'Bearer resource_metadata="' . $resourceMetadataUrl . '"')
+//                    ->withStringBody(json_encode([
+//                        'error' => 'invalid_client',
+//                        'error_description' => 'Client registration required. Please register a new client.'
+//                    ]));
             }
 
             // リダイレクトURIの妥当性をチェック
