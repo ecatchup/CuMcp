@@ -74,11 +74,6 @@ class McpProxyController extends AppController
             return null;
         }
 
-        // 非許可メソッド（POST以外）は 405 を返すだけにしたいため認証をスキップ
-        if ($method !== 'POST') {
-            return null;
-        }
-
         $response = $this->validateOAuth2Token();
         if ($response) {
             return $response;
@@ -130,7 +125,7 @@ class McpProxyController extends AppController
             ->withStringBody(json_encode([
                 'jsonrpc' => '2.0',
                 'error' => [
-                    'code' => -32001,
+                    'code' => -32000,
                     'message' => $message
                 ]
             ]));
@@ -152,8 +147,16 @@ class McpProxyController extends AppController
         }
 
         // POST以外のメソッドは許可しない
-        if ($this->request->getMethod() !== 'POST') {
-            return $this->returnUnauthorizedResponse('Method Not Allowed');
+        if ($this->request->getMethod() === 'GET') {
+            return $this->response
+                ->withStatus(200)
+                ->withHeader('Content-Type', 'application/json')
+                ->withStringBody(json_encode([
+                    'jsonrpc' => '2.0',
+                    'name' => 'cu-mcp',
+                    'version' => '1.0.0',
+                    'authenticated' => true
+                ]));
         }
 
         try {
