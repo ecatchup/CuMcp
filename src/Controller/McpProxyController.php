@@ -57,7 +57,7 @@ class McpProxyController extends AppController
         if (isset($mcpRequest['params']['protocolVersion'])) {
             return $mcpRequest['params']['protocolVersion'];
         }
-        return '2025-03-26';
+        return '2025-06-18';
     }
 
     /**
@@ -114,21 +114,29 @@ class McpProxyController extends AppController
      */
     private function returnUnauthorizedResponse(string $message): \Cake\Http\Response
     {
-        $siteUrl = env('SITE_URL', 'https://localhost');
-        $baseUrl = rtrim($siteUrl, '/');
-        $resourceMetadataUrl = $baseUrl . '/.well-known/oauth-protected-resource/cu-mcp';
+        $siteUrl = rtrim((string)env('SITE_URL', 'https://localhost'), '/');
+        $resource = $siteUrl . '/cu-mcp';
+        $resourceMetadataUrl = $siteUrl . '/.well-known/oauth-protected-resource/cu-mcp';
+
+        $wwwAuthenticate = sprintf(
+            'Bearer realm="MCP", resource="%s", resource_metadata="%s", error="invalid_token"',
+            $resource,
+            $resourceMetadataUrl
+        );
 
         return $this->response
             ->withStatus(401)
-            ->withHeader('Content-Type', 'application/json')
-            ->withHeader('WWW-Authenticate', 'Bearer resource_metadata="' . $resourceMetadataUrl . '"')
+            ->withHeader('Content-Type', 'application/json; charset=utf-8')
+            ->withHeader('Cache-Control', 'no-store')
+            ->withHeader('Pragma', 'no-cache')
+            ->withHeader('WWW-Authenticate', $wwwAuthenticate)
             ->withStringBody(json_encode([
                 'jsonrpc' => '2.0',
                 'error' => [
-                    'code' => -32000,
-                    'message' => $message
-                ]
-            ]));
+                    'code'    => -32000,
+                    'message' => $message,
+                ],
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     }
 
     /**
