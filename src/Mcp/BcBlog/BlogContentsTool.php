@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcBlog;
 
-use BaserCore\Utility\BcUtil;
 use BcBlog\Service\BlogContentsService;
 use Cake\Core\Configure;
 use CuMcp\Mcp\BaseMcpTool;
@@ -47,9 +46,9 @@ class BlogContentsTool extends BaseMcpTool
                         'eyeCatchSizeThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（PC）（省略時はシステムデフォルト値）'],
                         'eyeCatchSizeMobileThumbWidth' => ['type' => 'number', 'description' => 'アイキャッチサムネイル幅（モバイル）（省略時はシステムデフォルト値）'],
                         'eyeCatchSizeMobileThumbHeight' => ['type' => 'number', 'description' => 'アイキャッチサムネイル高さ（モバイル）（省略時はシステムデフォルト値）'],
-                        'useContent' => ['type' => 'boolean', 'description' => '概要入力欄を使用するか'],
+                        'useContent' => ['type' => 'boolean', 'description' => '概要入力欄を使用するか（省略時はfalse）'],
                         'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）、（省略時は0）'],
-                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリアID']
+                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリアID（省略時はシステムデフォルト値）']
                     ],
                     'required' => ['name', 'title']
                 ]
@@ -347,11 +346,11 @@ class BlogContentsTool extends BaseMcpTool
             if ($description !== null) $data['description'] = $description;
             if ($template !== null) $data['template'] = $template;
             if ($listCount !== null) $data['listCount'] = $listCount;
-            if ($listDirection !== null) $data['listDirection'] = $listDirection;
-            if ($feedCount !== null) $data['feedCount'] = $feedCount;
-            if ($commentUse !== null) $data['commentUse'] = $commentUse;
-            if ($commentApprove !== null) $data['commentApprove'] = $commentApprove;
-            if ($tagUse !== null) $data['tagUse'] = $tagUse;
+            if ($listDirection !== null) $data['list_direction'] = $listDirection;
+            if ($feedCount !== null) $data['feed_count'] = $feedCount;
+            if ($commentUse !== null) $data['comment_use'] = $commentUse;
+            if ($commentApprove !== null) $data['comment_approve'] = $commentApprove;
+            if ($tagUse !== null) $data['tag_use'] = $tagUse;
             if($eyeCatchSizeThumbWidth !== null) $data['eye_catch_size_thumb_width'] = $eyeCatchSizeThumbWidth;
             if($eyeCatchSizeThumbHeight !== null) $data['eye_catch_size_thumb_height'] = $eyeCatchSizeThumbHeight;
             if($eyeCatchSizeMobileThumbWidth !== null) $data['eye_catch_size_mobile_thumb_width'] = $eyeCatchSizeMobileThumbWidth;
