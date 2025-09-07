@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+use Cake\Log\Engine\FileLog;
+
 return [
     'BcApp' => [
         /**
@@ -33,5 +35,14 @@ return [
         'defaultAllows' => [
             'Authorize' => '/cu-mcp/oauth2/authorize'
         ]
-    ]
+    ],
+    'Log' => [
+        'mcp' => [
+            'className' => FileLog::class,
+            'path' => LOGS,
+            'file' => 'mcp',
+            'scopes' => ['mcp'],
+            'levels' => ['info', 'error']
+        ]
+    ],
 ];
