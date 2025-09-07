@@ -383,7 +383,7 @@ class BlogCategoriesToolTest extends BcTestCase
         // status=1を指定すると'publish'に変換される
         $result = $this->BlogCategoriesTool->getBlogCategories(
             blogContentId: 1,
-            status: 1
+            status: 'publish'
         );
 
         $this->assertIsArray($result);
@@ -470,7 +470,7 @@ class BlogCategoriesToolTest extends BcTestCase
         // status=0を指定（対応しないため、全てのカテゴリが取得される）
         $result = $this->BlogCategoriesTool->getBlogCategories(
             blogContentId: 1,
-            status: 0
+            status: null
         );
 
         $this->assertIsArray($result);

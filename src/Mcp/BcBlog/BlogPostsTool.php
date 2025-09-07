@@ -269,7 +269,7 @@ class BlogPostsTool extends BaseMcpTool
         } elseif($loginUserId) {
             $user = $usersService->get($loginUserId);
         }
-        if(!$user) {
+        if(empty($user)) {
             throw new \Exception('投稿者を指定できませんでした。');
         }
         return $user->id;
@@ -402,7 +402,7 @@ class BlogPostsTool extends BaseMcpTool
     /**
      * ブログカテゴリIDを取得
      */
-    protected function getBlogCategoryId(string $categoryName, int $blogContentId): ?int
+    protected function getBlogCategoryId(?string $categoryName, int $blogContentId): ?int
     {
         try {
             $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);

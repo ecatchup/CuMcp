@@ -165,7 +165,7 @@ class BlogContentsToolTest extends BcTestCase
      */
     public function testGetBlogContentsWithSearch()
     {
-        $result = $this->BlogContentsTool->getBlogContents(null, 'test');
+        $result = $this->BlogContentsTool->getBlogContents('test');
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('isError', $result);

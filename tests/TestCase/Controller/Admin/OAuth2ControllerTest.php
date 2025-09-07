@@ -86,28 +86,28 @@ class OAuth2ControllerTest extends BcTestCase
 
     /**
      * Test authorize endpoint with authenticated user
-     *
+     * デフォルトクライアントの認証テスト（DCR前提とするため一旦廃止）
      * @return void
      */
-    public function testAuthorizeEndpointWithAuthenticatedUser(): void
-    {
-        $this->loginAdmin($this->getRequest());
-
-        // 認可リクエストのパラメータ
-        $params = [
-            'client_id' => 'mcp-client',
-            'client_secret' => 'mcp-secret-key',
-            'response_type' => 'code',
-            'redirect_uri' => 'http://localhost',
-            'scope' => 'mcp:read mcp:write',
-            'state' => 'test-state'
-        ];
-
-        $this->get('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($params));
-
-        // 認証済みユーザーなので認可画面が表示される
-        $this->assertResponseOk();
-    }
+//    public function testAuthorizeEndpointWithAuthenticatedUser(): void
+//    {
+//        $this->loginAdmin($this->getRequest());
+//
+//        // 認可リクエストのパラメータ
+//        $params = [
+//            'client_id' => 'mcp-client',
+//            'client_secret' => 'mcp-secret-key',
+//            'response_type' => 'code',
+//            'redirect_uri' => 'http://localhost',
+//            'scope' => 'mcp:read mcp:write',
+//            'state' => 'test-state'
+//        ];
+//
+//        $this->get('/baser/admin/cu-mcp/oauth2/authorize?' . http_build_query($params));
+//
+//        // 認証済みユーザーなので認可画面が表示される
+//        $this->assertResponseOk();
+//    }
 
     /**
      * Test authorize endpoint without authentication
@@ -117,11 +117,7 @@ class OAuth2ControllerTest extends BcTestCase
     public function testAuthorizeEndpointWithoutAuthentication(): void
     {
         // 認証なしでauthorizeエンドポイントにアクセス
-        $this->get('/baser/admin/cu-mcp/oauth2/authorize', [
-            'client_id' => 'mcp-client',
-            'response_type' => 'code',
-            'redirect_uri' => 'http://localhost'
-        ]);
+        $this->get('/baser/admin/cu-mcp/oauth2/authorize');
 
         // 認証が必要なため、リダイレクトが返される
         $this->assertResponseCode(302);
@@ -130,16 +126,16 @@ class OAuth2ControllerTest extends BcTestCase
     public function testIntegration(): void
     {
         // MPCサーバーの接続ポイントにGETリクエストを送信
-        $this->get('/mcp');
-        $this->assertResponseCode(405);
+        $this->get('/cu-mcp');
+        $this->assertResponseCode(401);
 
         // oauth-protected-resource にリクエストを送信
-        $this->get('/.well-known/oauth-protected-resource');
+        $this->get('/.well-known/oauth-protected-resource/cu-mcp');
         $metadata = json_decode((string)$this->_response->getBody(), true);
         $this->assertTextContains('/cu-mcp', $metadata['resource']);
 
         // oauth-authorization-server にリクエストを送信
-        $this->get('/.well-known/oauth-authorization-server');
+        $this->get('/.well-known/oauth-authorization-server/cu-mcp');
         $metadata = json_decode((string)$this->_response->getBody(), true);
         $registrationEndpoint = $metadata['registration_endpoint'];
 
@@ -320,7 +316,7 @@ class OAuth2ControllerTest extends BcTestCase
     public function testIntegrationWithPKCE(): void
     {
         // Step 1: OAuth2メタデータの取得
-        $this->get('/.well-known/oauth-authorization-server');
+        $this->get('/.well-known/oauth-authorization-server/cu-mcp');
         $metadata = json_decode((string)$this->_response->getBody(), true);
         $this->assertResponseOk();
         $this->assertArrayHasKey('registration_endpoint', $metadata);
@@ -508,7 +504,7 @@ class OAuth2ControllerTest extends BcTestCase
     public function testPKCESecurityFailure(): void
     {
         // クライアント登録
-        $this->get('/.well-known/oauth-authorization-server');
+        $this->get('/.well-known/oauth-authorization-server/cu-mcp');
         $metadata = json_decode((string)$this->_response->getBody(), true);
         $registrationEndpoint = $metadata['registration_endpoint'];
 

@@ -3,17 +3,21 @@ declare(strict_types=1);
 
 namespace CuMcp\Test\TestCase\Controller;
 
+use BaserCore\Test\Scenario\InitAppScenario;
+use BaserCore\TestSuite\BcTestCase;
 use Cake\TestSuite\IntegrationTestTrait;
-use Cake\TestSuite\TestCase;
 use Cake\Core\Configure;
+use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
+use CuMcp\Test\Factory\Oauth2ClientFactory;
 
 /**
  * OAuth2Controller Test Case
  * 認証不要なOAuth2エンドポイントのテスト
  */
-class OAuth2ControllerTest extends TestCase
+class OAuth2ControllerTest extends BcTestCase
 {
     use IntegrationTestTrait;
+    use ScenarioAwareTrait;
 
     /**
      * setUp method
@@ -80,12 +84,33 @@ class OAuth2ControllerTest extends TestCase
      */
     public function testTokenEndpointWithValidCredentials(): void
     {
+        Oauth2ClientFactory::make([
+            'is_confidential' => true
+        ])->persist();
+        $this->loadFixtureScenario(InitAppScenario::class);
+
+        $this->loginAdmin($this->getRequest());
+        $this->post('/cu-mcp/oauth2/authorize?' . http_build_query([
+                'grant_type' => 'authorization_code',
+                'client_id' => 'mcp-client',
+                'client_secret' => 'mcp-secret-key',
+                'response_type' => 'code',
+                'redirect_uri' => 'http://localhost',
+                'scope' => 'mcp:read mcp:write',
+            ]), ['action' => 'approve']);
+        $redirectUrl = $this->_response->getHeaderLine('Location');
+        $queryParams = [];
+        parse_str(parse_url($redirectUrl, PHP_URL_QUERY), $queryParams);
+        $authCode = $queryParams['code'];
+
         // 認証なしでtokenエンドポイントをテスト
         $this->post('/cu-mcp/oauth2/token', [
-            'grant_type' => 'client_credentials',
+            'grant_type' => 'authorization_code',
             'client_id' => 'mcp-client',
+            'redirect_uri' => 'http://localhost',
             'client_secret' => 'mcp-secret-key',
-            'scope' => 'mcp:read mcp:write'
+            'scope' => 'mcp:read mcp:write',
+            'code' => $authCode
         ]);
 
         $this->assertResponseOk();
@@ -107,7 +132,7 @@ class OAuth2ControllerTest extends TestCase
      */
     public function testAuthorizationServerMetadata(): void
     {
-        $this->get('/.well-known/oauth-authorization-server');
+        $this->get('/.well-known/oauth-authorization-server/cu-mcp');
 
         $this->assertResponseOk();
         $this->assertContentType('application/json');
@@ -125,7 +150,7 @@ class OAuth2ControllerTest extends TestCase
      */
     public function testProtectedResourceMetadata(): void
     {
-        $this->get('/.well-known/oauth-protected-resource');
+        $this->get('/.well-known/oauth-protected-resource/cu-mcp');
 
         $this->assertResponseOk();
         $this->assertContentType('application/json');
@@ -185,12 +210,33 @@ class OAuth2ControllerTest extends TestCase
      */
     public function testVerifyWithValidToken(): void
     {
+        Oauth2ClientFactory::make([
+            'is_confidential' => true
+        ])->persist();
+        $this->loadFixtureScenario(InitAppScenario::class);
+
+        $this->loginAdmin($this->getRequest());
+        $this->post('/cu-mcp/oauth2/authorize?' . http_build_query([
+                'grant_type' => 'authorization_code',
+                'client_id' => 'mcp-client',
+                'client_secret' => 'mcp-secret-key',
+                'response_type' => 'code',
+                'redirect_uri' => 'http://localhost',
+                'scope' => 'mcp:read mcp:write',
+            ]), ['action' => 'approve']);
+        $redirectUrl = $this->_response->getHeaderLine('Location');
+        $queryParams = [];
+        parse_str(parse_url($redirectUrl, PHP_URL_QUERY), $queryParams);
+        $authCode = $queryParams['code'];
+
         // まず有効なトークンを取得
         $this->post('/cu-mcp/oauth2/token', [
-            'grant_type' => 'client_credentials',
+            'grant_type' => 'authorization_code',
             'client_id' => 'mcp-client',
+            'redirect_uri' => 'http://localhost',
             'client_secret' => 'mcp-secret-key',
-            'scope' => 'mcp:read mcp:write'
+            'scope' => 'mcp:read mcp:write',
+            'code' => $authCode
         ]);
 
         $this->assertResponseOk();

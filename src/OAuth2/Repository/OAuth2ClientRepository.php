@@ -29,6 +29,7 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
         $this->clientsTable = TableRegistry::getTableLocator()->get('CuMcp.Oauth2Clients');
 
         // 初期化時にデフォルトクライアントが存在しない場合のみ追加
+        // Dynamic Client Registration を有効にするためコメントアウト
 //        $this->ensureDefaultClientsExist();
     }
 
@@ -46,7 +47,8 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
 //                'name' => 'MCP Server Client',
 //                'grants' => ['client_credentials'],
 //                'scopes' => ['mcp:read', 'mcp:write'],
-//                'is_confidential' => true
+//                'is_confidential' => true,
+//                'redirect_uris' => ['http://localhost'],
 //            ];
 //
 //            $client = $this->clientsTable->newEntity($clientData);
