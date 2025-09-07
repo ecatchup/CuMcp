@@ -400,7 +400,8 @@ class BlogCategoriesToolTest extends BcTestCase
         // ページネーション情報の確認
         $this->assertEquals(1, $result['pagination']['count']); // 実際に返された件数
         $this->assertEquals(1, $result['pagination']['total']); // 公開状態の総件数
-    }    /**
+    }
+    /**
      * Test getBlogCategories method - 全ての状態のカテゴリ取得テスト
      *
      * @return void
@@ -486,4 +487,40 @@ class BlogCategoriesToolTest extends BcTestCase
         $this->assertEquals(2, $result['pagination']['count']); // 実際に返された件数
         $this->assertEquals(2, $result['pagination']['total']); // 全件数
     }
+
+    /**
+     * testGetBlogCategoriesWithTitle
+     *
+     * @return void
+     */
+    public function testGetBlogCategoriesWithTitle()
+    {
+        // 2つのカテゴリを作成（1つは公開、1つは非公開）
+        BlogCategoryFactory::make([
+            'id' => 1,
+            'blog_content_id' => 1,
+            'title' => 'カテゴリ1',
+            'name' => 'public-category',
+            'status' => 1
+        ])->persist();
+
+        BlogCategoryFactory::make([
+            'id' => 2,
+            'blog_content_id' => 1,
+            'title' => 'カテゴリ2',
+            'name' => 'private-category',
+            'status' => 1
+        ])->persist();
+
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            title: 'カテゴリ'
+        );
+        $this->assertCount(2, $result['content']);
+
+        $result = $this->BlogCategoriesTool->getBlogCategories(
+            title: '1'
+        );
+        $this->assertCount(1, $result['content']);
+    }
+
 }

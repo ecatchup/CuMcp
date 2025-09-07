@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcBlog;
 
+use BcBlog\Service\BlogCategoriesService;
 use CuMcp\Mcp\BaseMcpTool;
 use BcBlog\Service\BlogCategoriesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
@@ -45,7 +46,7 @@ class BlogCategoriesTool extends BaseMcpTool
                     'type' => 'object',
                     'properties' => [
                         'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
+                        'title' => ['type' => 'string', 'description' => 'タイトル（部分一致）'],
                         'status' => ['type' => 'number', 'description' => '公開ステータス（null: 全て, publish: 公開）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
@@ -138,13 +139,13 @@ class BlogCategoriesTool extends BaseMcpTool
      * @param int|null $blogContentId
      * @param int|null $limit
      * @param int|null $page
-     * @param string|null $keyword
+     * @param string|null $title
      * @param string|null $status
      * @return array
      */
     public function getBlogCategories(
         ?int $blogContentId = 1,
-        ?string $keyword = null,
+        ?string $title = null,
         ?string $status = null,
         ?int $limit = null,
         ?int $page = null
@@ -152,15 +153,16 @@ class BlogCategoriesTool extends BaseMcpTool
     {
         return $this->executeWithErrorHandling(function() use (
             $blogContentId,
-            $keyword,
+            $title,
             $status,
             $limit,
             $page
         ) {
-        $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
+            /** @var BlogCategoriesService $blogCategoriesService */
+            $blogCategoriesService = $this->getService(BlogCategoriesServiceInterface::class);
 
             $conditions = [];
-            if (!empty($keyword)) $conditions['keyword'] = $keyword;
+            if (!empty($title)) $conditions['title'] = $title;
             if (!empty($status)) $conditions['status'] = $status;
             if (!empty($limit)) $conditions['limit'] = $limit;
             if (!empty($page)) $conditions['page'] = $page;
