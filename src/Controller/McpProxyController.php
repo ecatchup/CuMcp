@@ -115,12 +115,10 @@ class McpProxyController extends AppController
     private function returnUnauthorizedResponse(string $message): \Cake\Http\Response
     {
         $siteUrl = rtrim((string)env('SITE_URL', 'https://localhost'), '/');
-        $resource = $siteUrl . '/cu-mcp';
         $resourceMetadataUrl = $siteUrl . '/.well-known/oauth-protected-resource/cu-mcp';
 
         $wwwAuthenticate = sprintf(
-            'Bearer realm="MCP", resource="%s", resource_metadata="%s", error="invalid_token"',
-            $resource,
+            'Bearer resource_metadata="%s"',
             $resourceMetadataUrl
         );
 
@@ -131,11 +129,8 @@ class McpProxyController extends AppController
             ->withHeader('Pragma', 'no-cache')
             ->withHeader('WWW-Authenticate', $wwwAuthenticate)
             ->withStringBody(json_encode([
-                'jsonrpc' => '2.0',
-                'error' => [
-                    'code'    => -32000,
-                    'message' => $message,
-                ],
+                'error' => 'invalid_client',
+                'message' => $message
             ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     }
 
