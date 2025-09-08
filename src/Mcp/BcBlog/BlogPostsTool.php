@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcBlog;
 
-use BaserCore\Utility\BcContainerTrait;
 use BcBlog\Service\BlogPostsServiceInterface;
 use BcBlog\Service\BlogContentsServiceInterface;
 use BcBlog\Service\BlogCategoriesServiceInterface;
@@ -71,7 +70,7 @@ class BlogPostsTool extends BaseMcpTool
                         'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日（省略時は現在日時）'],
                         'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時（省略時はなし）'],
                         'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時（省略時はなし）'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像（URL）'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルパス、URL、またはbase64エンコードされたデータ（data:image/...形式）を指定可能'],
                     ],
                     'required' => ['title', 'detail']
                 ]
@@ -95,7 +94,7 @@ class BlogPostsTool extends BaseMcpTool
                         'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日'],
                         'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時'],
                         'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像（URL）'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルパス、URL、またはbase64エンコードされたデータ（data:image/...形式）を指定可能'],
                     ],
                     'required' => ['id']
                 ]
@@ -157,6 +156,7 @@ class BlogPostsTool extends BaseMcpTool
 
             $blogContentId = $this->getBlogContentId($blogContent);
             $blogCategoryId = $this->getBlogCategoryId($category, $blogContentId);
+
             $data = [
                 'title' => $title,
                 'detail' => $detail,
@@ -169,10 +169,25 @@ class BlogPostsTool extends BaseMcpTool
                 'posted' => $posted ?? date('Y-m-d H:i:s'),
                 'publish_begin' => $publishBegin,
                 'publish_end' => $publishEnd,
-                'eye_catch' => $eyeCatch
             ];
 
+            // アイキャッチ画像の処理
+            if (!empty($eyeCatch) && $this->isFileUploadable($eyeCatch)) {
+                $eyeCatchData = $this->processFileUpload($eyeCatch, 'eye_catch');
+                if ($eyeCatchData !== false && is_array($eyeCatchData)) {
+                    // 配列データをCakePHPのUploadedFileオブジェクトに変換
+                    $data['eye_catch'] = $this->createUploadedFileFromArray($eyeCatchData);
+                }
+            } elseif (!empty($eyeCatch)) {
+                // 通常のURL文字列の場合はそのまま設定
+                $data['eye_catch'] = $eyeCatch;
+            }
+
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
+
+            // ファイルアップロードの設定を実施
+            $blogPostsService->setupUpload($blogContentId);
+
             $result = $blogPostsService->create($data);
             if ($result) {
                 return $this->createSuccessResponse($result->toArray());
@@ -228,6 +243,9 @@ class BlogPostsTool extends BaseMcpTool
                 return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
             }
 
+            // ファイルアップロードの設定を実施
+            $blogPostsService->setupUpload($entity->blog_content_id);
+
             // 更新データを構築（null以外の値のみ）
             $data = [];
             if ($title !== null) $data['title'] = $title;
@@ -235,13 +253,29 @@ class BlogPostsTool extends BaseMcpTool
             if ($blogContent !== null) $data['blog_content_id'] = $this->getBlogContentId($blogContent);
             if ($name !== null) $data['name'] = $name;
             if ($content !== null) $data['content'] = $content;
-            if ($category !== null) $data['blog_category_id'] = $this->getBlogCategoryId($category, $data['blog_content_id']);
-            if ($email !== null) $data['email'] = $this->getAuthorId($email);
+            if ($category !== null) $data['blog_category_id'] = $this->getBlogCategoryId($category, $data['blog_content_id'] ?? $entity->blog_content_id);
+            if ($email !== null) $data['user_id'] = $this->getAuthorId($email);
             if ($status !== null) $data['status'] = $status;
             if ($posted !== null) $data['posted'] = $posted;
             if ($publishBegin !== null) $data['publish_begin'] = $publishBegin;
             if ($publishEnd !== null) $data['publish_end'] = $publishEnd;
-            if ($eyeCatch !== null) $data['eyeCatch'] = $eyeCatch;
+
+            // アイキャッチ画像の処理
+            if ($eyeCatch !== null) {
+                if (!empty($eyeCatch) && $this->isFileUploadable($eyeCatch)) {
+                    $eyeCatchData = $this->processFileUpload($eyeCatch, 'eye_catch');
+                    if ($eyeCatchData !== false && is_array($eyeCatchData)) {
+                        // 配列データをCakePHPのUploadedFileオブジェクトに変換
+                        $data['eye_catch'] = $this->createUploadedFileFromArray($eyeCatchData);
+                    }
+                } elseif (!empty($eyeCatch)) {
+                    // 通常のURL文字列の場合はそのまま設定
+                    $data['eye_catch'] = $eyeCatch;
+                } else {
+                    // 空文字列の場合は削除
+                    $data['eye_catch'] = '';
+                }
+            }
 
             $result = $blogPostsService->update($entity, $data);
 

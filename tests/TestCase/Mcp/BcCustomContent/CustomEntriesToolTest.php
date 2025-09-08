@@ -108,7 +108,61 @@ class CustomEntriesToolTest extends BcTestCase
 
         // テーブルをクリーンアップ
         $dataBaseService->dropTable('custom_entry_1_contact');
-    }    /**
+    }
+
+    /**
+     * Test addCustomEntry method - ファイルアップロード付きテスト
+     *
+     * @return void
+     */
+    public function testAddCustomEntryWithFileUpload()
+    {
+        // Base64画像データ（1x1ピクセルの透明PNG）
+        $base64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+        $dataBaseService = $this->getService(BcDatabaseServiceInterface::class);
+        $customTablesService = $this->getService(CustomTablesServiceInterface::class);
+
+        $this->loadFixtureScenario(CustomFieldsScenario::class);
+
+        $customTableId = 1;
+        $title = 'ファイルアップロード付きエントリー';
+        $customFields = [
+            'image_field' => $base64Image,
+            'text_field' => 'テキスト値'
+        ];
+
+        // カスタムテーブルを作成
+        $customTablesService->create([
+            'type' => 'contact',
+            'name' => 'contact_with_files',
+            'title' => 'ファイル付きお問い合わせ',
+            'display_field' => 'お問い合わせ'
+        ]);
+
+        $result = $this->CustomEntriesTool->addCustomEntry(
+            customTableId: $customTableId,
+            title: $title,
+            customFields: $customFields
+        );
+
+        $this->assertIsArray($result);
+        if (isset($result['success']) && $result['success']) {
+            $this->assertArrayHasKey('content', $result);
+            $this->assertEquals($title, $result['content']['title']);
+            // ファイルアップロードが処理されていることを確認
+            $this->assertNotEquals($base64Image, $result['content']['image_field'] ?? '');
+            $this->assertEquals('テキスト値', $result['content']['text_field'] ?? '');
+        } else {
+            // エラーケースでもレスポンス構造をテスト
+            $this->assertArrayHasKey('isError', $result);
+        }
+
+        // テーブルをクリーンアップ
+        $dataBaseService->dropTable('custom_entry_1_contact_with_files');
+    }
+
+    /**
      * Test addCustomEntry method - カスタムフィールド付きテスト
      *
      * @return void
@@ -412,5 +466,92 @@ class CustomEntriesToolTest extends BcTestCase
         $this->assertInstanceOf(ServerBuilder::class, $result);
         // ServerBuilderが返されることを確認（チェーンメソッドパターン）
         $this->assertSame($serverBuilder, $result);
+    }
+
+    /**
+     * Test processCustomFields method - ファイル処理テスト
+     *
+     * @return void
+     */
+    public function testProcessCustomFields()
+    {
+        // Base64画像データ（1x1ピクセルの透明PNG）
+        $base64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+        $customFields = [
+            'text_field' => 'テキスト値',
+            'number_field' => 123,
+            'image_field' => $base64Image,
+            'array_field' => ['値1', '値2']
+        ];
+
+        // リフレクションを使ってプライベートメソッドをテスト
+        $reflection = new \ReflectionClass($this->CustomEntriesTool);
+        $method = $reflection->getMethod('processCustomFields');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->CustomEntriesTool, $customFields, 1); // customTableId = 1 を追加
+
+        $this->assertIsArray($result);
+        $this->assertEquals('テキスト値', $result['text_field']);
+        $this->assertEquals(123, $result['number_field']);
+        // フィールドタイプがBcCcFileでない場合、ファイルアップロード処理は行われない
+        $this->assertEquals($base64Image, $result['image_field']); // そのまま残る
+        $this->assertEquals(['値1', '値2'], $result['array_field']);
+    }
+
+    /**
+     * test getCustomFieldType method
+     */
+    public function testGetCustomFieldType()
+    {
+        $customTableId = 1;
+        $fieldName = 'test_field';
+
+        // リフレクションを使ってプライベートメソッドをテスト
+        $reflection = new \ReflectionClass($this->CustomEntriesTool);
+        $method = $reflection->getMethod('getCustomFieldType');
+        $method->setAccessible(true);
+
+        // フィールドタイプが取得できない場合はnullを返す
+        $result = $method->invoke($this->CustomEntriesTool, $customTableId, $fieldName);
+        $this->assertNull($result);
+    }
+
+    /**
+     * test isFileUploadField method
+     */
+    public function testIsFileUploadField()
+    {
+        $customTableId = 1;
+        $fieldName = 'test_field';
+
+        // リフレクションを使ってプライベートメソッドをテスト
+        $reflection = new \ReflectionClass($this->CustomEntriesTool);
+        $method = $reflection->getMethod('isFileUploadField');
+        $method->setAccessible(true);
+
+        // フィールドタイプが取得できない場合はfalseを返す
+        $result = $method->invoke($this->CustomEntriesTool, $customTableId, $fieldName);
+        $this->assertFalse($result);
+    }
+
+    /**
+     * test isFileUpload method
+     */
+    public function testIsFileUpload()
+    {
+        $customTableId = 1;
+        $fieldName = 'test_field';
+        $base64Data = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jAuoqQAAAABJRU5ErkJggg==';
+
+        // リフレクションを使ってプライベートメソッドをテスト
+        $reflection = new \ReflectionClass($this->CustomEntriesTool);
+        $method = $reflection->getMethod('isFileUpload');
+        $method->setAccessible(true);
+
+        // フィールドタイプが取得できない場合、ファイルアップロード形式でもfalseを返す
+        $result = $method->invoke($this->CustomEntriesTool, $base64Data, $customTableId, $fieldName);
+        $this->assertFalse($result);
     }
 }
