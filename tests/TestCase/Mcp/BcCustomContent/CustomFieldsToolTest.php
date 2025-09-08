@@ -59,10 +59,9 @@ class CustomFieldsToolTest extends BcTestCase
     public function testAddCustomField()
     {
         $result = $this->CustomFieldsTool->addCustomField(
-            'test_field',
-            'テストフィールド',
-            'text',
-            'これはテスト用のフィールドです'
+            name: 'test_field',
+            title: 'テストフィールド',
+            type: 'text'
         );
 
         $this->assertIsArray($result);
@@ -149,7 +148,11 @@ class CustomFieldsToolTest extends BcTestCase
      */
     public function testGetCustomFieldsWithSearch()
     {
-        $result = $this->CustomFieldsTool->getCustomFields('test', 'text', 1);
+        $result = $this->CustomFieldsTool->getCustomFields(
+            name: 'test',
+            title: 'text',
+            status: 1
+        );
 
         $this->assertIsArray($result);
         if (isset($result['success'])) {

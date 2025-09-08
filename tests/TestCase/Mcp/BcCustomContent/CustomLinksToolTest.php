@@ -238,7 +238,7 @@ class CustomLinksToolTest extends BcTestCase
         // ステータス1でフィルタリング
         $result = $this->CustomLinksTool->getCustomLinks(
             customTableId: 1,
-            status: 1,
+            status: 'publish',
             limit: 10
         );
 

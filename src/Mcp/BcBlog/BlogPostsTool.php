@@ -34,7 +34,7 @@ class BlogPostsTool extends BaseMcpTool
                     'properties' => [
                         'blogContentId' => ['type' => 'number', 'description' => 'ブログコンテンツID（省略時はデフォルト）'],
                         'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（null: 全て, publish: 公開）'],
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（null: 全て, publish: 公開）（省略時は全て）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は10件）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
                     ]
@@ -112,6 +112,7 @@ class BlogPostsTool extends BaseMcpTool
                 ]
             );
     }
+
     /**
      * ブログ記事を追加
      */
@@ -210,7 +211,7 @@ class BlogPostsTool extends BaseMcpTool
         ?string $content = null,
         ?string $category = null,
         ?string $email = null,
-        ?int $status = 0,
+        ?int $status = null,
         ?string $posted = null,
         ?string $publishBegin = null,
         ?string $publishEnd = null,
@@ -300,10 +301,10 @@ class BlogPostsTool extends BaseMcpTool
         if (!empty($email)) {
             $conditions = ['email' => $email];
             $user = $usersService->getIndex($conditions)->first();
-        } elseif($loginUserId) {
+        } elseif ($loginUserId) {
             $user = $usersService->get($loginUserId);
         }
-        if(empty($user)) {
+        if (empty($user)) {
             throw new \Exception('投稿者を指定できませんでした。');
         }
         return $user->id;
@@ -315,7 +316,7 @@ class BlogPostsTool extends BaseMcpTool
     public function getBlogPosts(
         ?int $blogContentId = null,
         ?string $keyword = null,
-        ?int $status = null,
+        ?string $status = null,
         ?int $limit = 10,
         ?int $page = 1
     ): array
@@ -327,21 +328,13 @@ class BlogPostsTool extends BaseMcpTool
             $limit,
             $page
         ) {
+            /** @var \BcBlog\Service\BlogPostsService $blogPostsService */
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
 
             $conditions = [];
-            if (!empty($blogContentId)) {
-                $conditions['blog_content_id'] = $blogContentId;
-            }
-
-            if (!empty($keyword)) {
-                $conditions['keyword'] = $keyword;
-            }
-
-            if ($status) {
-                $conditions['status'] = 'publish';
-            }
-
+            if (!empty($blogContentId)) $conditions['blog_content_id'] = $blogContentId;
+            if (!empty($keyword)) $conditions['keyword'] = $keyword;
+            if ($status) $conditions['status'] = $status;
             $conditions['limit'] = $limit ?? 10;
             $conditions['page'] = $page ?? 1;
 
@@ -361,28 +354,17 @@ class BlogPostsTool extends BaseMcpTool
     /**
      * ブログ記事を取得
      */
-    public function getBlogPost(int $id, ?int $blogContentId = null, $status = null): array
+    public function getBlogPost(int $id): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $blogContentId, $status) {
+        return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
-            if (empty($id)) {
-                return $this->createErrorResponse('IDは必須です');
-            }
+            if (empty($id)) return $this->createErrorResponse('IDは必須です');
 
+            /** @var \BcBlog\Service\BlogPostsService $blogPostsService */
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
-            $options = [];
-            if ($status) {
-                $options = ['status' => 'publish'];
-            }
-            $result = $blogPostsService->get($id, $options);
+            $result = $blogPostsService->get($id);
 
             if ($result) {
-                // ブログコンテンツIDが指定されている場合は条件をチェック
-                if (!empty($blogContentId) &&
-                    $result->blog_content_id != $blogContentId) {
-                    return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
-                }
-
                 return $this->createSuccessResponse($result->toArray());
             } else {
                 return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
@@ -397,12 +379,10 @@ class BlogPostsTool extends BaseMcpTool
     {
         return $this->executeWithErrorHandling(function() use ($id) {
             // 必須パラメータのチェック
-            if (empty($id)) {
-                return $this->createErrorResponse('IDは必須です');
-            }
+            if (empty($id)) return $this->createErrorResponse('IDは必須です');
 
+            /** @var \BcBlog\Service\BlogPostsService $blogPostsService */
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
-
             $result = $blogPostsService->delete($id);
 
             if ($result) {
@@ -418,15 +398,12 @@ class BlogPostsTool extends BaseMcpTool
      */
     protected function getBlogContentId(?string $blogContentName): int
     {
-        if (empty($blogContentName)) {
-            return 1; // デフォルト
-        }
+        if (empty($blogContentName)) return 1; // デフォルト
 
         try {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
             $conditions = ['name' => $blogContentName];
             $content = $blogContentsService->getIndex($conditions)->first();
-
             return $content? $content->id : 1;
         } catch (\Exception $e) {
             return 1; // エラー時はデフォルト

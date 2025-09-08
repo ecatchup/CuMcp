@@ -3,8 +3,9 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcCustomContent;
 
-use BaserCore\Utility\BcContainerTrait;
+use BcCustomContent\Service\CustomFieldsService;
 use BcCustomContent\Service\CustomFieldsServiceInterface;
+use BcCustomContent\Service\CustomTablesService;
 use BcCustomContent\Service\CustomTablesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 use CuMcp\Mcp\BaseMcpTool;
@@ -30,15 +31,18 @@ class CustomTablesTool extends BaseMcpTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'name' => ['type' => 'string', 'description' => 'テーブル名（必須）'],
                         'title' => ['type' => 'string', 'description' => 'テーブルタイトル（必須）'],
+                        'name' => ['type' => 'string', 'description' => 'テーブル名（英数小文字、アンダースコアのみ）'],
+                        'type' => ['type' => 'int', 'enum' => ['1:コンテンツ', '2:マスタ'], 'description' => 'テーブルタイプ（初期値は1）'],
+                        'displayField' => ['type' => 'string', 'description' => '表示フィールド（type がコンテンツの場合に指定要、title / name / 関連付いたカスタムリンクの name から選択、初期値は title）'],
+                        'hasChild' => ['type' => 'int', 'enum' => ['0:持たない', '1:持つ'], 'description' => '子テーブルを持つかどうか（type がマスタの場合に指定が可能。初期値は0）'],
                         'customFieldNames' => [
                             'type' => 'array',
                             'items' => ['type' => 'string'],
                             'description' => '関連付けるカスタムフィールドの名前配列'
                         ]
                     ],
-                    'required' => ['name', 'title']
+                    'required' => ['title']
                 ]
             )
             ->withTool(
@@ -48,10 +52,6 @@ class CustomTablesTool extends BaseMcpTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
-                        'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
                         'type' => ['type' => 'string', 'description' => 'テーブルタイプ']
                     ]
                 ]
@@ -76,11 +76,11 @@ class CustomTablesTool extends BaseMcpTool
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
-                        'name' => ['type' => 'string', 'description' => 'テーブル名'],
                         'title' => ['type' => 'string', 'description' => 'テーブルタイトル'],
-                        'type' => ['type' => 'string', 'description' => 'テーブルタイプ'],
-                        'displayField' => ['type' => 'string', 'description' => '表示フィールド'],
-                        'hasChild' => ['type' => 'number', 'description' => '子テーブルを持つかどうか（0: 持たない, 1: 持つ）'],
+                        'name' => ['type' => 'string', 'description' => 'テーブル名（英数小文字、アンダースコアのみ）'],
+                        'type' => ['type' => 'int', 'enum' => ['1:コンテンツ', '2:マスタ'], 'description' => 'テーブルタイプ'],
+                        'displayField' => ['type' => 'string', 'description' => '表示フィールド（type がコンテンツの場合に指定要、title / name / 関連付いたカスタムリンクの name から選択）'],
+                        'hasChild' => ['type' => 'int', 'enum' => ['0:持たない', '1:持つ'], 'description' => '子テーブルを持つかどうか（type がマスタの場合に指定が可能）'],
                         'customFieldNames' => [
                             'type' => 'array',
                             'items' => ['type' => 'string'],
@@ -107,14 +107,26 @@ class CustomTablesTool extends BaseMcpTool
     /**
      * カスタムテーブルを追加
      */
-    public function addCustomTable(string $name, string $title, ?array $customFieldNames = null): array
+    public function addCustomTable(
+        string $title,
+        ?string $name = null,
+        ?int $type = 1,
+        ?string $displayField = 'title',
+        ?int $hasChild = 0,
+        ?array $customFieldNames = []
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($name, $title, $customFieldNames) {
+        return $this->executeWithErrorHandling(function() use (
+            $title, $name, $type, $displayField, $hasChild, $customFieldNames
+        ) {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $data = [
-                'name' => $name,
-                'title' => $title
+                'title' => $title,
+                'name' => $name?? 'table_' . time(),
+                'type' => $type ?? 1,
+                'display_field' => $displayField ?? 'title',
+                'has_child' => $hasChild ?? 0
             ];
 
             $result = $customTablesService->create($data);
@@ -137,6 +149,11 @@ class CustomTablesTool extends BaseMcpTool
         });
     }
 
+    /**
+     * カスタムフィールド名の配列からカスタムリンクの配列を作成
+     * @param $customFieldNames
+     * @return array
+     */
     private function createCustomLinks($customFieldNames)
     {
         $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
@@ -166,43 +183,17 @@ class CustomTablesTool extends BaseMcpTool
     /**
      * カスタムテーブル一覧を取得
      */
-    public function getCustomTables(?string $keyword = null, ?int $status = null, ?string $type = null, ?int $limit = null, ?int $page = 1): array
+    public function getCustomTables($type = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($keyword, $status, $type, $limit, $page) {
+        return $this->executeWithErrorHandling(function() use ($type) {
+            /** @var CustomTablesService $customTablesService */
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
             $conditions = [];
-
-            if (!empty($keyword)) {
-                $conditions['keyword'] = $keyword;
-            }
-
-            if (isset($status)) {
-                $conditions['status'] = $status;
-            }
-
-            if (!empty($type)) {
-                $conditions['type'] = $type;
-            }
-
-            if (!empty($limit)) {
-                $conditions['limit'] = $limit;
-            }
-
-            if (!empty($page)) {
-                $conditions['page'] = $page;
-            }
+            if (!empty($type)) $conditions['type'] = $type;
 
             $results = $customTablesService->getIndex($conditions)->toArray();
-
-            return $this->createSuccessResponse([
-                'results' => $results,
-                'pagination' => [
-                    'page' => $page ?? 1,
-                    'limit' => $limit ?? null,
-                    'count' => count($results)
-                ]
-            ]);
+            return $this->createSuccessResponse($results);
         });
     }
 
@@ -212,8 +203,8 @@ class CustomTablesTool extends BaseMcpTool
     public function getCustomTable(int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
+            /** @var CustomFieldsService $customTablesService */
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
-
             $result = $customTablesService->get($id);
 
             if ($result) {
@@ -227,20 +218,28 @@ class CustomTablesTool extends BaseMcpTool
     /**
      * カスタムテーブルを編集
      */
-    public function editCustomTable(int $id, ?string $name = null, ?string $title = null, ?string $type = null, ?string $displayField = null, ?int $hasChild = null, ?array $customFieldNames = null): array
+    public function editCustomTable(
+        int $id,
+        string $title,
+        ?string $name = null,
+        ?int $type = 1,
+        ?string $displayField = 'title',
+        ?int $hasChild = 0,
+        ?array $customFieldNames = []
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $type, $displayField, $hasChild, $customFieldNames) {
+        return $this->executeWithErrorHandling(function() use (
+            $id, $title, $name, $type, $displayField, $hasChild, $customFieldNames
+        ) {
+            /** @var CustomTablesService $customTablesService */
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
-
             $entity = $customTablesService->get($id);
 
-            if (!$entity) {
-                return $this->createErrorResponse('指定されたIDのカスタムテーブルが見つかりません');
-            }
+            if (!$entity) return $this->createErrorResponse('指定されたIDのカスタムテーブルが見つかりません');
 
             $data = [];
-            if ($name !== null) $data['name'] = $name;
             if ($title !== null) $data['title'] = $title;
+            if ($name !== null) $data['name'] = $name;
             if ($type !== null) $data['type'] = $type;
             if ($displayField !== null) $data['displayField'] = $displayField;
             if ($hasChild !== null) $data['hasChild'] = $hasChild;
@@ -272,8 +271,8 @@ class CustomTablesTool extends BaseMcpTool
     public function deleteCustomTable(int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
+            /** @var CustomTablesService $customTablesService */
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
-
             $result = $customTablesService->delete($id);
 
             if ($result) {

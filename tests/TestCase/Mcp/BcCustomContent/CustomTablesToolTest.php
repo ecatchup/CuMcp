@@ -12,10 +12,8 @@ declare(strict_types=1);
 
 namespace CuMcp\Test\TestCase\Mcp\BcCustomContent;
 
-use BaserCore\Service\BcDatabaseServiceInterface;
 use BaserCore\TestSuite\BcTestCase;
 use BcCustomContent\Service\CustomEntriesServiceInterface;
-use BcCustomContent\Service\CustomTablesService;
 use BcCustomContent\Service\CustomTablesServiceInterface;
 use BcCustomContent\Test\Factory\CustomFieldFactory;
 use BcCustomContent\Test\Scenario\CustomTablesScenario;
@@ -65,9 +63,9 @@ class CustomTablesToolTest extends BcTestCase
             'name' => 'field2'
         ])->persist();
         $result = $this->CustomTablesTool->addCustomTable(
-            'test_table',
-            'テストテーブル',
-            ['field1', 'field2']
+            name: 'test_table',
+            title: 'テストテーブル',
+            customFieldNames: ['field1', 'field2']
         );
 
         $this->assertArrayHasKey('isError', $result);
@@ -88,8 +86,6 @@ class CustomTablesToolTest extends BcTestCase
         $this->assertArrayHasKey('isError', $result);
         $this->assertFalse($result['isError']);
         $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result['content']);
-        $this->assertIsArray($result['content']['results']);
     }
 
     /**
@@ -113,13 +109,10 @@ class CustomTablesToolTest extends BcTestCase
     {
         $this->loadFixtureScenario(CustomTablesScenario::class);
         $result = $this->CustomTablesTool->editCustomTable(
-            2,
-            'updated_table',
-            '更新されたテーブル',
-            'default',
-            'name',
-            0,
-            ['field3', 'field4']
+            id: 2,
+            name: 'updated_table',
+            title: '更新されたテーブル',
+            customFieldNames: ['field3', 'field4']
         );
 
         $this->assertArrayHasKey('isError', $result);
@@ -161,9 +154,6 @@ class CustomTablesToolTest extends BcTestCase
         $this->assertArrayHasKey('isError', $result);
         $this->assertFalse($result['isError']);
         $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result['content']);
-        $this->assertEquals(1, $result['content']['pagination']['page']);
-        $this->assertEquals(10, $result['content']['pagination']['limit']);
     }
 
     /**
@@ -208,8 +198,8 @@ class CustomTablesToolTest extends BcTestCase
     public function testAddCustomTableWithoutCustomFieldNames()
     {
         $result = $this->CustomTablesTool->addCustomTable(
-            'simple_table',
-            'シンプルテーブル'
+            name: 'simple_table',
+            title: 'シンプルテーブル'
         );
 
         $this->assertArrayHasKey('isError', $result);

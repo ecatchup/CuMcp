@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcBlog;
 
-use BaserCore\Utility\BcContainerTrait;
+use BcBlog\Service\BlogTagsService;
 use BcBlog\Service\BlogTagsServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 use CuMcp\Mcp\BaseMcpTool;
@@ -41,10 +41,9 @@ class BlogTagsTool extends BaseMcpTool
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
+                        'name' => ['type' => 'string', 'description' => 'タグ名での検索'],
+                        'limit' => ['type' => 'number', 'description' => '取得件数（省略時は10件）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'name' => ['type' => 'string', 'description' => 'タグ名での検索']
                     ]
                 ]
             )
@@ -93,14 +92,11 @@ class BlogTagsTool extends BaseMcpTool
     public function addBlogTag(string $name): array
     {
         return $this->executeWithErrorHandling(function() use ($name) {
+            /** @var BlogTagsService $blogTagsService */
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
-
-            $data = [
+            $result = $blogTagsService->create([
                 'name' => $name
-            ];
-
-            $result = $blogTagsService->create($data);
-
+            ]);
             if ($result) {
                 return $this->createSuccessResponse($result->toArray());
             } else {
@@ -112,29 +108,21 @@ class BlogTagsTool extends BaseMcpTool
     /**
      * ブログタグ一覧を取得
      */
-    public function getBlogTags(?string $keyword = null, ?string $name = null, ?int $limit = null, ?int $page = 1): array
+    public function getBlogTags(
+        ?string $name = null,
+        ?int $limit = 10,
+        ?int $page = 1
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($keyword, $name, $limit, $page) {
+        return $this->executeWithErrorHandling(function() use ($name, $limit, $page) {
+
+            /** @var BlogTagsService $blogTagsService */
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $conditions = [];
-
-            if (!empty($keyword)) {
-                $conditions['keyword'] = $keyword;
-            }
-
-            if (!empty($name)) {
-                $conditions['name'] = $name;
-            }
-
-            if (!empty($limit)) {
-                $conditions['limit'] = $limit;
-            }
-
-            if (!empty($page)) {
-                $conditions['page'] = $page;
-            }
-
+            if (!empty($name)) $conditions['name'] = $name;
+            if (!empty($limit)) $conditions['limit'] = $limit;
+            if (!empty($page)) $conditions['page'] = $page;
             $results = $blogTagsService->getIndex($conditions)->toArray();
 
             return $this->createSuccessResponse([
@@ -154,8 +142,8 @@ class BlogTagsTool extends BaseMcpTool
     public function getBlogTag(int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
+            /** @var BlogTagsService $blogTagsService */
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
-
             $result = $blogTagsService->get($id);
 
             if ($result) {
@@ -172,19 +160,15 @@ class BlogTagsTool extends BaseMcpTool
     public function editBlogTag(int $id, string $name): array
     {
         return $this->executeWithErrorHandling(function() use ($id, $name) {
+            /** @var BlogTagsService $blogTagsService */
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
-
             $entity = $blogTagsService->get($id);
 
-            if (!$entity) {
-                return $this->createErrorResponse('指定されたIDのブログタグが見つかりません');
-            }
+            if (!$entity) return $this->createErrorResponse('指定されたIDのブログタグが見つかりません');
 
-            $data = [
+            $result = $blogTagsService->update($entity, [
                 'name' => $name
-            ];
-
-            $result = $blogTagsService->update($entity, $data);
+            ]);
 
             if ($result) {
                 return $this->createSuccessResponse($result->toArray());
@@ -200,6 +184,7 @@ class BlogTagsTool extends BaseMcpTool
     public function deleteBlogTag(int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
+            /** @var BlogTagsService $blogTagsService */
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
             $result = $blogTagsService->delete($id);

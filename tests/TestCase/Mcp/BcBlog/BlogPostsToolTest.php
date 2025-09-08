@@ -27,6 +27,7 @@ use CuMcp\Mcp\BcBlog\BlogPostsTool;
 class BlogPostsToolTest extends BcTestCase
 {
     use ScenarioAwareTrait;
+
     /**
      * Test subject
      *
@@ -97,6 +98,275 @@ class BlogPostsToolTest extends BcTestCase
         $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result['content']);
         $this->assertIsArray($result['content']['data']);
+    }
+
+    /**
+     * test getBlogPosts with keyword search
+     */
+    public function testGetBlogPostsWithKeyword()
+    {
+        // テスト用のブログ記事を作成
+        BlogPostFactory::make([
+            'id' => 1,
+            'title' => 'テストブログ記事',
+            'detail' => 'これはテスト用の詳細です。',
+            'content' => 'テスト用の概要内容です。',
+            'blog_content_id' => 1,
+            'status' => 1,
+            'posted' => '2023-01-01 00:00:00'
+        ])->persist();
+
+        BlogPostFactory::make([
+            'id' => 2,
+            'title' => '別の記事',
+            'detail' => '別の内容です。',
+            'content' => '別の概要です。',
+            'blog_content_id' => 1,
+            'status' => 1,
+            'posted' => '2023-01-02 00:00:00'
+        ])->persist();
+
+        BlogPostFactory::make([
+            'id' => 3,
+            'title' => 'サンプル記事',
+            'detail' => 'テストという単語が含まれる詳細です。',
+            'content' => 'サンプル概要です。',
+            'blog_content_id' => 1,
+            'status' => 1,
+            'posted' => '2023-01-03 00:00:00'
+        ])->persist();
+
+        // キーワード検索のテスト（"テスト"で検索）
+        $result = $this->BlogPostsTool->getBlogPosts(1, 'テスト');
+
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('data', $result['content']);
+        $this->assertArrayHasKey('pagination', $result['content']);
+
+        // キーワードに一致する記事が取得されることを確認
+        // "テスト"という単語がタイトルまたは詳細に含まれる記事が検索される
+        $this->assertGreaterThan(0, count($result['content']['data']));
+
+        // 検索結果の構造を確認
+        if (count($result['content']['data']) > 0) {
+            $firstPost = $result['content']['data'][0];
+            $this->assertArrayHasKey('id', $firstPost);
+            $this->assertArrayHasKey('title', $firstPost);
+            $this->assertArrayHasKey('detail', $firstPost);
+        }
+    }
+
+    /**
+     * test getBlogPosts with keyword search no results
+     */
+    public function testGetBlogPostsWithKeywordNoResults()
+    {
+        // テスト用のブログ記事を作成
+        BlogPostFactory::make([
+            'id' => 1,
+            'title' => 'サンプル記事',
+            'detail' => 'サンプルの詳細です。',
+            'content' => 'サンプル概要です。',
+            'blog_content_id' => 1,
+            'status' => 1,
+            'posted' => '2023-01-01 00:00:00'
+        ])->persist();
+
+        // 存在しないキーワードで検索
+        $result = $this->BlogPostsTool->getBlogPosts(1, '存在しないキーワード');
+
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('data', $result['content']);
+
+        // 検索結果が0件であることを確認
+        $this->assertEquals(0, count($result['content']['data']));
+    }
+
+    /**
+     * test getBlogPosts with empty keyword
+     */
+    public function testGetBlogPostsWithEmptyKeyword()
+    {
+        // テスト用のブログ記事を作成
+        BlogPostFactory::make([
+            'id' => 1,
+            'title' => 'テスト記事',
+            'detail' => 'テストの詳細です。',
+            'blog_content_id' => 1,
+            'status' => 1,
+            'posted' => '2023-01-01 00:00:00'
+        ])->persist();
+
+        // 空のキーワードで検索（すべての記事が取得される）
+        $result = $this->BlogPostsTool->getBlogPosts(1, '');
+
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('data', $result['content']);
+
+        // 記事が取得されることを確認
+        $this->assertGreaterThan(0, count($result['content']['data']));
+    }
+
+    /**
+     * test getBlogPosts with limit parameter
+     */
+    public function testGetBlogPostsWithLimit()
+    {
+        // 5つのテスト記事を作成
+        for($i = 1; $i <= 5; $i++) {
+            BlogPostFactory::make([
+                'id' => $i,
+                'title' => "テスト記事 {$i}",
+                'detail' => "テスト記事 {$i} の詳細です。",
+                'content' => "テスト記事 {$i} の概要です。",
+                'blog_content_id' => 1,
+                'status' => 1,
+                'posted' => "2023-01-0{$i} 00:00:00"
+            ])->persist();
+        }
+
+        // limit = 3 でテスト
+        $result = $this->BlogPostsTool->getBlogPosts(1, null, null, 3, 1);
+
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('data', $result['content']);
+        $this->assertArrayHasKey('pagination', $result['content']);
+
+        // limitが正しく適用されていることを確認
+        $this->assertLessThanOrEqual(3, count($result['content']['data']));
+        $this->assertEquals(3, $result['content']['pagination']['limit']);
+    }
+
+    /**
+     * test getBlogPosts with page parameter
+     */
+    public function testGetBlogPostsWithPage()
+    {
+        // 10個のテスト記事を作成
+        for($i = 1; $i <= 10; $i++) {
+            BlogPostFactory::make([
+                'id' => $i,
+                'title' => "ページテスト記事 {$i}",
+                'detail' => "ページテスト記事 {$i} の詳細です。",
+                'content' => "ページテスト記事 {$i} の概要です。",
+                'blog_content_id' => 1,
+                'status' => 1,
+                'posted' => sprintf("2023-01-%02d 00:00:00", $i)
+            ])->persist();
+        }
+
+        // 1ページ目（limit=3）
+        $result1 = $this->BlogPostsTool->getBlogPosts(1, null, null, 3, 1);
+
+        $this->assertArrayHasKey('isError', $result1);
+        $this->assertFalse($result1['isError']);
+        $this->assertArrayHasKey('content', $result1);
+        $this->assertArrayHasKey('data', $result1['content']);
+        $this->assertArrayHasKey('pagination', $result1['content']);
+
+        $this->assertEquals(1, $result1['content']['pagination']['page']);
+        $this->assertEquals(3, $result1['content']['pagination']['limit']);
+        $this->assertLessThanOrEqual(3, count($result1['content']['data']));
+
+        // 2ページ目（limit=3）
+        $result2 = $this->BlogPostsTool->getBlogPosts(1, null, null, 3, 2);
+
+        $this->assertArrayHasKey('isError', $result2);
+        $this->assertFalse($result2['isError']);
+        $this->assertArrayHasKey('content', $result2);
+        $this->assertArrayHasKey('data', $result2['content']);
+        $this->assertArrayHasKey('pagination', $result2['content']);
+
+        $this->assertEquals(2, $result2['content']['pagination']['page']);
+        $this->assertEquals(3, $result2['content']['pagination']['limit']);
+        $this->assertLessThanOrEqual(3, count($result2['content']['data']));
+
+        // 1ページ目と2ページ目で異なる記事が取得されることを確認
+        if (count($result1['content']['data']) > 0 && count($result2['content']['data']) > 0) {
+            $firstPageIds = array_column($result1['content']['data'], 'id');
+            $secondPageIds = array_column($result2['content']['data'], 'id');
+
+            // 1ページ目と2ページ目のIDに重複がないことを確認
+            $intersection = array_intersect($firstPageIds, $secondPageIds);
+            $this->assertEmpty($intersection, '1ページ目と2ページ目で同じ記事が重複して取得されています');
+        }
+    }
+
+    /**
+     * test getBlogPosts with limit and page combination
+     */
+    public function testGetBlogPostsWithLimitAndPage()
+    {
+        // 8個のテスト記事を作成
+        for($i = 1; $i <= 8; $i++) {
+            BlogPostFactory::make([
+                'id' => $i,
+                'title' => "組み合わせテスト記事 {$i}",
+                'detail' => "組み合わせテスト記事 {$i} の詳細です。",
+                'content' => "組み合わせテスト記事 {$i} の概要です。",
+                'blog_content_id' => 1,
+                'status' => 1,
+                'posted' => sprintf("2023-01-%02d 00:00:00", $i)
+            ])->persist();
+        }
+
+        // limit=2, page=3 のテスト（5〜6番目の記事が取得される想定）
+        $result = $this->BlogPostsTool->getBlogPosts(1, null, null, 2, 3);
+
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('data', $result['content']);
+        $this->assertArrayHasKey('pagination', $result['content']);
+
+        // パラメータが正しく設定されていることを確認
+        $this->assertEquals(3, $result['content']['pagination']['page']);
+        $this->assertEquals(2, $result['content']['pagination']['limit']);
+        $this->assertLessThanOrEqual(2, count($result['content']['data']));
+    }
+
+    /**
+     * test getBlogPosts with invalid page number
+     */
+    public function testGetBlogPostsWithInvalidPageNumber()
+    {
+        // 2個のテスト記事を作成
+        BlogPostFactory::make([
+            'id' => 1,
+            'title' => '無効ページテスト記事1',
+            'detail' => '無効ページテスト記事1の詳細です。',
+            'blog_content_id' => 1,
+            'status' => 1,
+            'posted' => '2023-01-01 00:00:00'
+        ])->persist();
+
+        BlogPostFactory::make([
+            'id' => 2,
+            'title' => '無効ページテスト記事2',
+            'detail' => '無効ページテスト記事2の詳細です。',
+            'blog_content_id' => 1,
+            'status' => 1,
+            'posted' => '2023-01-02 00:00:00'
+        ])->persist();
+
+        // 存在しないページ番号（page=10）でテスト
+        $result = $this->BlogPostsTool->getBlogPosts(1, null, null, 10, 10);
+
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('data', $result['content']);
+
+        // 存在しないページの場合、データが空であることを確認
+        $this->assertEquals(0, count($result['content']['data']));
     }
 
     /**
@@ -204,7 +474,9 @@ class BlogPostsToolTest extends BcTestCase
         if (file_exists($result['tmp_name'])) {
             unlink($result['tmp_name']);
         }
-    }    /**
+    }
+
+    /**
      * test processFileUpload with URL
      */
     public function testProcessFileUploadWithUrl()

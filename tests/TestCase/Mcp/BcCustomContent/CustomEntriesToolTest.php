@@ -281,7 +281,7 @@ class CustomEntriesToolTest extends BcTestCase
 
             $result = $this->CustomEntriesTool->getCustomEntries(
                 customTableId: 1,
-                status: 1,
+                status: 'publish',
                 limit: 5
             );
 

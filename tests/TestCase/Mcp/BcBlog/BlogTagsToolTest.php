@@ -124,7 +124,9 @@ class BlogTagsToolTest extends BcTestCase
     public function testGetBlogTagsWithSearch()
     {
         $this->loadFixtureScenario(BlogTagsScenario::class);
-        $result = $this->BlogTagsTool->getBlogTags('tag1', null, 10);
+        $result = $this->BlogTagsTool->getBlogTags(
+            name: 'tag1'
+        );
 
         $this->assertArrayHasKey('isError', $result);
         $this->assertFalse($result['isError']);
@@ -132,6 +134,39 @@ class BlogTagsToolTest extends BcTestCase
         $this->assertArrayHasKey('pagination', $result['content']);
         $this->assertEquals(1, $result['content']['pagination']['page']);
         $this->assertEquals(10, $result['content']['pagination']['limit']);
+    }
+
+    /**
+     * test getBlogTags with limit parameter
+     */
+    public function testGetBlogTagsWithLimit()
+    {
+        $this->loadFixtureScenario(BlogTagsScenario::class);
+        $result = $this->BlogTagsTool->getBlogTags(null, 2, 1);
+
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result['content']);
+        $this->assertEquals(1, $result['content']['pagination']['page']);
+        $this->assertEquals(2, $result['content']['pagination']['limit']);
+        $this->assertLessThanOrEqual(2, count($result['content']['data']));
+    }
+
+    /**
+     * test getBlogTags with page parameter
+     */
+    public function testGetBlogTagsWithPage()
+    {
+        $this->loadFixtureScenario(BlogTagsScenario::class);
+        $result = $this->BlogTagsTool->getBlogTags(null, 2, 2);
+
+        $this->assertArrayHasKey('isError', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('pagination', $result['content']);
+        $this->assertEquals(2, $result['content']['pagination']['page']);
+        $this->assertEquals(2, $result['content']['pagination']['limit']);
     }
 
     /**

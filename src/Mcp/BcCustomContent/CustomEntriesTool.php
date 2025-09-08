@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcCustomContent;
 
+use BcCustomContent\Service\CustomEntriesService;
 use BcCustomContent\Service\CustomEntriesServiceInterface;
 use PhpMcp\Server\ServerBuilder;
-use BaserCore\Utility\BcContainerTrait;
 use CuMcp\Mcp\BaseMcpTool;
 use InvalidArgumentException;
 
@@ -31,12 +31,13 @@ class CustomEntriesTool extends BaseMcpTool
                     'properties' => [
                         'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'title' => ['type' => 'string', 'description' => 'タイトル（必須）'],
+                        'parentId' => ['type' => 'number', 'description' => '親カスタムリンクID（対象となるカスタムテーブルの type がマスタの場合のみ指定可能）'],
                         'name' => ['type' => 'string', 'default' => '', 'description' => 'スラッグ（初期値空文字）'],
+                        'creatorId' => ['type' => 'number', 'description' => '投稿者ID'],
                         'status' => ['type' => 'boolean', 'default' => false, 'description' => '公開状態（デフォルト：false）'],
-                        'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'],
                         'publishBegin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
                         'publishEnd' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
-                        'creatorId' => ['type' => 'number', 'default' => 1, 'description' => '投稿者ID（デフォルト初期ユーザー）'],
+                        'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'],
                         'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
@@ -56,7 +57,7 @@ class CustomEntriesTool extends BaseMcpTool
                         'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'limit' => ['type' => 'number', 'default' => 20, 'description' => '取得件数（デフォルト: 20）'],
                         'page' => ['type' => 'number', 'default' => 1, 'description' => 'ページ番号（デフォルト: 1）'],
-                        'status' => ['type' => 'number', 'description' => 'ステータス（0: 非公開, 1: 公開）']
+                        'status' => ['type' => 'number', 'description' => 'ステータス（null: 非公開, publish: 公開）']
                     ],
                     'required' => ['customTableId']
                 ]
@@ -71,7 +72,7 @@ class CustomEntriesTool extends BaseMcpTool
                         'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）']
                     ],
-                    'required' => ['customTableId']
+                    'required' => ['customTableId', 'id']
                 ]
             )
             ->withTool(
@@ -83,20 +84,21 @@ class CustomEntriesTool extends BaseMcpTool
                     'properties' => [
                         'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）'],
-                        'title' => ['type' => 'string', 'description' => 'タイトル'],
-                        'name' => ['type' => 'string', 'description' => 'スラッグ'],
-                        'status' => ['type' => 'boolean', 'description' => '公開状態'],
-                        'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式）'],
-                        'publishBegin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式）'],
-                        'publishEnd' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式）'],
+                        'title' => ['type' => 'string', 'description' => 'タイトル（必須）'],
+                        'parentId' => ['type' => 'number', 'description' => '親カスタムリンクID（対象となるカスタムテーブルの type がマスタの場合のみ指定可能）'],
+                        'name' => ['type' => 'string', 'default' => '', 'description' => 'スラッグ（初期値空文字）'],
                         'creatorId' => ['type' => 'number', 'description' => '投稿者ID'],
+                        'status' => ['type' => 'boolean', 'default' => false, 'description' => '公開状態（デフォルト：false）'],
+                        'publishBegin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
+                        'publishEnd' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
+                        'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'],
                         'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
                             'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）'
                         ]
                     ],
-                    'required' => ['customTableId']
+                    'required' => ['customTableId', 'id']
                 ]
             )
             ->withTool(
@@ -109,7 +111,7 @@ class CustomEntriesTool extends BaseMcpTool
                         'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）']
                     ],
-                    'required' => ['customTableId']
+                    'required' => ['customTableId', 'id']
                 ]
             );
     }
@@ -117,20 +119,35 @@ class CustomEntriesTool extends BaseMcpTool
     /**
      * カスタムエントリーを追加
      */
-    public function addCustomEntry(int $customTableId, string $title, ?string $name = '', ?bool $status = false, ?string $published = null, ?string $publishBegin = null, ?string $publishEnd = null, ?int $creatorId = 1, ?array $customFields = null): array
+    public function addCustomEntry(
+        int $customTableId,
+        string $title,
+        ?int $parentId = null,
+        ?string $name = null,
+        ?int $creatorId = null,
+        ?bool $status = null,
+        ?string $publishBegin = null,
+        ?string $publishEnd = null,
+        ?string $published = null,
+        ?array $customFields = null
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($customTableId, $title, $name, $status, $published, $publishBegin, $publishEnd, $creatorId, $customFields) {
+        return $this->executeWithErrorHandling(function() use (
+            $customTableId, $title, $parentId, $name, $creatorId, $status,
+            $publishBegin, $publishEnd, $published, $customFields
+        ) {
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
             $data = [
-                'customTableId' => $customTableId,
+                'custom_table_id' => $customTableId,
                 'title' => $title,
+                'parentId' => $parentId ?? null,
                 'name' => $name ?? '',
+                'creatorId' => $creatorId ?? 1,
                 'status' => $status ?? false,
-                'published' => $published ?? date('Y-m-d H:i:s'),
                 'publishBegin' => $publishBegin ?? null,
                 'publishEnd' => $publishEnd ?? null,
-                'creatorId' => $creatorId ?? 1
+                'published' => $published ?? date('Y-m-d H:i:s'),
             ];
 
             // カスタムフィールドの値を追加（ファイルアップロード処理を含む）
@@ -253,20 +270,28 @@ class CustomEntriesTool extends BaseMcpTool
     /**
      * カスタムエントリー一覧を取得
      */
-    public function getCustomEntries(int $customTableId, ?int $limit = 20, ?int $page = 1, ?int $status = null): array
+    public function getCustomEntries(
+        int $customTableId,
+        ?string $title = null,
+        ?int $creatorId = null,
+        ?string $published = null,
+        ?int $limit = 20,
+        ?int $page = 1,
+        ?string $status = null
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($customTableId, $limit, $page, $status) {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $title, $creatorId, $published, $limit, $page, $status) {
+            /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
             $conditions = [
-                'customTableId' => $customTableId,
                 'limit' => $limit ?? 20,
                 'page' => $page ?? 1
             ];
-
-            if (isset($status)) {
-                $conditions['status'] = $status;
-            }
+            if (isset($status)) $conditions['status'] = $status;
+            if (!is_null($title)) $conditions['title'] = $title;
+            if (!is_null($creatorId)) $conditions['creator_id'] = $creatorId;
+            if (!is_null($published)) $conditions['published'] = $published;
 
             $results = $customEntriesService->getIndex($conditions)->toArray();
 
@@ -287,11 +312,10 @@ class CustomEntriesTool extends BaseMcpTool
     public function getCustomEntry(int $customTableId, int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($customTableId, $id) {
+            /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
-            $result = $customEntriesService->get($id, [
-                'customTableId' => $customTableId
-            ]);
+            $result = $customEntriesService->get($id);
 
             if ($result) {
                 return $this->createSuccessResponse($result->toArray());
@@ -304,27 +328,40 @@ class CustomEntriesTool extends BaseMcpTool
     /**
      * カスタムエントリーを編集
      */
-    public function editCustomEntry(int $customTableId, int $id, ?string $title = null, ?string $name = null, ?bool $status = null, ?string $published = null, ?string $publishBegin = null, ?string $publishEnd = null, ?int $creatorId = null, ?array $customFields = null): array
+    public function editCustomEntry(
+        int $customTableId,
+        int $id,
+        ?string $title = null,
+        ?int $parentId = null,
+        ?string $name = null,
+        ?int $creatorId = null,
+        ?bool $status = null,
+        ?string $publishBegin = null,
+        ?string $publishEnd = null,
+        ?string $published = null,
+        ?array $customFields = null
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($customTableId, $id, $title, $name, $status, $published, $publishBegin, $publishEnd, $creatorId, $customFields) {
+        return $this->executeWithErrorHandling(function() use (
+            $id, $customTableId, $title, $parentId, $name, $creatorId, $status,
+            $publishBegin, $publishEnd, $published, $customFields
+        ) {
+            /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
-            $entity = $customEntriesService->get($id, [
-                'customTableId' => $customTableId
-            ]);
+            $entity = $customEntriesService->get($id);
 
-            if (!$entity) {
-                return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
-            }
+            if (!$entity) return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
 
             $data = [];
             if ($title !== null) $data['title'] = $title;
+            if ($parentId !== null) $data['parent_id'] = $parentId;
             if ($name !== null) $data['name'] = $name;
+            if ($creatorId !== null) $data['creator_id'] = $creatorId;
             if ($status !== null) $data['status'] = $status;
+            if ($publishBegin !== null) $data['publish_begin'] = $publishBegin;
+            if ($publishEnd !== null) $data['publish_end'] = $publishEnd;
             if ($published !== null) $data['published'] = $published;
-            if ($publishBegin !== null) $data['publishBegin'] = $publishBegin;
-            if ($publishEnd !== null) $data['publishEnd'] = $publishEnd;
-            if ($creatorId !== null) $data['creatorId'] = $creatorId;
 
             // カスタムフィールドの値を追加（ファイルアップロード処理を含む）
             if (!empty($customFields)) {
@@ -348,6 +385,7 @@ class CustomEntriesTool extends BaseMcpTool
     public function deleteCustomEntry(int $customTableId, int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($customTableId, $id) {
+            /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
             $result = $customEntriesService->delete($id);

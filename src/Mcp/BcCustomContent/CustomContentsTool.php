@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcCustomContent;
 
-use BaserCore\Utility\BcContainerTrait;
+use BcCustomContent\Service\CustomContentsService;
 use BcCustomContent\Service\CustomContentsServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 use CuMcp\Mcp\BaseMcpTool;
@@ -25,7 +25,7 @@ class CustomContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'addCustomContent'],
                 name: 'addCustomContent',
-                description: 'カスタムコンテンツを追加します。カスタムコンテンツを追加するにはカスタムテーブルのIDが必要です。事前に作成するか既存のカスタムテーブルIDを指定してください。',
+                description: 'カスタムテーブルと紐づくカスタムコンテンツを追加します。カスタムコンテンツを追加するにはカスタムテーブルのIDが必要です。事前に作成するか既存のカスタムテーブルIDを指定してください。',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
@@ -35,11 +35,19 @@ class CustomContentsTool extends BaseMcpTool
                         'siteId' => ['type' => 'number', 'default' => 1, 'description' => 'サイトID（初期値: 1）'],
                         'parentId' => ['type' => 'number', 'default' => 1, 'description' => '親フォルダID（初期値: 1）'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
+                        'authorId' => ['type' => 'number', 'default' => 1, 'description' => '作成者ID'],
+                        'layoutTemplate' => ['type' => 'string', 'description' => 'レイアウトテンプレート名（初期値: default）'],
+                        'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）'],
+                        'publishBegin' => ['type' => 'string', 'description' => '公開開始日時（YYYY-MM-DD HH:MM:SS形式）'],
+                        'publishEnd' => ['type' => 'string', 'description' => '公開終了日時（YYYY-MM-DD HH:MM:SS形式）'],
+                        'excludeSearch' => ['type' => 'boolean', 'description' => '検索結果から除外するかどうか（初期値: false）'],
+                        'excludeMenu' => ['type' => 'boolean', 'description' => 'メニューから除外するかどうか（初期値: false）'],
+                        'blankLink' => ['type' => 'boolean', 'description' => 'リンクを新しいタブで開くかどうか（初期値: false）'],
                         'template' => ['type' => 'string', 'default' => 'default', 'description' => 'テンプレート名（初期値: default）'],
+                        'widgetAreaId' => ['type' => 'number', 'description' => 'ウィジェットエリアID（初期値: システムのデフォルト）'],
                         'listCount' => ['type' => 'number', 'default' => 10, 'description' => 'リスト表示件数（初期値: 10）'],
+                        'listOrder' => ['type' => 'string', 'default' => 'id', 'description' => 'リスト表示順序（初期値: published）'],
                         'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'default' => 'DESC', 'description' => 'リスト表示方向（ASC|DESC、初期値: DESC）'],
-                        'listOrder' => ['type' => 'string', 'default' => 'id', 'description' => 'リスト表示順序（初期値: id）'],
-                        'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）']
                     ],
                     'required' => ['name', 'title', 'customTableId']
                 ]
@@ -47,23 +55,20 @@ class CustomContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'getCustomContents'],
                 name: 'getCustomContents',
-                description: 'カスタムコンテンツの一覧を取得します',
+                description: 'カスタムテーブルと紐づくカスタムコンテンツの一覧を取得します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
-                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID'],
-                        'siteId' => ['type' => 'number', 'description' => 'サイトID'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）']
+                        'status' => ['type' => 'number', 'description' => '公開ステータス（null: 非公開, publish: 公開）']
                     ]
                 ]
             )
             ->withTool(
                 handler: [self::class, 'getCustomContent'],
                 name: 'getCustomContent',
-                description: '指定されたIDのカスタムコンテンツを取得します',
+                description: 'カスタムテーブルと紐づくカスタムコンテンツをIDを指定して取得します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
@@ -75,19 +80,30 @@ class CustomContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'editCustomContent'],
                 name: 'editCustomContent',
-                description: '指定されたIDのカスタムコンテンツを編集します',
+                description: 'カスタムテーブルと紐づくカスタムコンテンツを編集します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => 'カスタムコンテンツID（必須）'],
-                        'name' => ['type' => 'string', 'description' => 'カスタムコンテンツ名'],
+                        'name' => ['type' => 'string', 'description' => 'カスタムコンテンツ名、URLに影響します'],
                         'title' => ['type' => 'string', 'description' => 'カスタムコンテンツのタイトル'],
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID'],
+                        'siteId' => ['type' => 'number', 'default' => 1, 'description' => 'サイトID'],
+                        'parentId' => ['type' => 'number', 'default' => 1, 'description' => '親フォルダID'],
                         'description' => ['type' => 'string', 'description' => '説明文'],
-                        'template' => ['type' => 'string', 'description' => 'テンプレート名'],
-                        'listCount' => ['type' => 'number', 'description' => 'リスト表示件数'],
-                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'description' => 'リスト表示方向（ASC|DESC）'],
-                        'listOrder' => ['type' => 'string', 'description' => 'リスト表示順序'],
-                        'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）']
+                        'authorId' => ['type' => 'number', 'default' => 1, 'description' => '作成者ID'],
+                        'layoutTemplate' => ['type' => 'string', 'description' => 'レイアウトテンプレート名'],
+                        'status' => ['type' => 'number', 'description' => '公開状態（0: 非公開状態, 1: 公開状態）'],
+                        'publishBegin' => ['type' => 'string', 'description' => '公開開始日時（YYYY-MM-DD HH:MM:SS形式）'],
+                        'publishEnd' => ['type' => 'string', 'description' => '公開終了日時（YYYY-MM-DD HH:MM:SS形式）'],
+                        'excludeSearch' => ['type' => 'boolean', 'description' => '検索結果から除外するかどうか'],
+                        'excludeMenu' => ['type' => 'boolean', 'description' => 'メニューから除外するかどうか'],
+                        'blankLink' => ['type' => 'boolean', 'description' => 'リンクを新しいタブで開くかどうか'],
+                        'template' => ['type' => 'string', 'default' => 'default', 'description' => 'テンプレート名'],
+                        'widgetAreaId' => ['type' => 'number', 'description' => 'ウィジェットエリアID'],
+                        'listCount' => ['type' => 'number', 'default' => 10, 'description' => 'リスト表示件数'],
+                        'listOrder' => ['type' => 'string', 'default' => 'id', 'description' => 'リスト表示順序'],
+                        'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'default' => 'DESC', 'description' => 'リスト表示方向（ASC|DESC）'],
                     ],
                     'required' => ['id']
                 ]
@@ -95,7 +111,7 @@ class CustomContentsTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'deleteCustomContent'],
                 name: 'deleteCustomContent',
-                description: '指定されたIDのカスタムコンテンツを削除します',
+                description: 'カスタムテーブルと紐づくカスタムコンテンツをIDを指定して削除します',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
@@ -109,40 +125,63 @@ class CustomContentsTool extends BaseMcpTool
     /**
      * カスタムコンテンツを追加
      */
-    public function addCustomContent(string $name, string $title, int $customTableId, ?int $siteId = 1, ?int $parentId = 1, ?string $description = null, ?string $template = 'default', ?int $listCount = 10, ?string $listDirection = 'DESC', ?string $listOrder = 'id', ?int $status = null): array
+    public function addCustomContent(
+        string $name,
+        string $title,
+        int $customTableId,
+        ?int $siteId = 1,
+        ?int $parentId = 1,
+        ?string $description = null,
+        ?int $authorId = null,
+        ?string $layoutTemplate = null,
+        ?bool $status = false,
+        ?string $publishBegin = null,
+        ?string $publishEnd = null,
+        ?bool $excludeSearch = false,
+        ?bool $excludeMenu = false,
+        ?bool $blankLink = false,
+        ?string $template = 'default',
+        ?int $listCount = 10,
+        ?string $listOrder = 'published',
+        ?string $listDirection = 'DESC',
+        ?int $loginUserId = null
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($name, $title, $customTableId, $siteId, $parentId, $description, $template, $listCount, $listDirection, $listOrder, $status) {
+        return $this->executeWithErrorHandling(function() use (
+            $name, $title, $customTableId, $siteId, $parentId, $description, $authorId, $layoutTemplate, $status,
+            $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $listCount,
+            $listOrder, $listDirection, $loginUserId
+        ) {
+
+            /** @var CustomContentsService $customContentsService */
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             // Content entity data structure required by baserCMS
             $data = [
                 'name' => $name,
                 'title' => $title,
-                'customTableId' => $customTableId,
-                'siteId' => $siteId,
-                'parentId' => $parentId,
+                'custom_table_id' => $customTableId,
                 'description' => $description,
                 'template' => $template,
-                'listCount' => $listCount,
-                'listDirection' => $listDirection,
-                'listOrder' => $listOrder,
-                'status' => $status,
+                'list_count' => $listCount,
+                'list_direction' => $listDirection,
+                'list_order' => $listOrder,
                 'content' => [
                     'name' => $name,
                     'plugin' => 'BcCustomContent',
                     'type' => 'CustomContent',
                     'title' => $title,
                     'description' => $description ?? '',
-                    'siteId' => $siteId,
-                    'parentId' => $parentId,
-                    'status' => $status ?? true,
-                    'authorId' => 1,
-                    'layoutTemplate' => '',
-                    'excludeSearch' => false,
-                    'selfStatus' => true,
-                    'siteRoot' => false,
-                    'excludeMenu' => false,
-                    'blankLink' => false
+                    'site_id' => $siteId,
+                    'parent_id' => $parentId,
+                    'author_id' => $authorId ?? $loginUserId ?? 1,
+                    'layout_template' => $layoutTemplate ?? '',
+                    'exclude_search' => $excludeSearch,
+                    'self_status' => $status ?? false,
+                    'publish_begin' => $publishBegin ?? null,
+                    'publish_end' => $publishEnd ?? null,
+                    'exclude_menu' => $excludeMenu ?? false,
+                    'blank_link' => $blankLink ?? false
                 ]
             ];
 
@@ -159,36 +198,19 @@ class CustomContentsTool extends BaseMcpTool
     /**
      * カスタムコンテンツ一覧を取得
      */
-    public function getCustomContents(?int $customTableId = null, ?int $siteId = null, ?string $keyword = null, ?int $status = null, ?int $limit = null, ?int $page = 1): array
+    public function getCustomContents(
+        ?string $status = null,
+        ?int $limit = null,
+        ?int $page = 1
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($customTableId, $siteId, $keyword, $status, $limit, $page) {
+        return $this->executeWithErrorHandling(function() use ($status, $limit, $page) {
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             $conditions = [];
-
-            if (!empty($customTableId)) {
-                $conditions['customTableId'] = $customTableId;
-            }
-
-            if (!empty($siteId)) {
-                $conditions['siteId'] = $siteId;
-            }
-
-            if (!empty($keyword)) {
-                $conditions['keyword'] = $keyword;
-            }
-
-            if (isset($status)) {
-                $conditions['status'] = $status;
-            }
-
-            if (!empty($limit)) {
-                $conditions['limit'] = $limit;
-            }
-
-            if (!empty($page)) {
-                $conditions['page'] = $page;
-            }
+            if (isset($status)) $conditions['status'] = $status;
+            if (!empty($limit)) $conditions['limit'] = $limit;
+            if (!empty($page)) $conditions['page'] = $page;
 
             $results = $customContentsService->getIndex($conditions)->toArray();
 
@@ -209,8 +231,8 @@ class CustomContentsTool extends BaseMcpTool
     public function getCustomContent(int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
+            /** @var CustomContentsService $customContentsService */
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
-
             $result = $customContentsService->get($id);
 
             if ($result) {
@@ -224,26 +246,60 @@ class CustomContentsTool extends BaseMcpTool
     /**
      * カスタムコンテンツを編集
      */
-    public function editCustomContent(int $id, ?string $name = null, ?string $title = null, ?string $description = null, ?string $template = null, ?int $listCount = null, ?string $listDirection = null, ?string $listOrder = null, ?int $status = null): array
+    public function editCustomContent(
+        int $id,
+        string $name = null,
+        string $title = null,
+        int $customTableId = null,
+        ?int $siteId = null,
+        ?int $parentId = null,
+        ?string $description = null,
+        ?string $authorId = null,
+        ?string $layoutTemplate = null,
+        ?bool $status = false,
+        ?string $publishBegin = null,
+        ?string $publishEnd = null,
+        ?bool $excludeSearch = false,
+        ?bool $excludeMenu = false,
+        ?bool $blankLink = false,
+        ?string $template = null,
+        ?int $listCount = null,
+        ?string $listOrder = null,
+        ?string $listDirection = null
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $description, $template, $listCount, $listDirection, $listOrder, $status) {
+        return $this->executeWithErrorHandling(function() use (
+            $id, $name, $title, $customTableId, $siteId, $parentId, $description, $authorId, $layoutTemplate, $status,
+            $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $listCount,
+            $listOrder, $listDirection
+        ) {
+            /** @var CustomContentsService $customContentsService */
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
 
             $entity = $customContentsService->get($id);
 
-            if (!$entity) {
-                return $this->createErrorResponse('指定されたIDのカスタムコンテンツが見つかりません');
-            }
+            if (!$entity) return $this->createErrorResponse('指定されたIDのカスタムコンテンツが見つかりません');
 
             $data = [];
             if ($name !== null) $data['name'] = $name;
             if ($title !== null) $data['title'] = $title;
+            if ($customTableId !== null) $data['custom_table_id'] = $customTableId;
+            if ($siteId !== null) $data['content']['site_id'] = $siteId;
+            if ($parentId !== null) $data['content']['parent_id'] = $parentId;
+            if ($description !== null) $data['content']['description'] = $description;
+            if ($authorId !== null) $data['content']['author_id'] = $authorId;
+            if ($layoutTemplate !== null) $data['content']['layout_template'] = $layoutTemplate;
+            if ($status !== null) $data['content']['self_status'] = $status;
+            if ($publishBegin !== null) $data['content']['publish_begin'] = $publishBegin;
+            if ($publishEnd !== null) $data['content']['publish_end'] = $publishEnd;
+            if ($excludeSearch !== null) $data['content']['exclude_search'] = $excludeSearch;
+            if ($excludeMenu !== null) $data['content']['exclude_menu'] = $excludeMenu;
+            if ($blankLink !== null) $data['content']['blank_link'] = $blankLink;
             if ($description !== null) $data['description'] = $description;
             if ($template !== null) $data['template'] = $template;
             if ($listCount !== null) $data['listCount'] = $listCount;
-            if ($listDirection !== null) $data['listDirection'] = $listDirection;
             if ($listOrder !== null) $data['listOrder'] = $listOrder;
-            if ($status !== null) $data['status'] = $status;
+            if ($listDirection !== null) $data['listDirection'] = $listDirection;
 
             $result = $customContentsService->update($entity, $data);
 
@@ -261,8 +317,8 @@ class CustomContentsTool extends BaseMcpTool
     public function deleteCustomContent(int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
+            /** @var CustomContentsService $customContentsService */
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
-
             $result = $customContentsService->delete($id);
 
             if ($result) {

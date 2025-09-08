@@ -59,17 +59,13 @@ class CustomContentsToolTest extends BcTestCase
     public function testAddCustomContent()
     {
         $result = $this->CustomContentsTool->addCustomContent(
-            'test-content',
-            'テストカスタムコンテンツ',
-            1, // customTableId
-            1, // siteId
-            1, // parentId
-            'テスト用のカスタムコンテンツです', // description
-            'default', // template
-            10, // listCount
-            'DESC', // listDirection
-            'id', // listOrder
-            1 // status
+            name: 'test-content',
+            title: 'テストカスタムコンテンツ',
+            customTableId: 1,
+            description: 'テスト用のカスタムコンテンツです',
+            authorId: 1,
+            status: true,
+            listOrder: 'id',
         );
 
         $this->assertIsArray($result);
@@ -87,7 +83,10 @@ class CustomContentsToolTest extends BcTestCase
      */
     public function testGetCustomContents()
     {
-        $result = $this->CustomContentsTool->getCustomContents(1, 1, null, null, 10, 1);
+        $result = $this->CustomContentsTool->getCustomContents(
+            status: 'publish',
+            limit: 10,
+        );
 
         $this->assertIsArray($result);
         if (isset($result['success'])) {
@@ -122,15 +121,15 @@ class CustomContentsToolTest extends BcTestCase
     public function testEditCustomContent()
     {
         $result = $this->CustomContentsTool->editCustomContent(
-            1,
-            'updated-name',
-            '更新されたタイトル',
-            '更新された説明',
-            'custom',
-            20,
-            'ASC',
-            'name',
-            1
+            id: 1,
+            name: 'updated-name',
+            title: '更新されたタイトル',
+            description: '更新された説明',
+            template: 'custom',
+            listCount: 20,
+            listDirection: 'ASC',
+            listOrder: 'name',
+            status: true
         );
 
         $this->assertIsArray($result);
@@ -161,7 +160,10 @@ class CustomContentsToolTest extends BcTestCase
      */
     public function testGetCustomContentsWithSearch()
     {
-        $result = $this->CustomContentsTool->getCustomContents(1, 1, 'test', 1, 5, 1);
+        $result = $this->CustomContentsTool->getCustomContents(
+            status: 'publish',
+            limit: 5
+        );
 
         $this->assertIsArray($result);
         if (isset($result['success'])) {

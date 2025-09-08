@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcCustomContent;
 
-use BaserCore\Utility\BcContainerTrait;
+use BcCustomContent\Service\CustomLinksService;
 use BcCustomContent\Service\CustomLinksServiceInterface;
 use PhpMcp\Server\ServerBuilder;
 use CuMcp\Mcp\BaseMcpTool;
@@ -33,12 +33,22 @@ class CustomLinksTool extends BaseMcpTool
                         'title' => ['type' => 'string', 'description' => 'カスタムリンクのタイトル（必須）'],
                         'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'customFieldId' => ['type' => 'number', 'description' => 'カスタムフィールドID（必須）'],
-                        'status' => ['type' => 'boolean', 'description' => '公開状態'],
-                        'useApi' => ['type' => 'boolean', 'description' => 'API使用'],
-                        'searchTargetFront' => ['type' => 'boolean', 'description' => 'フロント検索対象'],
-                        'searchTargetAdmin' => ['type' => 'boolean', 'description' => '管理画面検索対象'],
-                        'displayFront' => ['type' => 'boolean', 'description' => 'フロント表示'],
-                        'type' => ['type' => 'string', 'description' => 'タイプ']
+                        'parentId' => ['type' => 'number', 'description' => '親カスタムリンクID'],
+                        'beforeHead' => ['type' => 'string', 'description' => '入力欄の前見出し'],
+                        'afterHead' => ['type' => 'string', 'description' => '入力欄の後見出し'],
+                        'description' => ['type' => 'string', 'description' => 'ヘルプメッセージ'],
+                        'attention' => ['type' => 'string', 'description' => '注意書き'],
+                        'options' => ['type' => 'string', 'description' => 'フィールド属性。フィールドのコントロールに対して追加の属性を指定する場合に入力します。 属性名と値をパイプ（|）で区切って指定します。複数属性を連続で指定する事ができます。例）data-sample1|value1|data-sample2|value2'],
+                        'class' => ['type' => 'string', 'description' => 'フィールドのクラス属性'],
+                        'beforeLinefeed' => ['type' => 'string', 'description' => '入力欄の前に改行を入れる'],
+                        'afterLinefeed' => ['type' => 'string', 'description' => '入力欄の後に改行を入れる'],
+                        'displayAdminList' => ['type' => 'boolean', 'description' => '管理画面のエントリー一覧に項目を表示する'],
+                        'displayFront' => ['type' => 'boolean', 'description' => 'テーマのヘルパーで呼び出せる'],
+                        'searchTargetAdmin' => ['type' => 'boolean', 'description' => '管理画面で検索対象とする'],
+                        'searchTargetFront' => ['type' => 'boolean', 'description' => 'テーマ、Web API において検索対象にする'],
+                        'useApi' => ['type' => 'boolean', 'description' => 'Web API の返却値に含める'],
+                        'required' => ['type' => 'boolean', 'description' => '必須項目とする'],
+                        'status' => ['type' => 'boolean', 'description' => '公開状態（0: 無効, 1: 有効）'],
                     ],
                     'required' => ['name', 'title', 'customTableId', 'customFieldId']
                 ]
@@ -51,13 +61,12 @@ class CustomLinksTool extends BaseMcpTool
                     'type' => 'object',
                     'properties' => [
                         'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
-                        'customFieldId' => ['type' => 'number', 'description' => 'カスタムフィールドID（必須）'],
+                        'name' => ['type' => 'string', 'description' => 'カスタムリンク名'],
+                        'status' => ['type' => 'number', 'description' => 'ステータス（null: 無効, publish: 有効）'],
                         'limit' => ['type' => 'number', 'description' => '取得件数（省略時は制限なし）'],
                         'page' => ['type' => 'number', 'description' => 'ページ番号（省略時は1ページ目）'],
-                        'keyword' => ['type' => 'string', 'description' => '検索キーワード'],
-                        'status' => ['type' => 'number', 'description' => 'ステータス（0: 無効, 1: 有効）'],
-                        'type' => ['type' => 'string', 'description' => 'タイプでの絞り込み']
-                    ]
+                    ],
+                    'required' => ['customTableId']
                 ]
             )
             ->withTool(
@@ -82,14 +91,24 @@ class CustomLinksTool extends BaseMcpTool
                         'id' => ['type' => 'number', 'description' => 'カスタムリンクID（必須）'],
                         'name' => ['type' => 'string', 'description' => 'カスタムリンク名'],
                         'title' => ['type' => 'string', 'description' => 'カスタムリンクのタイトル'],
-                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
-                        'customFieldId' => ['type' => 'number', 'description' => 'カスタムフィールドID（必須）'],
-                        'status' => ['type' => 'boolean', 'description' => '公開状態'],
-                        'useApi' => ['type' => 'boolean', 'description' => 'API使用'],
-                        'searchTargetFront' => ['type' => 'boolean', 'description' => 'フロント検索対象'],
-                        'searchTargetAdmin' => ['type' => 'boolean', 'description' => '管理画面検索対象'],
-                        'displayFront' => ['type' => 'boolean', 'description' => 'フロント表示'],
-                        'type' => ['type' => 'string', 'description' => 'タイプ']
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID'],
+                        'customFieldId' => ['type' => 'number', 'description' => 'カスタムフィールドID'],
+                        'parentId' => ['type' => 'number', 'description' => '親カスタムリンクID'],
+                        'beforeHead' => ['type' => 'string', 'description' => '入力欄の前見出し'],
+                        'afterHead' => ['type' => 'string', 'description' => '入力欄の後見出し'],
+                        'description' => ['type' => 'string', 'description' => 'ヘルプメッセージ'],
+                        'attention' => ['type' => 'string', 'description' => '注意書き'],
+                        'options' => ['type' => 'string', 'description' => 'フィールド属性。フィールドのコントロールに対して追加の属性を指定する場合に入力します。 属性名と値をパイプ（|）で区切って指定します。複数属性を連続で指定する事ができます。例）data-sample1|value1|data-sample2|value2'],
+                        'class' => ['type' => 'string', 'description' => 'フィールドのクラス属性'],
+                        'beforeLinefeed' => ['type' => 'string', 'description' => '入力欄の前に改行を入れる'],
+                        'afterLinefeed' => ['type' => 'string', 'description' => '入力欄の後に改行を入れる'],
+                        'displayAdminList' => ['type' => 'boolean', 'description' => '管理画面のエントリー一覧に項目を表示する'],
+                        'displayFront' => ['type' => 'boolean', 'description' => 'テーマのヘルパーで呼び出せる'],
+                        'searchTargetAdmin' => ['type' => 'boolean', 'description' => '管理画面で検索対象とする'],
+                        'searchTargetFront' => ['type' => 'boolean', 'description' => 'テーマ、Web API において検索対象にする'],
+                        'useApi' => ['type' => 'boolean', 'description' => 'Web API の返却値に含める'],
+                        'required' => ['type' => 'boolean', 'description' => '必須項目とする'],
+                        'status' => ['type' => 'boolean', 'description' => '公開状態（0: 無効, 1: 有効）'],
                     ],
                     'required' => ['id']
                 ]
@@ -111,9 +130,34 @@ class CustomLinksTool extends BaseMcpTool
     /**
      * カスタムリンクを追加
      */
-    public function addCustomLink(string $name, string $title, int $customTableId, int $customFieldId, ?bool $status = null, ?bool $useApi = null, ?bool $searchTargetFront = null, ?bool $searchTargetAdmin = null, ?bool $displayFront = null, ?string $type = null): array
+    public function addCustomLink(
+        string $name,
+        string $title,
+        int $customTableId,
+        int $customFieldId,
+        ?int $parentId = null,
+        ?string $beforeHead = null,
+        ?string $afterHead = null,
+        ?string $description = null,
+        ?string $attention = null,
+        ?string $options = null,
+        ?string $class = null,
+        ?string $beforeLinefeed = null,
+        ?string $afterLinefeed = null,
+        ?bool $displayAdminList = null,
+        ?bool $displayFront = null,
+        ?bool $searchTargetFront = null,
+        ?bool $searchTargetAdmin = null,
+        ?bool $useApi = null,
+        ?bool $required = null,
+        ?bool $status = null,
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($name, $title, $customTableId, $customFieldId, $status, $useApi, $searchTargetFront, $searchTargetAdmin, $displayFront, $type) {
+        return $this->executeWithErrorHandling(function() use (
+            $name, $title, $customTableId, $customFieldId, $parentId, $beforeHead, $afterHead, $description,
+            $attention, $options, $class, $beforeLinefeed, $afterLinefeed, $displayAdminList, $displayFront,
+            $searchTargetFront, $searchTargetAdmin, $useApi, $required, $status
+        ) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $data = [
@@ -121,12 +165,22 @@ class CustomLinksTool extends BaseMcpTool
                 'title' => $title,
                 'customTableId' => $customTableId,
                 'customFieldId' => $customFieldId,
-                'status' => $status,
-                'useApi' => $useApi,
+                'parentId' => $parentId,
+                'beforeHead' => $beforeHead,
+                'afterHead' => $afterHead,
+                'description' => $description,
+                'attention' => $attention,
+                'options' => $options,
+                'class' => $class,
+                'beforeLinefeed' => $beforeLinefeed,
+                'afterLinefeed' => $afterLinefeed,
+                'displayAdminList' => $displayAdminList,
+                'displayFront' => $displayFront,
                 'searchTargetFront' => $searchTargetFront,
                 'searchTargetAdmin' => $searchTargetAdmin,
-                'displayFront' => $displayFront,
-                'type' => $type
+                'useApi' => $useApi,
+                'required' => $required,
+                'status' => $status,
             ];
 
             $result = $customLinksService->create($data);
@@ -142,39 +196,26 @@ class CustomLinksTool extends BaseMcpTool
     /**
      * カスタムリンク一覧を取得
      */
-    public function getCustomLinks(?int $customTableId = null, ?int $customFieldId = null, ?string $keyword = null, ?int $status = null, ?string $type = null, ?int $limit = null, ?int $page = 1): array
+    public function getCustomLinks(
+        int $customTableId,
+        ?string $name = null,
+        ?string $status = null,
+        ?int $limit = null,
+        ?int $page = 1
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($customTableId, $customFieldId, $keyword, $status, $type, $limit, $page) {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $name, $status, $limit, $page) {
+            /** @var CustomLinksService $customLinksService */
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
-            $conditions = [];
-
-            if (!empty($customFieldId)) {
-                $conditions['customFieldId'] = $customFieldId;
-            }
-
-            if (!empty($keyword)) {
-                $conditions['keyword'] = $keyword;
-            }
-
-            if (isset($status)) {
-                $conditions['status'] = $status;
-            }
-
-            if (!empty($type)) {
-                $conditions['type'] = $type;
-            }
-
-            if (!empty($limit)) {
-                $conditions['limit'] = $limit;
-            }
-
-            if (!empty($page)) {
-                $conditions['page'] = $page;
-            }
+            $conditions = ['finder' => 'all'];
+            if (!empty($name)) $conditions['name'] = $name;
+            if (isset($status)) $conditions['status'] = $status;
+            if (!empty($limit)) $conditions['limit'] = $limit;
+            if (!empty($page)) $conditions['page'] = $page;
 
             // CustomLinksService::getIndex() は custom_table_id を最初の引数として期待している
-            $results = $customLinksService->getIndex($customTableId ?? 1, $conditions)->toArray();
+            $results = $customLinksService->getIndex($customTableId, $conditions)->toArray();
 
             return $this->createSuccessResponse([
                 'results' => $results,
@@ -193,8 +234,8 @@ class CustomLinksTool extends BaseMcpTool
     public function getCustomLink(int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
+            /** @var CustomLinksService $customLinksService */
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
-
             $result = $customLinksService->get($id);
 
             if ($result) {
@@ -208,9 +249,35 @@ class CustomLinksTool extends BaseMcpTool
     /**
      * カスタムリンクを編集
      */
-    public function editCustomLink(int $id, ?string $name = null, ?string $title = null, ?int $customTableId = null, ?int $customFieldId = null, ?bool $status = null, ?bool $useApi = null, ?bool $searchTargetFront = null, ?bool $searchTargetAdmin = null, ?bool $displayFront = null, ?string $type = null): array
+    public function editCustomLink(
+        int $id,
+        ?string $name = null,
+        ?string $title = null,
+        ?int $customTableId = null,
+        ?int $customFieldId = null,
+        ?int $parentId = null,
+        ?string $beforeHead = null,
+        ?string $afterHead = null,
+        ?string $description = null,
+        ?string $attention = null,
+        ?string $options = null,
+        ?string $class = null,
+        ?string $beforeLinefeed = null,
+        ?string $afterLinefeed = null,
+        ?bool $displayAdminList = null,
+        ?bool $displayFront = null,
+        ?bool $searchTargetFront = null,
+        ?bool $searchTargetAdmin = null,
+        ?bool $useApi = null,
+        ?bool $required = null,
+        ?bool $status = null,
+    ): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $name, $title, $customTableId, $customFieldId, $status, $useApi, $searchTargetFront, $searchTargetAdmin, $displayFront, $type) {
+        return $this->executeWithErrorHandling(function() use (
+            $id, $name, $title, $customTableId, $customFieldId, $parentId, $beforeHead, $afterHead, $description,
+            $attention, $options, $class, $beforeLinefeed, $afterLinefeed, $displayAdminList, $displayFront,
+            $searchTargetFront, $searchTargetAdmin, $useApi, $required, $status
+        ) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
             $entity = $customLinksService->get($id);
@@ -222,14 +289,24 @@ class CustomLinksTool extends BaseMcpTool
             $data = [];
             if ($name !== null) $data['name'] = $name;
             if ($title !== null) $data['title'] = $title;
-            if ($customTableId !== null) $data['customTableId'] = $customTableId;
-            if ($customFieldId !== null) $data['customFieldId'] = $customFieldId;
-            if ($status !== null) $data['status'] = $status;
+            if ($customTableId !== null) $data['custom_table_id'] = $customTableId;
+            if ($customFieldId !== null) $data['custom_field_id'] = $customFieldId;
+            if ($parentId !== null) $data['parent_id'] = $parentId;
+            if ($beforeHead !== null) $data['before_head'] = $beforeHead;
+            if ($afterHead !== null) $data['after_head'] = $afterHead;
+            if ($description !== null) $data['description'] = $description;
+            if ($attention !== null) $data['attention'] = $attention;
+            if ($options !== null) $data['options'] = $options;
+            if ($class !== null) $data['class'] = $class;
+            if ($beforeLinefeed !== null) $data['before_linefeed'] = $beforeLinefeed;
+            if ($afterLinefeed !== null) $data['after_linefeed'] = $afterLinefeed;
+            if ($displayAdminList !== null) $data['display_admin_list'] = $displayAdminList;
+            if ($displayFront !== null) $data['display_front'] = $displayFront;
+            if ($searchTargetFront !== null) $data['search_target_front'] = $searchTargetFront;
+            if ($searchTargetAdmin !== null) $data['search_target_admin'] = $searchTargetAdmin;
             if ($useApi !== null) $data['useApi'] = $useApi;
-            if ($searchTargetFront !== null) $data['searchTargetFront'] = $searchTargetFront;
-            if ($searchTargetAdmin !== null) $data['searchTargetAdmin'] = $searchTargetAdmin;
-            if ($displayFront !== null) $data['displayFront'] = $displayFront;
-            if ($type !== null) $data['type'] = $type;
+            if ($required !== null) $data['required'] = $required;
+            if ($status !== null) $data['status'] = $status;
 
             $result = $customLinksService->update($entity, $data);
 
@@ -247,8 +324,8 @@ class CustomLinksTool extends BaseMcpTool
     public function deleteCustomLink(int $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
+            /** @var CustomLinksService $customLinksService */
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
-
             $result = $customLinksService->delete($id);
 
             if ($result) {
