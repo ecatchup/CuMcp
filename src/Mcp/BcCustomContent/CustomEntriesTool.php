@@ -33,6 +33,32 @@ class CustomEntriesTool extends BaseMcpTool
                         'title' => ['type' => 'string', 'description' => 'タイトル（必須）'],
                         'parentId' => ['type' => 'number', 'description' => '親カスタムリンクID（対象となるカスタムテーブルの type がマスタの場合のみ指定可能）'],
                         'name' => ['type' => 'string', 'default' => '', 'description' => 'スラッグ（初期値空文字）'],
+                        'creatorId' => ['type' => 'number', 'description' => '投稿者ID（省略時はログインユーザーID）'],
+                        'status' => ['type' => 'boolean', 'default' => false, 'description' => '公開状態（デフォルト：false）'],
+                        'publishBegin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
+                        'publishEnd' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
+                        'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'],
+                        'customFields' => [
+                            'type' => 'object',
+                            'additionalProperties' => true,
+                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、参照が可能なファイルのパスを指定します'
+                        ]
+                    ],
+                    'required' => ['customTableId']
+                ]
+            )
+            ->withTool(
+                handler: [self::class, 'editCustomEntry'],
+                name: 'editCustomEntry',
+                description: '指定されたIDのカスタムエントリーを編集します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）'],
+                        'title' => ['type' => 'string', 'description' => 'タイトル（必須）'],
+                        'parentId' => ['type' => 'number', 'description' => '親カスタムリンクID（対象となるカスタムテーブルの type がマスタの場合のみ指定可能）'],
+                        'name' => ['type' => 'string', 'default' => '', 'description' => 'スラッグ（初期値空文字）'],
                         'creatorId' => ['type' => 'number', 'description' => '投稿者ID'],
                         'status' => ['type' => 'boolean', 'default' => false, 'description' => '公開状態（デフォルト：false）'],
                         'publishBegin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
@@ -41,11 +67,10 @@ class CustomEntriesTool extends BaseMcpTool
                         'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
-                            'default' => (object)[],
-                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、参照が可能なファイルのパスを指定します'
+                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）'
                         ]
                     ],
-                    'required' => ['customTableId']
+                    'required' => ['customTableId', 'id']
                 ]
             )
             ->withTool(
@@ -72,33 +97,6 @@ class CustomEntriesTool extends BaseMcpTool
                     'properties' => [
                         'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
                         'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）']
-                    ],
-                    'required' => ['customTableId', 'id']
-                ]
-            )
-            ->withTool(
-                handler: [self::class, 'editCustomEntry'],
-                name: 'editCustomEntry',
-                description: '指定されたIDのカスタムエントリーを編集します',
-                inputSchema: [
-                    'type' => 'object',
-                    'properties' => [
-                        'customTableId' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
-                        'id' => ['type' => 'number', 'description' => 'カスタムエントリーID（必須）'],
-                        'title' => ['type' => 'string', 'description' => 'タイトル（必須）'],
-                        'parentId' => ['type' => 'number', 'description' => '親カスタムリンクID（対象となるカスタムテーブルの type がマスタの場合のみ指定可能）'],
-                        'name' => ['type' => 'string', 'default' => '', 'description' => 'スラッグ（初期値空文字）'],
-                        'creatorId' => ['type' => 'number', 'description' => '投稿者ID'],
-                        'status' => ['type' => 'boolean', 'default' => false, 'description' => '公開状態（デフォルト：false）'],
-                        'publishBegin' => ['type' => 'string', 'description' => '公開開始日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
-                        'publishEnd' => ['type' => 'string', 'description' => '公開終了日（YYYY-MM-DD HH:mm:ss形式、省略可）'],
-                        'published' => ['type' => 'string', 'description' => '公開日（YYYY-MM-DD HH:mm:ss形式、省略時は当日）'],
-                        'customFields' => [
-                            'type' => 'object',
-                            'additionalProperties' => true,
-                            'default' => (object)[],
-                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）'
-                        ]
                     ],
                     'required' => ['customTableId', 'id']
                 ]
