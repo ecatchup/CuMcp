@@ -18,10 +18,10 @@ class BcBlogServer
     public static function getToolClasses(): array
     {
         return [
+            BlogContentsTool::class,
             BlogPostsTool::class,
             BlogCategoriesTool::class,
             BlogTagsTool::class,
-            BlogContentsTool::class,
         ];
     }
 }

@@ -18,10 +18,10 @@ class BcCustomContentServer
     public static function getToolClasses(): array
     {
         return [
-            CustomEntriesTool::class,
-            CustomTablesTool::class,
             CustomFieldsTool::class,
+            CustomTablesTool::class,
             CustomContentsTool::class,
+            CustomEntriesTool::class,
             CustomLinksTool::class,
         ];
     }

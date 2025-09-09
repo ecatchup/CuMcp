@@ -33,9 +33,9 @@ class CustomTablesTool extends BaseMcpTool
                     'properties' => [
                         'title' => ['type' => 'string', 'description' => 'テーブルタイトル（必須）'],
                         'name' => ['type' => 'string', 'description' => 'テーブル名（英数小文字、アンダースコアのみ）'],
-                        'type' => ['type' => 'int', 'enum' => ['1:コンテンツ', '2:マスタ'], 'description' => 'テーブルタイプ（初期値は1）'],
+                        'type' => ['type' => 'number', 'enum' => [1, 2], 'description' => 'テーブルタイプ（1:コンテンツ, 2:マスタ）（初期値は1）'],
                         'displayField' => ['type' => 'string', 'description' => '表示フィールド（type がコンテンツの場合に指定要、title / name / 関連付いたカスタムリンクの name から選択、初期値は title）'],
-                        'hasChild' => ['type' => 'int', 'enum' => ['0:持たない', '1:持つ'], 'description' => '子テーブルを持つかどうか（type がマスタの場合に指定が可能。初期値は0）'],
+                        'hasChild' => ['type' => 'boolean', 'description' => '子テーブルを持つかどうか（false:持たない, true:持つ）（type がマスタの場合に指定が可能。初期値は0）'],
                         'customFieldNames' => [
                             'type' => 'array',
                             'items' => ['type' => 'string'],
@@ -43,6 +43,28 @@ class CustomTablesTool extends BaseMcpTool
                         ]
                     ],
                     'required' => ['title']
+                ]
+            )
+            ->withTool(
+                handler: [self::class, 'editCustomTable'],
+                name: 'editCustomTable',
+                description: '指定されたIDのカスタムテーブルを編集します',
+                inputSchema: [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
+                        'title' => ['type' => 'string', 'description' => 'テーブルタイトル'],
+                        'name' => ['type' => 'string', 'description' => 'テーブル名（英数小文字、アンダースコアのみ）'],
+                        'type' => ['type' => 'number', 'enum' => [1, 2], 'description' => 'テーブルタイプ（1:コンテンツ, 2:マスタ）'],
+                        'displayField' => ['type' => 'string', 'description' => '表示フィールド（type がコンテンツの場合に指定要、title / name / 関連付いたカスタムリンクの name から選択、初期値は title）'],
+                        'hasChild' => ['type' => 'boolean', 'description' => '子テーブルを持つかどうか（false:持たない, true:持つ）（type がマスタの場合に指定が可能。初期値は0）'],
+                        'customFieldNames' => [
+                            'type' => 'array',
+                            'items' => ['type' => 'string'],
+                            'description' => '関連付けるカスタムフィールドの名前配列'
+                        ]
+                    ],
+                    'required' => ['id']
                 ]
             )
             ->withTool(
@@ -64,28 +86,6 @@ class CustomTablesTool extends BaseMcpTool
                     'type' => 'object',
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）']
-                    ],
-                    'required' => ['id']
-                ]
-            )
-            ->withTool(
-                handler: [self::class, 'editCustomTable'],
-                name: 'editCustomTable',
-                description: '指定されたIDのカスタムテーブルを編集します',
-                inputSchema: [
-                    'type' => 'object',
-                    'properties' => [
-                        'id' => ['type' => 'number', 'description' => 'カスタムテーブルID（必須）'],
-                        'title' => ['type' => 'string', 'description' => 'テーブルタイトル'],
-                        'name' => ['type' => 'string', 'description' => 'テーブル名（英数小文字、アンダースコアのみ）'],
-                        'type' => ['type' => 'int', 'enum' => ['1:コンテンツ', '2:マスタ'], 'description' => 'テーブルタイプ'],
-                        'displayField' => ['type' => 'string', 'description' => '表示フィールド（type がコンテンツの場合に指定要、title / name / 関連付いたカスタムリンクの name から選択）'],
-                        'hasChild' => ['type' => 'int', 'enum' => ['0:持たない', '1:持つ'], 'description' => '子テーブルを持つかどうか（type がマスタの場合に指定が可能）'],
-                        'customFieldNames' => [
-                            'type' => 'array',
-                            'items' => ['type' => 'string'],
-                            'description' => '関連付けるカスタムフィールドの名前配列'
-                        ]
                     ],
                     'required' => ['id']
                 ]

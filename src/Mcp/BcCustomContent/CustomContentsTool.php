@@ -44,7 +44,7 @@ class CustomContentsTool extends BaseMcpTool
                         'excludeMenu' => ['type' => 'boolean', 'description' => 'メニューから除外するかどうか（初期値: false）'],
                         'blankLink' => ['type' => 'boolean', 'description' => 'リンクを新しいタブで開くかどうか（初期値: false）'],
                         'template' => ['type' => 'string', 'default' => 'default', 'description' => 'テンプレート名（初期値: default）'],
-                        'widgetAreaId' => ['type' => 'number', 'description' => 'ウィジェットエリアID（初期値: システムのデフォルト）'],
+                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリアID（初期値: システムのデフォルト）'],
                         'listCount' => ['type' => 'number', 'default' => 10, 'description' => 'リスト表示件数（初期値: 10）'],
                         'listOrder' => ['type' => 'string', 'default' => 'id', 'description' => 'リスト表示順序（初期値: published）'],
                         'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'default' => 'DESC', 'description' => 'リスト表示方向（ASC|DESC、初期値: DESC）'],
@@ -100,7 +100,7 @@ class CustomContentsTool extends BaseMcpTool
                         'excludeMenu' => ['type' => 'boolean', 'description' => 'メニューから除外するかどうか'],
                         'blankLink' => ['type' => 'boolean', 'description' => 'リンクを新しいタブで開くかどうか'],
                         'template' => ['type' => 'string', 'default' => 'default', 'description' => 'テンプレート名'],
-                        'widgetAreaId' => ['type' => 'number', 'description' => 'ウィジェットエリアID'],
+                        'widgetArea' => ['type' => 'number', 'description' => 'ウィジェットエリアID'],
                         'listCount' => ['type' => 'number', 'default' => 10, 'description' => 'リスト表示件数'],
                         'listOrder' => ['type' => 'string', 'default' => 'id', 'description' => 'リスト表示順序'],
                         'listDirection' => ['type' => 'string', 'enum' => ['ASC', 'DESC'], 'default' => 'DESC', 'description' => 'リスト表示方向（ASC|DESC）'],
@@ -141,6 +141,7 @@ class CustomContentsTool extends BaseMcpTool
         ?bool $excludeMenu = false,
         ?bool $blankLink = false,
         ?string $template = 'default',
+        ?int $widgetArea = null,
         ?int $listCount = 10,
         ?string $listOrder = 'published',
         ?string $listDirection = 'DESC',
@@ -149,7 +150,7 @@ class CustomContentsTool extends BaseMcpTool
     {
         return $this->executeWithErrorHandling(function() use (
             $name, $title, $customTableId, $siteId, $parentId, $description, $authorId, $layoutTemplate, $status,
-            $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $listCount,
+            $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $widgetArea, $listCount,
             $listOrder, $listDirection, $loginUserId
         ) {
 
@@ -163,6 +164,7 @@ class CustomContentsTool extends BaseMcpTool
                 'custom_table_id' => $customTableId,
                 'description' => $description,
                 'template' => $template,
+                'widget_area' => $widgetArea,
                 'list_count' => $listCount,
                 'list_direction' => $listDirection,
                 'list_order' => $listOrder,
@@ -191,6 +193,77 @@ class CustomContentsTool extends BaseMcpTool
                 return $this->createSuccessResponse($result->toArray());
             } else {
                 return $this->createErrorResponse('カスタムコンテンツの保存に失敗しました');
+            }
+        });
+    }
+
+
+    /**
+     * カスタムコンテンツを編集
+     */
+    public function editCustomContent(
+        int $id,
+        string $name = null,
+        string $title = null,
+        int $customTableId = null,
+        ?int $siteId = null,
+        ?int $parentId = null,
+        ?string $description = null,
+        ?string $authorId = null,
+        ?string $layoutTemplate = null,
+        ?bool $status = false,
+        ?string $publishBegin = null,
+        ?string $publishEnd = null,
+        ?bool $excludeSearch = false,
+        ?bool $excludeMenu = false,
+        ?bool $blankLink = false,
+        ?string $template = null,
+        ?int $widgetArea = null,
+        ?int $listCount = null,
+        ?string $listOrder = null,
+        ?string $listDirection = null
+    ): array
+    {
+        return $this->executeWithErrorHandling(function() use (
+            $id, $name, $title, $customTableId, $siteId, $parentId, $description, $authorId, $layoutTemplate, $status,
+            $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $widgetArea, $listCount,
+            $listOrder, $listDirection
+        ) {
+            /** @var CustomContentsService $customContentsService */
+            $customContentsService = $this->getService(CustomContentsServiceInterface::class);
+
+            $entity = $customContentsService->get($id);
+
+            if (!$entity) return $this->createErrorResponse('指定されたIDのカスタムコンテンツが見つかりません');
+
+            $data = [];
+            if ($name !== null) $data['name'] = $name;
+            if ($title !== null) $data['title'] = $title;
+            if ($customTableId !== null) $data['custom_table_id'] = $customTableId;
+            if ($siteId !== null) $data['content']['site_id'] = $siteId;
+            if ($parentId !== null) $data['content']['parent_id'] = $parentId;
+            if ($description !== null) $data['content']['description'] = $description;
+            if ($authorId !== null) $data['content']['author_id'] = $authorId;
+            if ($layoutTemplate !== null) $data['content']['layout_template'] = $layoutTemplate;
+            if ($status !== null) $data['content']['self_status'] = $status;
+            if ($publishBegin !== null) $data['content']['publish_begin'] = $publishBegin;
+            if ($publishEnd !== null) $data['content']['publish_end'] = $publishEnd;
+            if ($excludeSearch !== null) $data['content']['exclude_search'] = $excludeSearch;
+            if ($excludeMenu !== null) $data['content']['exclude_menu'] = $excludeMenu;
+            if ($blankLink !== null) $data['content']['blank_link'] = $blankLink;
+            if ($description !== null) $data['description'] = $description;
+            if ($template !== null) $data['template'] = $template;
+            if ($widgetArea !== null) $data['widget_area'] = $widgetArea;
+            if ($listCount !== null) $data['list_count'] = $listCount;
+            if ($listOrder !== null) $data['list_order'] = $listOrder;
+            if ($listDirection !== null) $data['list_direction'] = $listDirection;
+
+            $result = $customContentsService->update($entity, $data);
+
+            if ($result) {
+                return $this->createSuccessResponse($result->toArray());
+            } else {
+                return $this->createErrorResponse('カスタムコンテンツの更新に失敗しました');
             }
         });
     }
@@ -239,74 +312,6 @@ class CustomContentsTool extends BaseMcpTool
                 return $this->createSuccessResponse($result->toArray());
             } else {
                 return $this->createErrorResponse('指定されたIDのカスタムコンテンツが見つかりません');
-            }
-        });
-    }
-
-    /**
-     * カスタムコンテンツを編集
-     */
-    public function editCustomContent(
-        int $id,
-        string $name = null,
-        string $title = null,
-        int $customTableId = null,
-        ?int $siteId = null,
-        ?int $parentId = null,
-        ?string $description = null,
-        ?string $authorId = null,
-        ?string $layoutTemplate = null,
-        ?bool $status = false,
-        ?string $publishBegin = null,
-        ?string $publishEnd = null,
-        ?bool $excludeSearch = false,
-        ?bool $excludeMenu = false,
-        ?bool $blankLink = false,
-        ?string $template = null,
-        ?int $listCount = null,
-        ?string $listOrder = null,
-        ?string $listDirection = null
-    ): array
-    {
-        return $this->executeWithErrorHandling(function() use (
-            $id, $name, $title, $customTableId, $siteId, $parentId, $description, $authorId, $layoutTemplate, $status,
-            $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $listCount,
-            $listOrder, $listDirection
-        ) {
-            /** @var CustomContentsService $customContentsService */
-            $customContentsService = $this->getService(CustomContentsServiceInterface::class);
-
-            $entity = $customContentsService->get($id);
-
-            if (!$entity) return $this->createErrorResponse('指定されたIDのカスタムコンテンツが見つかりません');
-
-            $data = [];
-            if ($name !== null) $data['name'] = $name;
-            if ($title !== null) $data['title'] = $title;
-            if ($customTableId !== null) $data['custom_table_id'] = $customTableId;
-            if ($siteId !== null) $data['content']['site_id'] = $siteId;
-            if ($parentId !== null) $data['content']['parent_id'] = $parentId;
-            if ($description !== null) $data['content']['description'] = $description;
-            if ($authorId !== null) $data['content']['author_id'] = $authorId;
-            if ($layoutTemplate !== null) $data['content']['layout_template'] = $layoutTemplate;
-            if ($status !== null) $data['content']['self_status'] = $status;
-            if ($publishBegin !== null) $data['content']['publish_begin'] = $publishBegin;
-            if ($publishEnd !== null) $data['content']['publish_end'] = $publishEnd;
-            if ($excludeSearch !== null) $data['content']['exclude_search'] = $excludeSearch;
-            if ($excludeMenu !== null) $data['content']['exclude_menu'] = $excludeMenu;
-            if ($blankLink !== null) $data['content']['blank_link'] = $blankLink;
-            if ($description !== null) $data['description'] = $description;
-            if ($template !== null) $data['template'] = $template;
-            if ($listCount !== null) $data['listCount'] = $listCount;
-            if ($listOrder !== null) $data['listOrder'] = $listOrder;
-            if ($listDirection !== null) $data['listDirection'] = $listDirection;
-
-            $result = $customContentsService->update($entity, $data);
-
-            if ($result) {
-                return $this->createSuccessResponse($result->toArray());
-            } else {
-                return $this->createErrorResponse('カスタムコンテンツの更新に失敗しました');
             }
         });
     }
