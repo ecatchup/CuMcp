@@ -41,6 +41,7 @@ class CustomEntriesTool extends BaseMcpTool
                         'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
+                            'default' => (object)[],
                             'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、参照が可能なファイルのパスを指定します'
                         ]
                     ],
@@ -95,6 +96,7 @@ class CustomEntriesTool extends BaseMcpTool
                         'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
+                            'default' => (object)[],
                             'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）'
                         ]
                     ],
@@ -143,10 +145,10 @@ class CustomEntriesTool extends BaseMcpTool
                 'title' => $title,
                 'parentId' => $parentId ?? null,
                 'name' => $name ?? '',
-                'creatorId' => $creatorId ?? 1,
+                'creator_id' => $creatorId ?? 1,
                 'status' => $status ?? false,
-                'publishBegin' => $publishBegin ?? null,
-                'publishEnd' => $publishEnd ?? null,
+                'publish_begin' => $publishBegin ?? null,
+                'publish_end' => $publishEnd ?? null,
                 'published' => $published ?? date('Y-m-d H:i:s'),
             ];
 
@@ -162,6 +164,60 @@ class CustomEntriesTool extends BaseMcpTool
                 return $this->createSuccessResponse($result->toArray());
             } else {
                 return $this->createErrorResponse('カスタムエントリーの保存に失敗しました');
+            }
+        });
+    }
+
+    /**
+     * カスタムエントリーを編集
+     */
+    public function editCustomEntry(
+        int $customTableId,
+        int $id,
+        ?string $title = null,
+        ?int $parentId = null,
+        ?string $name = null,
+        ?int $creatorId = null,
+        ?bool $status = null,
+        ?string $publishBegin = null,
+        ?string $publishEnd = null,
+        ?string $published = null,
+        ?array $customFields = null
+    ): array
+    {
+        return $this->executeWithErrorHandling(function() use (
+            $id, $customTableId, $title, $parentId, $name, $creatorId, $status,
+            $publishBegin, $publishEnd, $published, $customFields
+        ) {
+            /** @var CustomEntriesService $customEntriesService */
+            $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
+            $customEntriesService->setup($customTableId);
+            $entity = $customEntriesService->get($id);
+
+            if (!$entity) return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
+
+            $data = [];
+            if ($title !== null) $data['title'] = $title;
+            if ($parentId !== null) $data['parent_id'] = $parentId;
+            if ($name !== null) $data['name'] = $name;
+            if ($creatorId !== null) $data['creator_id'] = $creatorId;
+            if ($status !== null) $data['status'] = $status;
+            if ($publishBegin !== null) $data['publish_begin'] = $publishBegin;
+            if ($publishEnd !== null) $data['publish_end'] = $publishEnd;
+            if ($published !== null) $data['published'] = $published;
+
+            // カスタムフィールドの値を追加（ファイルアップロード処理を含む）
+            if (!empty($customFields)) {
+                $processedFields = $this->processCustomFields($customFields, $customTableId);
+                $data = array_merge($data, $processedFields);
+            }
+
+            $result = $customEntriesService->update($entity, $data);
+
+            if ($result) {
+                return $this->createSuccessResponse($result->toArray());
+            } else {
+                return $this->createErrorResponse('カスタムエントリーの更新に失敗しました');
             }
         });
     }
@@ -321,60 +377,6 @@ class CustomEntriesTool extends BaseMcpTool
                 return $this->createSuccessResponse($result->toArray());
             } else {
                 return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
-            }
-        });
-    }
-
-    /**
-     * カスタムエントリーを編集
-     */
-    public function editCustomEntry(
-        int $customTableId,
-        int $id,
-        ?string $title = null,
-        ?int $parentId = null,
-        ?string $name = null,
-        ?int $creatorId = null,
-        ?bool $status = null,
-        ?string $publishBegin = null,
-        ?string $publishEnd = null,
-        ?string $published = null,
-        ?array $customFields = null
-    ): array
-    {
-        return $this->executeWithErrorHandling(function() use (
-            $id, $customTableId, $title, $parentId, $name, $creatorId, $status,
-            $publishBegin, $publishEnd, $published, $customFields
-        ) {
-            /** @var CustomEntriesService $customEntriesService */
-            $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
-            $customEntriesService->setup($customTableId);
-            $entity = $customEntriesService->get($id);
-
-            if (!$entity) return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
-
-            $data = [];
-            if ($title !== null) $data['title'] = $title;
-            if ($parentId !== null) $data['parent_id'] = $parentId;
-            if ($name !== null) $data['name'] = $name;
-            if ($creatorId !== null) $data['creator_id'] = $creatorId;
-            if ($status !== null) $data['status'] = $status;
-            if ($publishBegin !== null) $data['publish_begin'] = $publishBegin;
-            if ($publishEnd !== null) $data['publish_end'] = $publishEnd;
-            if ($published !== null) $data['published'] = $published;
-
-            // カスタムフィールドの値を追加（ファイルアップロード処理を含む）
-            if (!empty($customFields)) {
-                $processedFields = $this->processCustomFields($customFields, $customTableId);
-                $data = array_merge($data, $processedFields);
-            }
-
-            $result = $customEntriesService->update($entity, $data);
-
-            if ($result) {
-                return $this->createSuccessResponse($result->toArray());
-            } else {
-                return $this->createErrorResponse('カスタムエントリーの更新に失敗しました');
             }
         });
     }
