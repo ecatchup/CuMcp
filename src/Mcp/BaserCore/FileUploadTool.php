@@ -25,14 +25,14 @@ class FileUploadTool extends BaseMcpTool
             ->withTool(
                 handler: [self::class, 'sendFileChunk'],
                 name: 'sendFileChunk',
-                description: 'ファイルをチャンク分割して送信します。大きなファイルを小さな部分に分けて段階的にアップロードするために使用します。',
+                description: 'ファイルをチャンク分割して送信します。大きなファイルを小さな部分に分けて段階的にアップロードするために使用します。分割したチャンクは30KB以下にしてください。',
                 inputSchema: [
                     'type' => 'object',
                     'properties' => [
                         'fileId' => ['type' => 'string', 'description' => 'ファイルを一意に識別するID（必須）'],
                         'chunkIndex' => ['type' => 'number', 'description' => '現在のチャンクのインデックス番号（0から開始）'],
                         'totalChunks' => ['type' => 'number', 'description' => 'ファイル全体のチャンク総数'],
-                        'chunkData' => ['type' => 'string', 'description' => 'base64エンコードされたチャンクデータ'],
+                        'chunkData' => ['type' => 'string', 'description' => 'base64エンコードされたチャンクデータ（30KB以下）'],
                         'filename' => ['type' => 'string', 'description' => '元のファイル名（拡張子含む）'],
                     ],
                     'required' => ['fileId', 'chunkIndex', 'totalChunks', 'chunkData', 'filename']
