@@ -60,17 +60,17 @@ class BlogPostsTool extends BaseMcpTool
                     'type' => 'object',
                     'properties' => [
                         'title' => ['type' => 'string', 'description' => '記事タイトル（必須）'],
-                        'detail' => ['type' => 'string', 'description' => '記事詳細（必須）'],
+                        'detail' => ['type' => 'string', 'description' => '記事詳細（必須）、マークダウン不可、HTML推奨'],
                         'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名（省略時はデフォルト）'],
                         'name' => ['type' => 'string', 'description' => '記事のスラッグ。URLにおける記事を特定する識別子（省略時はなし）'],
-                        'content' => ['type' => 'string', 'description' => '記事概要（省略時はなし）'],
+                        'content' => ['type' => 'string', 'description' => '記事概要（省略時はなし）、マークダウン不可、HTML推奨'],
                         'category' => ['type' => 'string', 'description' => 'カテゴリ名（省略時はカテゴリなし）'],
                         'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス（省略時はログインユーザー）'],
                         'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）、（省略時は0）'],
                         'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日（省略時は現在日時）'],
                         'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時（省略時はなし）'],
                         'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時（省略時はなし）'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルとして直接アップロード（推奨）、インターネット上の画像URLを指定、base64形式の画像データ（data:image/jpeg;base64,... の形式）'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルとして直接アップロード（推奨）、インターネット上の画像URLを指定、base64形式の画像データ（data:image/jpeg;base64,iVB... の形式）'],
                     ],
                     'required' => ['title', 'detail']
                 ]
@@ -84,17 +84,17 @@ class BlogPostsTool extends BaseMcpTool
                     'properties' => [
                         'id' => ['type' => 'number', 'description' => '記事ID（必須）'],
                         'title' => ['type' => 'string', 'description' => '記事タイトル'],
-                        'detail' => ['type' => 'string', 'description' => '記事詳細'],
+                        'detail' => ['type' => 'string', 'description' => '記事詳細、マークダウン不可、HTML推奨'],
                         'blogContent' => ['type' => 'string', 'description' => 'ブログコンテンツ名'],
                         'name' => ['type' => 'string', 'description' => '記事のスラッグ。URLにおける記事を特定する識別子'],
-                        'content' => ['type' => 'string', 'description' => '記事概要'],
+                        'content' => ['type' => 'string', 'description' => '記事概要、マークダウン不可、HTML推奨'],
                         'category' => ['type' => 'string', 'description' => 'カテゴリ名'],
                         'email' => ['type' => 'string', 'format' => 'email', 'description' => 'ユーザーのメールアドレス'],
                         'status' => ['type' => 'number', 'description' => '公開ステータス（0: 非公開, 1: 公開）'],
                         'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日'],
                         'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時'],
                         'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルとして直接アップロード（推奨）、インターネット上の画像URLを指定、base64形式の画像データ（data:image/jpeg;base64,... の形式）'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルとして直接アップロード（推奨）、インターネット上の画像URLを指定、base64形式の画像データ（data:image/jpeg;base64,iVB... の形式）'],
                     ],
                     'required' => ['id']
                 ]
