@@ -674,4 +674,96 @@ class BlogPostsToolTest extends BcTestCase
         (new BcFolder())->delete(WWW_ROOT . 'files' . DS . 'blog' . DS . '1000');
     }
 
+    /**
+     * basercms.png をチャンク分割して送信し、その画像を使ってブログ記事を追加するテスト
+     */
+    public function testAddBlogPostWithChunkedImageUpload()
+    {
+        // 初期設定とファクトリー設定
+        $this->loadFixtureScenario(InitAppScenario::class);
+        ContentFactory::make([
+            'name' => 'news',
+            'type' => 'BlogContent',
+            'plugin' => 'BcBlog',
+            'site_id' => 1,
+            'entity_id' => 1000,
+        ])->persist();
+        BlogContentFactory::make(['id' => 1000, 'name' => 'news'])->persist();
+
+        // basercms.pngファイルを読み込み
+        $imagePath = WWW_ROOT . 'img' . DS . 'basercms.png';
+        $this->assertTrue(file_exists($imagePath), 'basercms.png が存在しません');
+
+        $imageContent = file_get_contents($imagePath);
+        $fileId = 'test_blog_image_' . uniqid();
+        $filename = 'basercms_blog.png';
+
+        // FileUploadToolのインスタンスを作成
+        $fileUploadTool = new \CuMcp\Mcp\BaserCore\FileUploadTool();
+
+        // 画像を1024バイトずつのチャンクに分割
+        $chunkSize = 1024;
+        $chunks = str_split($imageContent, $chunkSize);
+        $totalChunks = count($chunks);
+
+        $this->assertGreaterThan(1, $totalChunks, '画像ファイルが小さすぎてチャンク分割できません');
+
+        // 各チャンクを順番に送信（最後のチャンク以外）
+        for ($i = 0; $i < $totalChunks - 1; $i++) {
+            $result = $fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
+
+            $this->assertFalse($result['isError'], "チャンク {$i} の送信でエラーが発生しました");
+            $this->assertEquals('chunk_received', $result['content']['status']);
+            $this->assertEquals($i + 1, $result['content']['progress']);
+        }
+
+        // 最後のチャンクを送信
+        $lastIndex = $totalChunks - 1;
+        $result = $fileUploadTool->sendFileChunk($fileId, $lastIndex, $totalChunks, base64_encode($chunks[$lastIndex]), $filename);
+
+        $this->assertFalse($result['isError'], '最後のチャンクの送信でエラーが発生しました');
+        $this->assertEquals('complete', $result['content']['status']);
+
+        // アップロードされたファイルが正しく作成されていることを確認
+        $uploadedFile = TMP . 'mcp_uploads/' . $filename;
+        $this->assertTrue(file_exists($uploadedFile), 'アップロードされたファイルが見つかりません');
+        $this->assertEquals($imageContent, file_get_contents($uploadedFile), 'アップロードされたファイルの内容が一致しません');
+
+        // アップロードしたファイル名を使ってブログ記事を作成
+        $blogResult = $this->BlogPostsTool->addBlogPost(
+            'チャンク分割画像付きブログ記事',                    // title
+            '<p>チャンク分割でアップロードした画像を使用したテスト記事です。</p>', // detail
+            'news',                                         // blogContent
+            null,                                           // name
+            'チャンク分割画像のテスト概要',                     // content
+            null,                                           // category
+            null,                                           // email
+            1,                                              // status (公開)
+            null,                                           // posted
+            null,                                           // publishBegin
+            null,                                           // publishEnd
+            $filename,                                      // eyeCatch (アップロードしたファイル名)
+            1                                               // loginUserId
+        );
+
+        $this->assertNotEmpty($blogResult['content']['eye_catch'], 'アイキャッチ画像が設定されていません');
+
+        // アップロードされた画像ファイルが正しい場所に配置されていることを確認
+        $blogImagePath = WWW_ROOT . 'files' . DS . 'blog' . DS . '1000' . DS . 'blog_posts' . DS . $blogResult['content']['eye_catch'];
+        $this->assertTrue(file_exists($blogImagePath), 'ブログ用のアイキャッチ画像ファイルが見つかりません');
+
+        // アイキャッチ画像がPNG形式として有効か確認
+        $imageInfo = getimagesize($blogImagePath);
+        $this->assertNotFalse($imageInfo, 'アイキャッチ画像が有効な画像ではありません');
+        $this->assertEquals(IMAGETYPE_PNG, $imageInfo[2], 'アイキャッチ画像がPNG形式ではありません');
+
+        // テスト後のクリーンアップ
+        if (file_exists($uploadedFile)) {
+            unlink($uploadedFile);
+        }
+        if (file_exists($blogImagePath)) {
+            (new BcFolder())->delete(WWW_ROOT . 'files' . DS . 'blog' . DS . '1');
+        }
+    }
+
 }

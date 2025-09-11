@@ -90,6 +90,11 @@ abstract class BaseMcpTool
             return true;
         }
 
+        // チャンクファイル名の場合（拡張子があるファイル名）
+        if (!empty($value) && preg_match('/\.[a-zA-Z0-9]{2,4}$/', $value)) {
+            return true;
+        }
+
         return false;
     }
 
