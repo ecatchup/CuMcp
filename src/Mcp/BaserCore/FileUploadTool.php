@@ -30,10 +30,10 @@ class FileUploadTool extends BaseMcpTool
                     'type' => 'object',
                     'properties' => [
                         'fileId' => ['type' => 'string', 'description' => 'ファイルを一意に識別するID（必須）'],
-                        'chunkIndex' => ['type' => 'number', 'description' => '現在のチャンクのインデックス番号（0から開始）'],
-                        'totalChunks' => ['type' => 'number', 'description' => 'ファイル全体のチャンク総数'],
-                        'chunkData' => ['type' => 'string', 'description' => 'base64エンコードされたチャンクデータ（30KB以下）'],
-                        'filename' => ['type' => 'string', 'description' => '元のファイル名（拡張子含む）'],
+                        'chunkIndex' => ['type' => 'number', 'description' => '現在のチャンクのインデックス番号（0から開始）（必須）'],
+                        'totalChunks' => ['type' => 'number', 'description' => 'ファイル全体のチャンク総数（必須）'],
+                        'chunkData' => ['type' => 'string', 'description' => 'base64エンコードされたチャンクデータ（30KB以下）（必須）'],
+                        'filename' => ['type' => 'string', 'description' => '元のファイル名（拡張子含む）（必須）'],
                     ],
                     'required' => ['fileId', 'chunkIndex', 'totalChunks', 'chunkData', 'filename']
                 ]
