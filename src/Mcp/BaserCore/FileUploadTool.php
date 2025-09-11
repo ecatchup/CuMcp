@@ -43,6 +43,10 @@ class FileUploadTool extends BaseMcpTool
     public function sendFileChunk(string $fileId, int $chunkIndex, int $totalChunks, string $chunkData, string $filename): array
     {
         return $this->executeWithErrorHandling(function() use ($fileId, $chunkIndex, $totalChunks, $chunkData, $filename) {
+            if(empty($fileId) || $chunkIndex < 0 || $totalChunks <= 0 || empty($chunkData) || empty($filename)) {
+                throw new \InvalidArgumentException('Invalid parameters.');
+            }
+
             // チャンクファイルとして保存
             $chunkFile = $this->uploadDir . $fileId . '.part' . $chunkIndex;
             file_put_contents($chunkFile, base64_decode($chunkData));
