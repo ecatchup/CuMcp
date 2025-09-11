@@ -74,7 +74,7 @@ class FileUploadToolTest extends BcTestCase
         $this->assertArrayHasKey('file', $result['content']);
 
         // ファイルが正しく作成されているかチェック
-        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $finalFile = TMP . 'mcp_uploads/' . $filename;
         $this->assertTrue(file_exists($finalFile));
         $this->assertEquals($content, file_get_contents($finalFile));
     }
@@ -105,7 +105,7 @@ class FileUploadToolTest extends BcTestCase
         $this->assertArrayHasKey('file', $result2['content']);
 
         // マージされたファイルが正しく作成されているかチェック
-        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $finalFile = TMP . 'mcp_uploads/' . $filename;
         $this->assertTrue(file_exists($finalFile));
         $this->assertEquals($content1 . $content2, file_get_contents($finalFile));
 
@@ -139,7 +139,7 @@ class FileUploadToolTest extends BcTestCase
         $this->assertEquals('complete', $result2['content']['status']);
 
         // マージされたファイルが正しい順序で作成されているかチェック
-        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $finalFile = TMP . 'mcp_uploads/' . $filename;
         $this->assertTrue(file_exists($finalFile));
         $this->assertEquals($content1 . $content2, file_get_contents($finalFile));
     }
@@ -175,7 +175,7 @@ class FileUploadToolTest extends BcTestCase
         $this->assertEquals('complete', $result['content']['status']);
 
         // マージされたファイルが正しく作成されているかチェック
-        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $finalFile = TMP . 'mcp_uploads/' . $filename;
         $this->assertTrue(file_exists($finalFile));
         $this->assertEquals($totalSize, filesize($finalFile));
         $this->assertEquals($content, file_get_contents($finalFile));
@@ -196,7 +196,7 @@ class FileUploadToolTest extends BcTestCase
         $this->assertFalse($result['isError']);
         $this->assertEquals('complete', $result['content']['status']);
 
-        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $finalFile = TMP . 'mcp_uploads/' . $filename;
         $this->assertTrue(file_exists($finalFile));
         // 不正なbase64は空文字列またはガベージデータになる
         $this->assertTrue(filesize($finalFile) >= 0);
@@ -235,7 +235,7 @@ class FileUploadToolTest extends BcTestCase
         $this->assertEquals('complete', $result2['content']['status']);
 
         // 最後にアップロードされたファイルの内容を確認
-        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $finalFile = TMP . 'mcp_uploads/' . $filename;
         $this->assertEquals($content2, file_get_contents($finalFile));
     }
 }

@@ -33,7 +33,7 @@ class FileUploadTool extends BaseMcpTool
                         'chunkIndex' => ['type' => 'number', 'description' => '現在のチャンクのインデックス番号（0から開始）（必須）'],
                         'totalChunks' => ['type' => 'number', 'description' => 'ファイル全体のチャンク総数（必須）'],
                         'chunkData' => ['type' => 'string', 'description' => 'base64エンコードされたチャンクデータ（30KB以下）（必須）'],
-                        'filename' => ['type' => 'string', 'description' => '元のファイル名（拡張子含む）（必須）'],
+                        'filename' => ['type' => 'string', 'description' => 'ファイル名（拡張子含む）（必須）'],
                     ],
                     'required' => ['fileId', 'chunkIndex', 'totalChunks', 'chunkData', 'filename']
                 ]
@@ -49,15 +49,15 @@ class FileUploadTool extends BaseMcpTool
 
             // 全チャンク受信完了チェック
             if ($this->allChunksReceived($fileId, $totalChunks)) {
-                return $this->createSuccessResponse($this->mergeChunks($fileId, $totalChunks));
+                return $this->createSuccessResponse($this->mergeChunks($fileId, $totalChunks, $filename));
             }
             return $this->createSuccessResponse(['status' => 'chunk_received', 'progress' => $chunkIndex + 1]);
         });
     }
 
-    private function mergeChunks($fileId, $totalChunks)
+    private function mergeChunks($fileId, $totalChunks, $filename)
     {
-        $finalFile = $this->uploadDir . $fileId;
+        $finalFile = $this->uploadDir . $filename;
         $handle = fopen($finalFile, 'wb');
 
         for($i = 0; $i < $totalChunks; $i++) {
