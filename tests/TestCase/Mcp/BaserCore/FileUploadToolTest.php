@@ -238,4 +238,136 @@ class FileUploadToolTest extends BcTestCase
         $finalFile = TMP . 'mcp_uploads/' . $filename;
         $this->assertEquals($content2, file_get_contents($finalFile));
     }
+
+    /**
+     * 実際の画像ファイル（basercms.png）を使ったアップロードテスト
+     */
+    public function testUploadRealImageFile()
+    {
+        $imagePath = WWW_ROOT . 'img' . DS . 'basercms.png';
+
+        // ファイルが存在することを確認
+        $this->assertTrue(file_exists($imagePath), 'basercms.png が存在しません');
+
+        $imageContent = file_get_contents($imagePath);
+        $fileId = 'test_image_' . uniqid();
+        $filename = 'basercms.png';
+
+        // 画像ファイルを単一チャンクでアップロード
+        $result = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, base64_encode($imageContent), $filename);
+
+        $this->assertFalse($result['isError']);
+        $this->assertEquals('complete', $result['content']['status']);
+        $this->assertArrayHasKey('file', $result['content']);
+
+        // アップロードされたファイルが元のファイルと同じであることを確認
+        $uploadedFile = TMP . 'mcp_uploads/' . $filename;
+        $this->assertTrue(file_exists($uploadedFile));
+        $this->assertEquals(filesize($imagePath), filesize($uploadedFile));
+        $this->assertEquals($imageContent, file_get_contents($uploadedFile));
+
+        // ファイルがPNG画像として有効か確認（オプション）
+        $imageInfo = getimagesize($uploadedFile);
+        $this->assertNotFalse($imageInfo, 'アップロードされたファイルが有効な画像ではありません');
+        $this->assertEquals(IMAGETYPE_PNG, $imageInfo[2], 'アップロードされたファイルがPNG形式ではありません');
+    }
+
+    /**
+     * 画像ファイルを複数チャンクに分割してアップロードするテスト
+     */
+    public function testUploadImageFileInChunks()
+    {
+        $imagePath = WWW_ROOT . 'img' . DS . 'basercms.png';
+
+        // ファイルが存在することを確認
+        $this->assertTrue(file_exists($imagePath), 'basercms.png が存在しません');
+
+        $imageContent = file_get_contents($imagePath);
+        $fileId = 'test_image_chunks_' . uniqid();
+        $filename = 'basercms_chunked.png';
+
+        // 画像を1024バイトずつのチャンクに分割
+        $chunkSize = 1024;
+        $chunks = str_split($imageContent, $chunkSize);
+        $totalChunks = count($chunks);
+
+        $this->assertGreaterThan(1, $totalChunks, '画像ファイルが小さすぎてチャンク分割できません');
+
+        // 各チャンクを順番に送信（最後のチャンク以外）
+        for ($i = 0; $i < $totalChunks - 1; $i++) {
+            $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
+
+            $this->assertFalse($result['isError'], "チャンク {$i} の送信でエラーが発生しました");
+            $this->assertEquals('chunk_received', $result['content']['status']);
+            $this->assertEquals($i + 1, $result['content']['progress']);
+        }
+
+        // 最後のチャンクを送信
+        $lastIndex = $totalChunks - 1;
+        $result = $this->fileUploadTool->sendFileChunk($fileId, $lastIndex, $totalChunks, base64_encode($chunks[$lastIndex]), $filename);
+
+        $this->assertFalse($result['isError']);
+        $this->assertEquals('complete', $result['content']['status']);
+
+        // マージされたファイルが元のファイルと同じであることを確認
+        $uploadedFile = TMP . 'mcp_uploads/' . $filename;
+        $this->assertTrue(file_exists($uploadedFile));
+        $this->assertEquals(filesize($imagePath), filesize($uploadedFile));
+        $this->assertEquals($imageContent, file_get_contents($uploadedFile));
+
+        // ファイルがPNG画像として有効か確認
+        $imageInfo = getimagesize($uploadedFile);
+        $this->assertNotFalse($imageInfo, 'マージされたファイルが有効な画像ではありません');
+        $this->assertEquals(IMAGETYPE_PNG, $imageInfo[2], 'マージされたファイルがPNG形式ではありません');
+
+        // チャンクファイルが削除されているかチェック
+        for ($i = 0; $i < $totalChunks; $i++) {
+            $chunkFile = TMP . 'mcp_uploads/' . $fileId . '.part' . $i;
+            $this->assertFalse(file_exists($chunkFile), "チャンクファイル {$chunkFile} が削除されていません");
+        }
+    }
+
+    /**
+     * 大きな画像ファイルのMD5ハッシュチェックテスト
+     */
+    public function testImageFileIntegrityWithMd5()
+    {
+        $imagePath = WWW_ROOT . 'img' . DS . 'basercms.png';
+
+        // ファイルが存在することを確認
+        $this->assertTrue(file_exists($imagePath), 'basercms.png が存在しません');
+
+        $imageContent = file_get_contents($imagePath);
+        $originalMd5 = md5($imageContent);
+        $fileId = 'test_image_md5_' . uniqid();
+        $filename = 'basercms_md5.png';
+
+        // 画像を512バイトずつの小さなチャンクに分割（より細かい分割）
+        $chunkSize = 512;
+        $chunks = str_split($imageContent, $chunkSize);
+        $totalChunks = count($chunks);
+
+        // 各チャンクを順番に送信
+        for ($i = 0; $i < $totalChunks; $i++) {
+            $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
+
+            $this->assertFalse($result['isError'], "チャンク {$i} の送信でエラーが発生しました");
+
+            if ($i < $totalChunks - 1) {
+                $this->assertEquals('chunk_received', $result['content']['status']);
+            } else {
+                $this->assertEquals('complete', $result['content']['status']);
+            }
+        }
+
+        // アップロードされたファイルのMD5ハッシュを確認
+        $uploadedFile = TMP . 'mcp_uploads/' . $filename;
+        $this->assertTrue(file_exists($uploadedFile));
+
+        $uploadedMd5 = md5_file($uploadedFile);
+        $this->assertEquals($originalMd5, $uploadedMd5, 'アップロードされたファイルのMD5ハッシュが元のファイルと一致しません');
+
+        // ファイルサイズも確認
+        $this->assertEquals(filesize($imagePath), filesize($uploadedFile), 'ファイルサイズが一致しません');
+    }
 }
