@@ -70,7 +70,7 @@ class BlogPostsTool extends BaseMcpTool
                         'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日（省略時は現在日時）'],
                         'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時（省略時はなし）'],
                         'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時（省略時はなし）'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルパス、URL、またはbase64エンコードされたデータ（data:image/...形式）を指定可能'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルとして直接アップロード（推奨）、インターネット上の画像URLを指定、base64形式の画像データ（data:image/jpeg;base64,... の形式）'],
                     ],
                     'required' => ['title', 'detail']
                 ]
@@ -94,7 +94,7 @@ class BlogPostsTool extends BaseMcpTool
                         'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日'],
                         'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時'],
                         'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルパス、URL、またはbase64エンコードされたデータ（data:image/...形式）を指定可能'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。ファイルとして直接アップロード（推奨）、インターネット上の画像URLを指定、base64形式の画像データ（data:image/jpeg;base64,... の形式）'],
                     ],
                     'required' => ['id']
                 ]
@@ -174,14 +174,16 @@ class BlogPostsTool extends BaseMcpTool
 
             // アイキャッチ画像の処理
             if (!empty($eyeCatch) && $this->isFileUploadable($eyeCatch)) {
-                $eyeCatchData = $this->processFileUpload($eyeCatch, 'eye_catch');
+                if(!is_array($eyeCatch)) {
+                    $eyeCatchData = $this->processFileUpload($eyeCatch, 'eye_catch');
+                }
                 if ($eyeCatchData !== false && is_array($eyeCatchData)) {
                     // 配列データをCakePHPのUploadedFileオブジェクトに変換
                     $data['eye_catch'] = $this->createUploadedFileFromArray($eyeCatchData);
                 }
             } elseif (!empty($eyeCatch)) {
-                // 通常のURL文字列の場合はそのまま設定
-                $data['eye_catch'] = $eyeCatch;
+                // その他の形式の場合はエラーとして扱う
+                return $this->createErrorResponse('アイキャッチ画像の形式が不正です');
             }
 
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
@@ -264,17 +266,16 @@ class BlogPostsTool extends BaseMcpTool
             // アイキャッチ画像の処理
             if ($eyeCatch !== null) {
                 if (!empty($eyeCatch) && $this->isFileUploadable($eyeCatch)) {
-                    $eyeCatchData = $this->processFileUpload($eyeCatch, 'eye_catch');
+                    if(!is_array($eyeCatch)) {
+                        $eyeCatchData = $this->processFileUpload($eyeCatch, 'eye_catch');
+                    }
                     if ($eyeCatchData !== false && is_array($eyeCatchData)) {
                         // 配列データをCakePHPのUploadedFileオブジェクトに変換
                         $data['eye_catch'] = $this->createUploadedFileFromArray($eyeCatchData);
                     }
-                } elseif (!empty($eyeCatch)) {
-                    // 通常のURL文字列の場合はそのまま設定
-                    $data['eye_catch'] = $eyeCatch;
                 } else {
                     // 空文字列の場合は削除
-                    $data['eye_catch'] = '';
+                    $data['eye_catch'] = null;
                 }
             }
 

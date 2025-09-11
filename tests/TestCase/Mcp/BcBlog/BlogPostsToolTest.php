@@ -12,8 +12,10 @@ declare(strict_types=1);
 
 namespace CuMcp\Test\TestCase\Mcp\BcBlog;
 
+use BaserCore\Test\Factory\ContentFactory;
 use BaserCore\Test\Scenario\InitAppScenario;
 use BaserCore\TestSuite\BcTestCase;
+use BaserCore\Utility\BcFolder;
 use BcBlog\Test\Factory\BlogCategoryFactory;
 use BcBlog\Test\Factory\BlogContentFactory;
 use BcBlog\Test\Factory\BlogPostFactory;
@@ -479,15 +481,15 @@ class BlogPostsToolTest extends BcTestCase
     /**
      * test processFileUpload with URL
      */
-    public function testProcessFileUploadWithUrl()
-    {
-        $url = 'https://example.com/image.jpg';
+     public function testProcessFileUploadWithUrl()
+     {
+         $url = 'https://example.com/image.jpg';
 
-        $result = $this->execPrivateMethod($this->BlogPostsTool, 'processFileUpload', [$url]);
+         $result = $this->execPrivateMethod($this->BlogPostsTool, 'processFileUpload', [$url]);
 
-        // URLの場合はそのまま返される
-        $this->assertEquals($url, $result);
-    }
+         // URLの場合はダウンロードに失敗してfalseが返される（example.comは存在しない画像）
+         $this->assertFalse($result);
+     }
 
     /**
      * test processFileUpload with invalid base64 data
@@ -496,11 +498,39 @@ class BlogPostsToolTest extends BcTestCase
     {
         // より確実に無効になるbase64データ
         $invalidBase64 = 'invalid_format_data';
-
         $result = $this->execPrivateMethod($this->BlogPostsTool, 'processFileUpload', [$invalidBase64]);
+        // 無効なフォーマットの場合はfalseが返される
+        $this->assertFalse($result);
+    }
 
-        // 無効なフォーマットの場合はfalseが返される（URLとして扱われる）
-        $this->assertEquals($invalidBase64, $result);
+    /**
+     * test processUrlFile with invalid URL
+     */
+    public function testProcessUrlFileWithInvalidUrl()
+    {
+        $invalidUrl = 'not_a_url';
+
+        try {
+            $this->execPrivateMethod($this->BlogPostsTool, 'processUrlFile', [$invalidUrl]);
+            $this->fail('例外が投げられるべきです');
+        } catch (\Exception $e) {
+            $this->assertStringContainsString('不正なURL形式です', $e->getMessage());
+        }
+    }
+
+    /**
+     * test processUrlFile with non-HTTP URL
+     */
+    public function testProcessUrlFileWithNonHttpUrl()
+    {
+        $ftpUrl = 'ftp://example.com/file.jpg';
+
+        try {
+            $this->execPrivateMethod($this->BlogPostsTool, 'processUrlFile', [$ftpUrl]);
+            $this->fail('例外が投げられるべきです');
+        } catch (\Exception $e) {
+            $this->assertStringContainsString('HTTPまたはHTTPSのURLのみサポートされています', $e->getMessage());
+        }
     }
 
     /**
@@ -525,10 +555,16 @@ class BlogPostsToolTest extends BcTestCase
     public function testAddBlogPostWithBase64EyeCatch()
     {
         $this->loadFixtureScenario(InitAppScenario::class);
-
+        ContentFactory::make([
+            'name' => 'news',
+            'type' => 'BlogContent',
+            'plugin' => 'BcBlog',
+            'site_id' => 1,
+            'entity_id' => 1000,
+        ])->persist();
         // BlogContentのテストデータを作成
         BlogContentFactory::make([
-            'id' => 1,
+            'id' => 1000,
             'description' => 'ニュースブログ',
             'template' => 'default',
             'list_count' => 10,
@@ -551,13 +587,13 @@ class BlogPostsToolTest extends BcTestCase
         $result = $this->BlogPostsTool->addBlogPost(
             'テストブログ記事（アイキャッチ付き）',
             'これはアイキャッチ画像付きのテスト記事です。',
-            null, // blogContent
+            'news', // blogContent
             null, // name
             'これは概要です。', // content
             null, // category
             null, // email
             0,    // status
-            null, // posted
+            '2025/01/01 00:00:00', // posted
             null, // publishBegin
             null, // publishEnd
             $base64Data, // eyeCatch,
@@ -573,6 +609,69 @@ class BlogPostsToolTest extends BcTestCase
         // 成功時のレスポンス内容をテスト
         $this->assertArrayHasKey('content', $result);
         $this->assertEquals('テストブログ記事（アイキャッチ付き）', $result['content']['title']);
+        $filePath = WWW_ROOT . 'files' . DS . 'blog' . DS . '1000' . DS . 'blog_posts' . DS . $result['content']['eye_catch'];
+        $this->assertFileExists($filePath);
+        (new BcFolder())->delete(WWW_ROOT . 'files' . DS . 'blog' . DS . '1000');
+    }
+
+    public function testAddBlogPostWithUrlEyeCatch()
+    {
+        $this->loadFixtureScenario(InitAppScenario::class);
+        ContentFactory::make([
+            'name' => 'news',
+            'type' => 'BlogContent',
+            'plugin' => 'BcBlog',
+            'site_id' => 1,
+            'entity_id' => 1000,
+        ])->persist();
+        // BlogContentのテストデータを作成
+        BlogContentFactory::make([
+            'id' => 1000,
+            'description' => 'ニュースブログ',
+            'template' => 'default',
+            'list_count' => 10,
+            'list_direction' => 'DESC',
+            'feed_count' => 10,
+            'tag_use' => false,
+            'comment_use' => false,
+            'comment_approve' => false,
+            'widget_area' => null,
+            'eye_catch_size_thumb_width' => 150,
+            'eye_catch_size_thumb_height' => 150,
+            'eye_catch_size_mobile_thumb_width' => 100,
+            'eye_catch_size_mobile_thumb_height' => 100,
+            'use_content' => true,
+        ])->persist();
+
+        $result = $this->BlogPostsTool->addBlogPost(
+            'テストブログ記事（アイキャッチ付き）',
+            'これはアイキャッチ画像付きのテスト記事です。',
+            'news', // blogContent
+            null, // name
+            'これは概要です。', // content
+            null, // category
+            null, // email
+            0,    // status
+            null, // posted
+            null, // publishBegin
+            null, // publishEnd
+            'https://basercms.net/img/basercms_logo.png', // eyeCatch,
+            1
+        );
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('isError', $result);
+
+        // エラーが発生しないことを明確にテスト
+        $this->assertFalse($result['isError']);
+
+        // 成功時のレスポンス内容をテスト
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('テストブログ記事（アイキャッチ付き）', $result['content']['title']);
+        $this->assertTrue(isset($result['content']['eye_catch']));
+        $filePath = WWW_ROOT . 'files' . DS . 'blog' . DS . '1000' . DS . 'blog_posts' . DS . $result['content']['eye_catch'];
+        $this->assertFileExists($filePath);
+        (new BcFolder())->delete(WWW_ROOT . 'files' . DS . 'blog' . DS . '1000');
     }
 
 }

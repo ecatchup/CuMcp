@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CuMcp\Mcp;
 
 use BaserCore\Utility\BcContainerTrait;
+use BaserCore\Utility\BcUtil;
 
 /**
  * MCPツールの基底クラス
@@ -75,17 +76,12 @@ abstract class BaseMcpTool
      */
     protected function isFileUploadable($value): bool
     {
-        if (!is_string($value)) {
-            return false;
+        if (is_array($value)) {
+            return true;
         }
 
         // Base64データの場合
         if (strpos($value, 'data:') === 0) {
-            return true;
-        }
-
-        // ファイルパスの場合（実際にファイルが存在する）
-        if (file_exists($value)) {
             return true;
         }
 
@@ -102,9 +98,9 @@ abstract class BaseMcpTool
      *
      * @param string $fileData ファイルパス、URL、またはbase64エンコードされたデータ
      * @param string $fieldName フィールド名（ログ用）
-     * @return array|string|false アップロード情報の配列、URLの場合は文字列、失敗時はfalse
+     * @return array|false アップロード情報の配列、失敗時はfalse
      */
-    protected function processFileUpload(string $fileData, string $fieldName = 'file'): array|string|false
+    protected function processFileUpload(string $fileData, string $fieldName = 'file'): array|false
     {
         try {
             // Base64データの場合
@@ -112,17 +108,18 @@ abstract class BaseMcpTool
                 return $this->processBase64File($fileData);
             }
 
-            // ファイルパスの場合（ローカルファイル）
-            if (file_exists($fileData)) {
-                return $this->processFilePath($fileData);
+            // URLの場合はダウンロードして処理
+            if (preg_match('/^https?:\/\//', $fileData)) {
+                return $this->processUrlFile($fileData);
             }
 
-            // URLの場合はそのまま返す（従来の動作）
-            return $fileData;
+            throw new \Exception('不正なファイルデータ形式です: ' . $fileData);
 
         } catch (\Exception $e) {
             // エラーログを出力
-            error_log($fieldName . 'の処理に失敗しました: ' . $e->getMessage());
+            if (!BcUtil::isTest()) {
+                error_log($fieldName . 'の処理に失敗しました: ' . $e->getMessage());
+            }
             return false;
         }
     }
@@ -179,35 +176,95 @@ abstract class BaseMcpTool
     }
 
     /**
-     * ファイルパスを処理
+     * URLからファイルをダウンロードして処理
      *
-     * @param string $filePath ファイルパス
+     * @param string $url ファイルのURL
      * @return array アップロード情報の配列
      * @throws \Exception
      */
-    protected function processFilePath(string $filePath): array
+    protected function processUrlFile(string $url): array
     {
-        if (!is_readable($filePath)) {
-            throw new \Exception('ファイルを読み込めません: ' . $filePath);
+        // URLの妥当性チェック
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            throw new \Exception('不正なURL形式です: ' . $url);
         }
 
-        $fileInfo = pathinfo($filePath);
-        $fileName = $fileInfo['basename'];
-        $extension = strtolower($fileInfo['extension'] ?? '');
+        // HTTPSまたはHTTPのみ許可
+        if (!preg_match('/^https?:\/\//', $url)) {
+            throw new \Exception('HTTPまたはHTTPSのURLのみサポートされています: ' . $url);
+        }
+
+        // ユーザーエージェントを設定してファイルをダウンロード
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "User-Agent: baserCMS-MCP-Client/1.0\r\n",
+                'timeout' => 30,
+                'follow_location' => true,
+                'max_redirects' => 3
+            ]
+        ]);
+
+        $fileData = @file_get_contents($url, false, $context);
+
+        if ($fileData === false) {
+            throw new \Exception('URLからファイルをダウンロードできませんでした: ' . $url);
+        }
+
+        // ファイルサイズをチェック（10MBまで）
+        $fileSize = strlen($fileData);
+        if ($fileSize > 10 * 1024 * 1024) {
+            throw new \Exception('ファイルサイズが大きすぎます（10MB以下にしてください）');
+        }
+
+        // レスポンスヘッダーからContent-Typeを取得
+        $mimeType = 'application/octet-stream';
+        if (isset($http_response_header)) {
+            foreach ($http_response_header as $header) {
+                if (stripos($header, 'content-type:') === 0) {
+                    $mimeType = trim(substr($header, 13));
+                    // パラメータを除去（例: "image/jpeg; charset=utf-8" -> "image/jpeg"）
+                    if (strpos($mimeType, ';') !== false) {
+                        $mimeType = trim(explode(';', $mimeType)[0]);
+                    }
+                    break;
+                }
+            }
+        }
+
+        // URLから拡張子を推測
+        $urlPath = parse_url($url, PHP_URL_PATH);
+        $extension = '';
+        if ($urlPath) {
+            $pathInfo = pathinfo($urlPath);
+            $extension = strtolower($pathInfo['extension'] ?? '');
+        }
+
+        // MIMEタイプから拡張子を取得（URLから取得できない場合）
+        if (empty($extension)) {
+            $extension = $this->getExtensionFromMimeType($mimeType);
+        }
 
         // ファイル形式のチェック
         if (!$this->isAllowedExtension($extension)) {
             throw new \Exception('サポートされていないファイル形式です: ' . $extension);
         }
 
-        $mimeType = $this->getMimeTypeFromExtension($extension);
+        // 一意のファイル名を生成
+        $fileName = 'download_' . uniqid() . '.' . $extension;
+        $tmpPath = sys_get_temp_dir() . '/' . $fileName;
+
+        // 一時ファイルに保存
+        if (file_put_contents($tmpPath, $fileData) === false) {
+            throw new \Exception('一時ファイルの作成に失敗しました');
+        }
 
         return [
             'name' => $fileName,
             'type' => $mimeType,
-            'tmp_name' => $filePath,
+            'tmp_name' => $tmpPath,
             'error' => UPLOAD_ERR_OK,
-            'size' => filesize($filePath),
+            'size' => $fileSize,
             'ext' => $extension
         ];
     }
@@ -332,9 +389,9 @@ abstract class BaseMcpTool
      * 画像ファイル専用のアップロード処理
      *
      * @param string $imageData 画像ファイルパス、URL、またはbase64エンコードされたデータ
-     * @return array|string|false アップロード情報の配列、URLの場合は文字列、失敗時はfalse
+     * @return array|false アップロード情報の配列、失敗時はfalse
      */
-    protected function processImageUpload(string $imageData): array|string|false
+    protected function processImageUpload(string $imageData): array|false
     {
         $result = $this->processFileUpload($imageData, 'image');
 
