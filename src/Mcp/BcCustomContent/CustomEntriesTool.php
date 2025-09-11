@@ -41,7 +41,7 @@ class CustomEntriesTool extends BaseMcpTool
                         'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
-                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、ファイルとして直接アップロード（推奨）、インターネット上の画像URLを指定、base64形式の画像データ（data:image/jpeg;base64,iVB... の形式）'
+                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、100KB以下の小さなファイルの場合はbase64データ形式（data:image/jpeg;base64,iVB...）、100KB以上の大きなファイルの場合は事前にsendFileChunkツールで分割アップロード後にファイル名を指定、または外部画像URLを直接指定'
                         ]
                     ],
                     'required' => ['customTableId']
@@ -67,7 +67,7 @@ class CustomEntriesTool extends BaseMcpTool
                         'customFields' => [
                             'type' => 'object',
                             'additionalProperties' => true,
-                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、ファイルとして直接アップロード（推奨）、インターネット上の画像URLを指定、base64形式の画像データ（data:image/jpeg;base64,iVB... の形式）'
+                            'description' => 'カスタムフィールドの値（フィールド名をキーとするオブジェクト）、ファイルアップロードのフィールドの場合は、100KB以下の小さなファイルの場合はbase64データ形式（data:image/jpeg;base64,iVB...）、100KB以上の大きなファイルの場合は事前にsendFileChunkツールで分割アップロード後にファイル名を指定、または外部画像URLを直接指定'
                         ]
                     ],
                     'required' => ['customTableId', 'id']

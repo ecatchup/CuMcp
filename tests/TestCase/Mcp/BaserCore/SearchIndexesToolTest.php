@@ -58,11 +58,17 @@ class SearchIndexesToolTest extends BcTestCase
             'status' => 1,
         ]])->persist();
 
+        // status=0（非公開）のデータはstatus='publish'フィルターで除外される
         $result = $this->searchIndexesTool->fetch("1");
         $this->assertTrue($result['isError']);
         $this->assertEquals("Record not found in table `search_indexes`.", $result['content']);
+
+        // status=1（公開）のデータは取得できる
         $result = $this->searchIndexesTool->fetch("2");
-        $this->assertArrayHasKey('id', $result);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('id', $result['content']);
+        $this->assertEquals(2, $result['content']['id']);
+        $this->assertEquals('テストタイトル2', $result['content']['title']);
     }
 
     public function testSearch()
@@ -83,7 +89,10 @@ class SearchIndexesToolTest extends BcTestCase
         ]])->persist();
 
         $result = $this->searchIndexesTool->search("詳細");
-        $this->assertCount(1, $result['results']);
+        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('results', $result['content']);
+        $this->assertCount(1, $result['content']['results']);
+        $this->assertEquals('テストタイトル2', $result['content']['results'][0]['title']);
     }
 
 }

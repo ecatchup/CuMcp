@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BaserCore;
 
-use CuMcp\Mcp\BaserCore\SearchIndexesTool;
-
 /**
  * ブログ機能用MCPサーバー
  *
@@ -21,6 +19,7 @@ class BaserCoreServer
     {
         return [
             SearchIndexesTool::class,
+            FileUploadTool::class
         ];
     }
 }

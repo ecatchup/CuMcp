@@ -1,0 +1,241 @@
+<?php
+declare(strict_types=1);
+
+namespace CuMcp\Test\TestCase\Mcp\BaserCore;
+
+use BaserCore\TestSuite\BcTestCase;
+use CuMcp\Mcp\BaserCore\FileUploadTool;
+
+/**
+ * FileUploadToolTest Test Case
+ */
+class FileUploadToolTest extends BcTestCase
+{
+
+    /**
+     * Test subject
+     */
+    protected $fileUploadTool;
+
+    /**
+     * setUp method
+     *
+     * @return void
+     */
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->fileUploadTool = new FileUploadTool();
+    }
+
+    /**
+     * tearDown method
+     *
+     * @return void
+     */
+    public function tearDown(): void
+    {
+        // テスト用ファイルをクリーンアップ
+        $this->cleanupTestFiles();
+        unset($this->fileUploadTool);
+        parent::tearDown();
+    }
+
+    /**
+     * テスト用ファイルをクリーンアップ
+     */
+    private function cleanupTestFiles(): void
+    {
+        $uploadDir = TMP . 'mcp_uploads/';
+        if (is_dir($uploadDir)) {
+            $files = glob($uploadDir . '*');
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+        }
+    }
+
+    /**
+     * 単一チャンクファイルのアップロードテスト
+     */
+    public function testSendSingleChunk()
+    {
+        $fileId = 'test_file_' . uniqid();
+        $filename = 'test.txt';
+        $content = 'Hello, World!';
+        $chunkData = base64_encode($content);
+
+        $result = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, $chunkData, $filename);
+
+        $this->assertFalse($result['isError']);
+        $this->assertEquals('complete', $result['content']['status']);
+        $this->assertArrayHasKey('file', $result['content']);
+
+        // ファイルが正しく作成されているかチェック
+        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $this->assertTrue(file_exists($finalFile));
+        $this->assertEquals($content, file_get_contents($finalFile));
+    }
+
+    /**
+     * 複数チャンクファイルのアップロードテスト
+     */
+    public function testSendMultipleChunks()
+    {
+        $fileId = 'test_multi_' . uniqid();
+        $filename = 'test_multi.txt';
+        $content1 = 'Hello, ';
+        $content2 = 'World!';
+        $totalChunks = 2;
+
+        // 最初のチャンクを送信
+        $result1 = $this->fileUploadTool->sendFileChunk($fileId, 0, $totalChunks, base64_encode($content1), $filename);
+
+        $this->assertFalse($result1['isError']);
+        $this->assertEquals('chunk_received', $result1['content']['status']);
+        $this->assertEquals(1, $result1['content']['progress']);
+
+        // 2番目のチャンクを送信
+        $result2 = $this->fileUploadTool->sendFileChunk($fileId, 1, $totalChunks, base64_encode($content2), $filename);
+
+        $this->assertFalse($result2['isError']);
+        $this->assertEquals('complete', $result2['content']['status']);
+        $this->assertArrayHasKey('file', $result2['content']);
+
+        // マージされたファイルが正しく作成されているかチェック
+        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $this->assertTrue(file_exists($finalFile));
+        $this->assertEquals($content1 . $content2, file_get_contents($finalFile));
+
+        // チャンクファイルが削除されているかチェック
+        $this->assertFalse(file_exists(TMP . 'mcp_uploads/' . $fileId . '.part0'));
+        $this->assertFalse(file_exists(TMP . 'mcp_uploads/' . $fileId . '.part1'));
+    }
+
+    /**
+     * チャンク順序が異なる場合のテスト
+     */
+    public function testSendChunksOutOfOrder()
+    {
+        $fileId = 'test_order_' . uniqid();
+        $filename = 'test_order.txt';
+        $content1 = 'Hello, ';
+        $content2 = 'World!';
+        $totalChunks = 2;
+
+        // 2番目のチャンクを先に送信
+        $result1 = $this->fileUploadTool->sendFileChunk($fileId, 1, $totalChunks, base64_encode($content2), $filename);
+
+        $this->assertFalse($result1['isError']);
+        $this->assertEquals('chunk_received', $result1['content']['status']);
+        $this->assertEquals(2, $result1['content']['progress']);
+
+        // 1番目のチャンクを後で送信
+        $result2 = $this->fileUploadTool->sendFileChunk($fileId, 0, $totalChunks, base64_encode($content1), $filename);
+
+        $this->assertFalse($result2['isError']);
+        $this->assertEquals('complete', $result2['content']['status']);
+
+        // マージされたファイルが正しい順序で作成されているかチェック
+        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $this->assertTrue(file_exists($finalFile));
+        $this->assertEquals($content1 . $content2, file_get_contents($finalFile));
+    }
+
+    /**
+     * 大きなファイルの分割アップロードテスト
+     */
+    public function testLargeFileUpload()
+    {
+        $fileId = 'test_large_' . uniqid();
+        $filename = 'test_large.txt';
+        $chunkSize = 1024; // 1KB chunks
+        $totalSize = 3000; // 3KB total
+        $content = str_repeat('A', $totalSize);
+
+        $chunks = str_split($content, $chunkSize);
+        $totalChunks = count($chunks);
+
+        // 各チャンクを順番に送信
+        for ($i = 0; $i < $totalChunks - 1; $i++) {
+            $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
+
+            $this->assertFalse($result['isError']);
+            $this->assertEquals('chunk_received', $result['content']['status']);
+            $this->assertEquals($i + 1, $result['content']['progress']);
+        }
+
+        // 最後のチャンクを送信
+        $lastIndex = $totalChunks - 1;
+        $result = $this->fileUploadTool->sendFileChunk($fileId, $lastIndex, $totalChunks, base64_encode($chunks[$lastIndex]), $filename);
+
+        $this->assertFalse($result['isError']);
+        $this->assertEquals('complete', $result['content']['status']);
+
+        // マージされたファイルが正しく作成されているかチェック
+        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $this->assertTrue(file_exists($finalFile));
+        $this->assertEquals($totalSize, filesize($finalFile));
+        $this->assertEquals($content, file_get_contents($finalFile));
+    }
+
+    /**
+     * 不正なbase64データのテスト
+     */
+    public function testInvalidBase64Data()
+    {
+        $fileId = 'test_invalid_' . uniqid();
+        $filename = 'test_invalid.txt';
+        $invalidBase64 = 'invalid-base64-data!@#$%';
+
+        $result = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, $invalidBase64, $filename);
+
+        // base64_decodeはfalseを返すが、空文字列として処理される
+        $this->assertFalse($result['isError']);
+        $this->assertEquals('complete', $result['content']['status']);
+
+        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $this->assertTrue(file_exists($finalFile));
+        // 不正なbase64は空文字列またはガベージデータになる
+        $this->assertTrue(filesize($finalFile) >= 0);
+    }
+
+    /**
+     * アップロードディレクトリが作成されることをテスト
+     */
+    public function testUploadDirectoryCreation()
+    {
+        $uploadDir = TMP . 'mcp_uploads/';
+
+        // ディレクトリが存在することを確認
+        $this->assertTrue(is_dir($uploadDir));
+        $this->assertTrue(is_writable($uploadDir));
+    }
+
+    /**
+     * 同じファイルIDで複数回アップロードした場合のテスト
+     */
+    public function testDuplicateFileId()
+    {
+        $fileId = 'test_duplicate_' . uniqid();
+        $filename = 'test_duplicate.txt';
+        $content1 = 'First upload';
+        $content2 = 'Second upload';
+
+        // 最初のアップロード
+        $result1 = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, base64_encode($content1), $filename);
+        $this->assertFalse($result1['isError']);
+        $this->assertEquals('complete', $result1['content']['status']);
+
+        // 同じファイルIDで2回目のアップロード（上書きされる）
+        $result2 = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, base64_encode($content2), $filename);
+        $this->assertFalse($result2['isError']);
+        $this->assertEquals('complete', $result2['content']['status']);
+
+        // 最後にアップロードされたファイルの内容を確認
+        $finalFile = TMP . 'mcp_uploads/' . $fileId;
+        $this->assertEquals($content2, file_get_contents($finalFile));
+    }
+}

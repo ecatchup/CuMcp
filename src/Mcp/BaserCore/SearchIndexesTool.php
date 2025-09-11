@@ -9,12 +9,13 @@ use BcSearchIndex\Service\SearchIndexesServiceInterface;
 use Cake\Core\Configure;
 use Cake\Log\LogTrait;
 use Cake\Routing\Router;
+use CuMcp\Mcp\BaseMcpTool;
 use PhpMcp\Server\ServerBuilder;
 
 /**
  * 検索インデックスツールクラス
  */
-class SearchIndexesTool
+class SearchIndexesTool extends BaseMcpTool
 {
     use LogTrait;
     use BcContainerTrait;
@@ -60,11 +61,12 @@ class SearchIndexesTool
 
     public function fetch(string $id): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($id) {
             $entity = $this->searchIndexesService->get((int) $id, [
-            	'status' => 'publish',
-            	'site_id' => null
-			]);
+                'status' => 'publish',
+                'site_id' => null
+            ]);
+
             if($entity) {
                 $result = [
                     'id' => $entity->id,
@@ -72,42 +74,38 @@ class SearchIndexesTool
                     'text' => $entity->detail,
                     'url' => Router::url($entity->url, true)
                 ];
+                return $this->createSuccessResponse($result);
+            } else {
+                return $this->createErrorResponse('指定されたIDの検索インデックスが見つかりません');
             }
-        } catch (\Exception $e) {
-            return [
-                'isError' => true,
-                'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
-        return $result ?? [];
+        });
     }
 
     public function search(string $query): array
     {
-        try {
+        return $this->executeWithErrorHandling(function() use ($query) {
             $entities = $this->searchIndexesService->getIndex([
                 'status' => 'publish',
                 'keyword' => $query,
                 'site_id' => null
-			]);
-            $result = [];
+            ]);
+
+            $results = [];
             foreach($entities as $entity) {
-                $result[] = [
+                $results[] = [
                     'id' => $entity->id,
                     'title' => $entity->title,
                     'text' => $entity->detail,
                     'url' => Router::url($entity->url, true)
                 ];
             }
-            return ['results' => $result];
-        } catch (\Exception $e) {
-            return [
-                'isError' => true,
-                'content' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ];
-        }
+
+            return $this->createSuccessResponse([
+                'results' => $results,
+                'count' => count($results),
+                'query' => $query
+            ]);
+        });
     }
 
 }
