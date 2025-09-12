@@ -9,6 +9,7 @@ declare(strict_types=1);
  * installed as a dependency of an application.
  */
 
+use BaserCore\Utility\BcApiUtil;
 use CuMcp\Mcp\McpServerManger;
 use josegonzalez\Dotenv\Loader;
 use Migrations\TestSuite\Migrator;
@@ -42,6 +43,10 @@ require_once dirname(__DIR__) . '/tests/setup.php';
 $mcpServerManager = new McpServerManger();
 if(!$mcpServerManager->isServerRunning()) {
     $mcpServerManager->startMcpServer($mcpServerManager->getServerConfig());
+}
+
+if(!file_exists(CONFIG . 'jwt.pem')) {
+    BcApiUtil::createJwt();
 }
 
 /**
