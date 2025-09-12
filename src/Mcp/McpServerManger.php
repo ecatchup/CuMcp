@@ -14,19 +14,53 @@ class McpServerManger
         try {
             $pidFile = $this->getPidFilePath();
             $logFile = $this->getLogFilePath();
-            $cakeCommand = ROOT . DS . 'bin' . DS . 'cake';
+
+            // 複数のパスでcakeコマンドを探す
+            $possibleCakePaths = [
+                ROOT . DS . 'bin' . DS . 'cake',                    // 通常のパス
+                ROOT . DS . 'vendor' . DS . 'bin' . DS . 'cake',    // Composerでインストールされた場合
+                dirname(ROOT) . DS . 'bin' . DS . 'cake',           // 親ディレクトリにある場合
+                '/usr/local/bin/cake',                              // グローバルインストール
+                'cake'                                              // PATHにある場合
+            ];
+
+            $cakeCommand = null;
+            foreach ($possibleCakePaths as $path) {
+                if (file_exists($path) && is_executable($path)) {
+                    $cakeCommand = $path;
+                    break;
+                }
+            }
+
+            // PHPから直接実行する方法も試す
+            if (!$cakeCommand) {
+                // vendor/bin/cake のPHPスクリプトを直接実行
+                $phpCakePath = ROOT . DS . 'vendor' . DS . 'bin' . DS . 'cake';
+                if (file_exists($phpCakePath)) {
+                    $cakeCommand = 'php ' . $phpCakePath;
+                }
+            }
 
             // デバッグ情報をログ出力
             error_log("=== MCP Server Start Debug ===");
             error_log("ROOT: " . ROOT);
-            error_log("Cake Command: " . $cakeCommand);
-            error_log("Cake Command exists: " . (file_exists($cakeCommand) ? 'YES' : 'NO'));
-            error_log("Cake Command executable: " . (is_executable($cakeCommand) ? 'YES' : 'NO'));
+            error_log("Possible cake paths checked:");
+            foreach ($possibleCakePaths as $path) {
+                error_log("  {$path}: " . (file_exists($path) ? 'EXISTS' : 'NOT FOUND') .
+                         (file_exists($path) && is_executable($path) ? ' (EXECUTABLE)' : ''));
+            }
+            error_log("Selected Cake Command: " . ($cakeCommand ?? 'NONE'));
             error_log("PID File: " . $pidFile);
             error_log("Log File: " . $logFile);
             error_log("Config: " . json_encode($config));
             error_log("Current working directory: " . getcwd());
             error_log("Environment PATH: " . ($_ENV['PATH'] ?? 'Not set'));
+            error_log("GitHub Actions environment: " . (getenv('GITHUB_ACTIONS') ? 'YES' : 'NO'));
+
+            if (!$cakeCommand) {
+                error_log("ERROR: No cake command found");
+                return ['success' => false, 'message' => 'Cakeコマンドが見つかりません'];
+            }
 
             // バックグラウンドでMCPサーバーを起動
             $command = sprintf(
