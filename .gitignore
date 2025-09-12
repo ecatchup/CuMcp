@@ -15,3 +15,5 @@
 !/tests/TestApp/webroot/files/.gitkeep
 /tests/TestApp/config/.env
 /.phpunit.cache/*
+/tests/TestApp/config/*.key
+/tests/TestApp/config/*.pem
