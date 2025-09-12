@@ -4,7 +4,7 @@ return [
     'Datasources.default' => [
         'className' => 'Cake\\Database\\Connection',
         'driver' => 'Cake\\Database\\Driver\\Mysql',
-        'host' => 'cu-db',
+        'host' => '127.0.0.1',
         'port' => '3306',
         'username' => 'root',
         'password' => 'root',
@@ -18,7 +18,7 @@ return [
     'Datasources.test' => [
         'className' => 'Cake\\Database\\Connection',
         'driver' => 'Cake\\Database\\Driver\\Mysql',
-        'host' => 'cu-db',
+        'host' => '127.0.0.1',
         'port' => '3306',
         'username' => 'root',
         'password' => 'root',
