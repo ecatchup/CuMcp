@@ -10,6 +10,7 @@ namespace CuMcp\Mcp\BcBlog;
  */
 class BcBlogServer
 {
+
     /**
      * 利用可能なブログツールクラス名の配列を返却
      *
@@ -24,4 +25,5 @@ class BcBlogServer
             BlogTagsTool::class,
         ];
     }
+
 }

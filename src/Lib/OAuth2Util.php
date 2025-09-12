@@ -1,4 +1,5 @@
 <?php
+
 namespace CuMcp\Lib;
 
 use Nyholm\Psr7\ServerRequest;
@@ -20,8 +21,8 @@ class OAuth2Util
 
         // ヘッダーを取得
         $headers = [];
-        foreach ($request->getHeaders() as $name => $values) {
-            if($values) {
+        foreach($request->getHeaders() as $name => $values) {
+            if ($values) {
                 $headers[$name] = $values;
             }
         }
@@ -62,7 +63,7 @@ class OAuth2Util
 
         // クエリパラメータを設定（PKCEパラメータなどを含む）
         $queryParams = $request->getQueryParams();
-        if($request->getData('scope')) {
+        if ($request->getData('scope')) {
             // スコープがPOSTデータに含まれている場合、クエリパラメータに追加
             $queryParams['scope'] = $request->getData('scope');
         }

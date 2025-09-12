@@ -49,7 +49,7 @@ class FileUploadToolTest extends BcTestCase
         $uploadDir = TMP . 'mcp_uploads/';
         if (is_dir($uploadDir)) {
             $files = glob($uploadDir . '*');
-            foreach ($files as $file) {
+            foreach($files as $file) {
                 if (is_file($file)) {
                     unlink($file);
                 }
@@ -159,7 +159,7 @@ class FileUploadToolTest extends BcTestCase
         $totalChunks = count($chunks);
 
         // 各チャンクを順番に送信
-        for ($i = 0; $i < $totalChunks - 1; $i++) {
+        for($i = 0; $i < $totalChunks - 1; $i++) {
             $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
 
             $this->assertFalse($result['isError']);
@@ -294,7 +294,7 @@ class FileUploadToolTest extends BcTestCase
         $this->assertGreaterThan(1, $totalChunks, '画像ファイルが小さすぎてチャンク分割できません');
 
         // 各チャンクを順番に送信（最後のチャンク以外）
-        for ($i = 0; $i < $totalChunks - 1; $i++) {
+        for($i = 0; $i < $totalChunks - 1; $i++) {
             $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
 
             $this->assertFalse($result['isError'], "チャンク {$i} の送信でエラーが発生しました");
@@ -321,7 +321,7 @@ class FileUploadToolTest extends BcTestCase
         $this->assertEquals(IMAGETYPE_PNG, $imageInfo[2], 'マージされたファイルがPNG形式ではありません');
 
         // チャンクファイルが削除されているかチェック
-        for ($i = 0; $i < $totalChunks; $i++) {
+        for($i = 0; $i < $totalChunks; $i++) {
             $chunkFile = TMP . 'mcp_uploads/' . $fileId . '.part' . $i;
             $this->assertFalse(file_exists($chunkFile), "チャンクファイル {$chunkFile} が削除されていません");
         }
@@ -348,7 +348,7 @@ class FileUploadToolTest extends BcTestCase
         $totalChunks = count($chunks);
 
         // 各チャンクを順番に送信
-        for ($i = 0; $i < $totalChunks; $i++) {
+        for($i = 0; $i < $totalChunks; $i++) {
             $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
 
             $this->assertFalse($result['isError'], "チャンク {$i} の送信でエラーが発生しました");

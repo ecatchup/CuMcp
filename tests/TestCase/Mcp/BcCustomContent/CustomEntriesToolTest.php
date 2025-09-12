@@ -279,21 +279,21 @@ class CustomEntriesToolTest extends BcTestCase
 
         $this->loadFixtureScenario(CustomContentsScenario::class);
 
-            $result = $this->CustomEntriesTool->getCustomEntries(
-                customTableId: 1,
-                status: 'publish',
-                limit: 5
-            );
+        $result = $this->CustomEntriesTool->getCustomEntries(
+            customTableId: 1,
+            status: 'publish',
+            limit: 5
+        );
 
-            $this->assertIsArray($result);
-            if (isset($result['success']) && $result['success']) {
-                $this->assertArrayHasKey('content', $result);
-                $this->assertEquals(5, $result['pagination']['limit']);
-            } else {
-                // エラーケースでもレスポンス構造をテスト
-                $this->assertArrayHasKey('isError', $result);
-                $this->assertArrayHasKey('content', $result);
-            }
+        $this->assertIsArray($result);
+        if (isset($result['success']) && $result['success']) {
+            $this->assertArrayHasKey('content', $result);
+            $this->assertEquals(5, $result['pagination']['limit']);
+        } else {
+            // エラーケースでもレスポンス構造をテスト
+            $this->assertArrayHasKey('isError', $result);
+            $this->assertArrayHasKey('content', $result);
+        }
     }
 
     /**

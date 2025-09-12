@@ -17,6 +17,7 @@ use Cake\Http\Response;
  */
 class Oauth2Controller extends BcAdminAppController
 {
+
     /**
      * OAuth2サービス
      *
@@ -33,8 +34,8 @@ class Oauth2Controller extends BcAdminAppController
     {
         parent::initialize();
         $this->oauth2Service = new OAuth2Service();
-		$this->loadComponent('FormProtection');
-		$this->FormProtection->setConfig('validate', false);
+        $this->loadComponent('FormProtection');
+        $this->FormProtection->setConfig('validate', false);
         // CORS設定
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
         $this->response = $this->response->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -59,7 +60,7 @@ class Oauth2Controller extends BcAdminAppController
      * @return Response|\Psr\Http\Message\ResponseInterface
      */
     public function authorize()
-	{
+    {
         try {
             // ユーザーがログインしているかチェック
             $user = $this->Authentication->getIdentity();
@@ -85,7 +86,7 @@ class Oauth2Controller extends BcAdminAppController
             $redirectUri = $request->getQuery('redirect_uri');
             $state = $request->getQuery('state');
             $scope = $request->getQuery('scope');
-            if(!$scope) {
+            if (!$scope) {
                 $scope = 'mcp:read mcp:write'; // デフォルトスコープ
             }
 

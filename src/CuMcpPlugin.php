@@ -18,13 +18,22 @@ use Cake\Routing\Route\InflectedRoute;
 class CuMcpPlugin extends BcPlugin
 {
 
+    /**
+     * Trait
+     */
     use BcContainerTrait;
 
+    /**
+     * Install
+     * @param $options
+     * @return bool
+     * @throws \Random\RandomException
+     */
     public function install($options = []): bool
     {
         parent::install($options);
         /* @var SiteConfigsService $siteConfigsService */
-        $siteConfigsService  = $this->getService(SiteConfigsServiceInterface::class);
+        $siteConfigsService = $this->getService(SiteConfigsServiceInterface::class);
         $oauth2EncKey = base64_encode(random_bytes(32));
         $siteConfigsService->putEnv('OAUTH2_ENC_KEY', $oauth2EncKey);
         return true;
@@ -40,9 +49,7 @@ class CuMcpPlugin extends BcPlugin
     {
         // MCPサーバーコマンドを追加
         $commands->add('cu_mcp.server', \CuMcp\Command\McpServerCommand::class);
-
         $commands = parent::console($commands);
-
         return $commands;
     }
 
@@ -55,7 +62,7 @@ class CuMcpPlugin extends BcPlugin
     public function routes(RouteBuilder $routes): void
     {
         // .well-known エンドポイントをルートレベルで設定（認証不要の通常コントローラーを指定）
-        $routes->scope('/', function (RouteBuilder $builder) {
+        $routes->scope('/', function(RouteBuilder $builder) {
             $builder->setRouteClass(InflectedRoute::class);
 
             $builder->connect('/mcp', ['plugin' => 'CuMcp', 'controller' => 'McpProxy', 'action' => 'index'], ['routeClass' => InflectedRoute::class]);
@@ -74,7 +81,7 @@ class CuMcpPlugin extends BcPlugin
             $builder->connect('/.well-known/oauth-authorization-server/cu-mcp', ['plugin' => 'CuMcp', 'controller' => 'Oauth2', 'action' => 'authorizationServerMetadata'])->setMethods(['GET']);
         });
 
-        $routes->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $builder) {
+        $routes->plugin('CuMcp', ['path' => '/cu-mcp'], function(RouteBuilder $builder) {
             $builder->setRouteClass(InflectedRoute::class);
 
             // Oauth2エンドポイント（認証不要）
@@ -107,8 +114,8 @@ class CuMcpPlugin extends BcPlugin
         });
 
         // Admin prefix routes for Oauth2 endpoints（認証が必要なエンドポイントのみ）
-        $routes->prefix('Admin', ['path' => BcUtil::getPrefix()], function (RouteBuilder $builder) {
-            $builder->plugin('CuMcp', ['path' => '/cu-mcp'], function (RouteBuilder $routes) {
+        $routes->prefix('Admin', ['path' => BcUtil::getPrefix()], function(RouteBuilder $builder) {
+            $builder->plugin('CuMcp', ['path' => '/cu-mcp'], function(RouteBuilder $routes) {
                 $routes->setRouteClass(InflectedRoute::class);
 
                 // MCPサーバー管理

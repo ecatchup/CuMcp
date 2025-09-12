@@ -30,7 +30,7 @@ class Oauth2AuthCodeFactory extends CakephpBaseFactory
      */
     protected function setDefaultTemplate(): void
     {
-        $this->setDefaultData(function (Generator $faker) {
+        $this->setDefaultData(function(Generator $faker) {
             return [
                 'code' => 'c5c91c0f3dc02fff203115be82914b9e221cf69ebe43e24e81a605ea42098909be111f29c754f2ce',
                 'user_id' => 1,

@@ -13,6 +13,10 @@ use CuMcp\Mcp\McpServerManger;
 class McpServerManagerController extends BcAdminAppController
 {
 
+    /**
+     * McpServerManger
+     * @var McpServerManger
+     */
     private McpServerManger $mcpServerManager;
 
     /**

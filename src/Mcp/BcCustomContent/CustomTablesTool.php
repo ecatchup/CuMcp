@@ -123,7 +123,7 @@ class CustomTablesTool extends BaseMcpTool
 
             $data = [
                 'title' => $title,
-                'name' => $name?? 'table_' . time(),
+                'name' => $name ?? 'table_' . time(),
                 'type' => $type ?? 1,
                 'display_field' => $displayField ?? 'title',
                 'has_child' => $hasChild ?? 0
@@ -134,7 +134,7 @@ class CustomTablesTool extends BaseMcpTool
             if ($result && !empty($customFieldNames)) {
                 // カスタムフィールドとの関連付け
                 $customLinks = $this->createCustomLinks($customFieldNames);
-                if($customLinks) {
+                if ($customLinks) {
                     $customTable = $result->toArray();
                     $customTable['custom_links'] = $customLinks;
                     $result = $customTablesService->update($result, $customTable);
@@ -160,7 +160,7 @@ class CustomTablesTool extends BaseMcpTool
         $customLinks = [];
         if (!empty($customFieldNames)) {
             $i = 0;
-            foreach ($customFieldNames as $fieldName) {
+            foreach($customFieldNames as $fieldName) {
                 $customField = $customFieldsService->getIndex(['name' => $fieldName])->first();
                 if ($customField) {
                     $customLinks["new_" . $i + 1] = [
@@ -180,6 +180,7 @@ class CustomTablesTool extends BaseMcpTool
         }
         return $customLinks;
     }
+
     /**
      * カスタムテーブル一覧を取得
      */
@@ -250,7 +251,7 @@ class CustomTablesTool extends BaseMcpTool
             if ($result && !empty($customFieldNames)) {
                 // カスタムフィールドとの関連付け
                 $customLinks = $this->createCustomLinks($customFieldNames);
-                if($customLinks) {
+                if ($customLinks) {
                     $customTable = $result->toArray();
                     $customTable['custom_links'] = $customLinks;
                     $result = $customTablesService->update($result, $customTable);
@@ -282,4 +283,5 @@ class CustomTablesTool extends BaseMcpTool
             }
         });
     }
+
 }

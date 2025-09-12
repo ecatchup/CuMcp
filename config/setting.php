@@ -6,8 +6,8 @@ use Cake\Log\Engine\FileLog;
 return [
     'BcApp' => [
         /**
-          * System Navigation
-          */
+         * System Navigation
+         */
         'adminNavigation' => [
             'Systems' => [
                 'CuMcpServerManager' => [
@@ -24,6 +24,9 @@ return [
                 ],
             ]
         ],
+        /**
+         * CSRFチェックをスキップするURL
+         */
         'skipCsrfUrl' => [
             'Mcp' => '/cu-mcp',
             // RFC 7591 動的クライアント登録プロトコル（ワイルドカードパターン使用）
@@ -32,6 +35,9 @@ return [
         ]
     ],
     'BcPermission' => [
+        /**
+         * デフォルトで許可するURL
+         */
         'defaultAllows' => [
             'Authorize' => '/cu-mcp/oauth2/authorize'
         ]

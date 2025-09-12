@@ -67,7 +67,7 @@ class CustomFieldsToolTest extends BcTestCase
         $this->assertIsArray($result);
         if (isset($result['success'])) {
             $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
+            $this->assertFalse($result['isError']);
         }
         if (isset($result['content'])) {
             $this->assertArrayHasKey('content', $result);
@@ -84,7 +84,7 @@ class CustomFieldsToolTest extends BcTestCase
         $this->assertIsArray($result);
         if (isset($result['success'])) {
             $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
+            $this->assertFalse($result['isError']);
         }
         if (isset($result['content'])) {
             $this->assertArrayHasKey('content', $result);
@@ -101,7 +101,7 @@ class CustomFieldsToolTest extends BcTestCase
         $this->assertIsArray($result);
         if (isset($result['success'])) {
             $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
+            $this->assertFalse($result['isError']);
         }
         if (isset($result['content'])) {
             $this->assertArrayHasKey('content', $result);
@@ -123,7 +123,7 @@ class CustomFieldsToolTest extends BcTestCase
         $this->assertIsArray($result);
         if (isset($result['success'])) {
             $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
+            $this->assertFalse($result['isError']);
         }
         if (isset($result['content'])) {
             $this->assertArrayHasKey('content', $result);
@@ -157,7 +157,7 @@ class CustomFieldsToolTest extends BcTestCase
         $this->assertIsArray($result);
         if (isset($result['success'])) {
             $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
+            $this->assertFalse($result['isError']);
         }
         if (isset($result['content'])) {
             $this->assertArrayHasKey('content', $result);
@@ -220,7 +220,7 @@ class CustomFieldsToolTest extends BcTestCase
         $this->assertIsArray($result);
         if (isset($result['success'])) {
             $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
+            $this->assertFalse($result['isError']);
         }
         if (isset($result['content'])) {
             $this->assertArrayHasKey('content', $result);

@@ -13,6 +13,10 @@ use BaserCore\Utility\BcUtil;
  */
 abstract class BaseMcpTool
 {
+
+    /**
+     * BcContainerTrait
+     */
     use BcContainerTrait;
 
     /**
@@ -118,7 +122,7 @@ abstract class BaseMcpTool
                 return $this->processUrlFile($fileData);
             }
 
-            if(!empty($fileData)) {
+            if (!empty($fileData)) {
                 return $this->processChunkFile($fileData);
             }
 
@@ -143,7 +147,7 @@ abstract class BaseMcpTool
     public function processChunkFile(string $fileData): array
     {
         $filePath = TMP . 'mcp_uploads' . DS . $fileData;
-        if(!file_exists($filePath)) {
+        if (!file_exists($filePath)) {
             throw new \Exception('チャンクファイルが存在しません');
         }
 
@@ -254,9 +258,9 @@ abstract class BaseMcpTool
                 'max_redirects' => 3
             ]
         ];
-        if(BcUtil::isTest()) {
+        if (BcUtil::isTest()) {
             $option['ssl'] = [
-                'verify_peer'      => false,
+                'verify_peer' => false,
                 'verify_peer_name' => false
             ];
         }
@@ -276,7 +280,7 @@ abstract class BaseMcpTool
         // レスポンスヘッダーからContent-Typeを取得
         $mimeType = 'application/octet-stream';
         if (isset($http_response_header)) {
-            foreach ($http_response_header as $header) {
+            foreach($http_response_header as $header) {
                 if (stripos($header, 'content-type:') === 0) {
                     $mimeType = trim(substr($header, 13));
                     // パラメータを除去（例: "image/jpeg; charset=utf-8" -> "image/jpeg"）
@@ -493,4 +497,5 @@ abstract class BaseMcpTool
             $fileData['type']         // clientMediaType
         );
     }
+
 }

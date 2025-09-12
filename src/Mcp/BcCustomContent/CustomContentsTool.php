@@ -197,7 +197,6 @@ class CustomContentsTool extends BaseMcpTool
         });
     }
 
-
     /**
      * カスタムコンテンツを編集
      */

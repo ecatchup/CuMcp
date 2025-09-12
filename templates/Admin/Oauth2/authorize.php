@@ -92,12 +92,13 @@ $this->BcBaser->setTitle('CuMcp アプリケーション認可');
     display: block;
     border-radius: 5px;
     font-family: Arial, Geneva, sans-serif, "メイリオ", Verdana, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "ＭＳ Ｐゴシック";
-    color:#424f44;
+    color: #424f44;
   }
 
   .oauth2-authorize .card {
     border: none;
   }
+
   .oauth2-authorize strong {
     font-weight: bold;
   }
@@ -122,9 +123,9 @@ $this->BcBaser->setTitle('CuMcp アプリケーション認可');
 
   .oauth2-authorize .card-body h4 {
     margin-bottom: 0;
-    font-size:1.4rem;
-    margin-top:20px;
-    border:none;
+    font-size: 1.4rem;
+    margin-top: 20px;
+    border: none;
     padding-bottom: 0;
   }
 
@@ -139,12 +140,12 @@ $this->BcBaser->setTitle('CuMcp アプリケーション認可');
   .oauth2-authorize .permissions ul {
     list-style-type: none;
     padding-left: 0;
-    margin-top:10px;
+    margin-top: 10px;
   }
 
   .oauth2-authorize .permissions li {
     padding: 0.25rem 0;
-    margin:0;
+    margin: 0;
   }
 
   .oauth2-authorize .permissions li:before {
@@ -154,8 +155,8 @@ $this->BcBaser->setTitle('CuMcp アプリケーション認可');
     background: none;
     position: relative;
     display: inline;
-    top:0;
-    left:0;
+    top: 0;
+    left: 0;
   }
 
   .oauth2-authorize .user-info {

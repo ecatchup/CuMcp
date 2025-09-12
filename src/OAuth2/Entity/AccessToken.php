@@ -16,25 +16,40 @@ use League\OAuth2\Server\Entities\Traits\TokenEntityTrait;
  */
 class AccessToken implements AccessTokenEntityInterface
 {
+
+    /**
+     * Trait
+     */
     use Rfc9068AccessTokenTrait;
     use EntityTrait;
     use TokenEntityTrait;
 
+    /**
+     * Set Client
+     * @var ClientEntityInterface
+     */
     public function setClient(ClientEntityInterface $client): void
     {
         $this->client = $client;
     }
 
+    /**
+     * Add Scope
+     * @param ScopeEntityInterface $scope
+     * @return void
+     */
     public function addScope(ScopeEntityInterface $scope): void
     {
         $this->scopes[$scope->getIdentifier()] = $scope;
     }
 
     /**
+     * Set User Identifier
      * @param string|int|null $identifier
      */
     public function setUserIdentifier($identifier): void
     {
         $this->userIdentifier = $identifier;
     }
+
 }

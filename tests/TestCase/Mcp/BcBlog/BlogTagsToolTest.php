@@ -24,6 +24,7 @@ class BlogTagsToolTest extends BcTestCase
 {
 
     use ScenarioAwareTrait;
+
     /**
      * @var BlogTagsTool
      */

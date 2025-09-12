@@ -61,6 +61,10 @@ trait Rfc9068AccessTokenTrait
         return env('SITE_URL') . 'cu-mcp/oauth2';
     }
 
+    /**
+     * RFC 9068準拠のアクセストークンのためのResource URLを取得
+     * @return string
+     */
     private function getResource(): string
     {
         return env('SITE_URL') . 'cu-mcp';
@@ -89,7 +93,7 @@ trait Rfc9068AccessTokenTrait
             ->issuedAt(new DateTimeImmutable())                         // iat (issued at)
             ->canOnlyBeUsedAfter(new DateTimeImmutable())               // nbf (not before)
             ->expiresAt($this->getExpiryDateTime())                     // exp (expires at)
-            ->relatedTo((string) $this->getUserIdentifier())           // sub (subject)
+            ->relatedTo((string)$this->getUserIdentifier())           // sub (subject)
             ->withClaim('client_id', $this->getClient()->getIdentifier()) // client_id (RFC 9068 必須)
             ->withClaim('scopes', $scope)               // scopes oauth2-server 2.0 互換
             ->withClaim('scope', $scope)               // scope (RFC 9068 推奨、文字列形式)
@@ -123,7 +127,7 @@ trait Rfc9068AccessTokenTrait
         $scopes = $this->getScopes();
         $scopeNames = [];
 
-        foreach ($scopes as $scope) {
+        foreach($scopes as $scope) {
             $scopeNames[] = $scope->getIdentifier();
         }
 

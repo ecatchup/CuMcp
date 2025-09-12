@@ -156,30 +156,30 @@ class OAuth2ControllerTest extends BcTestCase
 
         // 認可リクエスト
         $this->get('/cu-mcp/oauth2/authorize?' . http_build_query([
-            'client_id' => $metadata['client_id'],
-            'client_secret' => $metadata['client_secret'],
-            'response_type' => 'code',
-            'redirect_uri' => $metadata['redirect_uris'][0]
-        ]));
+                'client_id' => $metadata['client_id'],
+                'client_secret' => $metadata['client_secret'],
+                'response_type' => 'code',
+                'redirect_uri' => $metadata['redirect_uris'][0]
+            ]));
         $this->assertResponseCode(302);
 
         $this->loginAdmin($this->getRequest());
         $this->get('/cu-mcp/oauth2/authorize?' . http_build_query([
-            'client_id' => $metadata['client_id'],
-            'client_secret' => $metadata['client_secret'],
-            'response_type' => 'code',
-            'redirect_uri' => $metadata['redirect_uris'][0]
-        ]));
+                'client_id' => $metadata['client_id'],
+                'client_secret' => $metadata['client_secret'],
+                'response_type' => 'code',
+                'redirect_uri' => $metadata['redirect_uris'][0]
+            ]));
         $this->assertResponseCode(200);
 
         // 認可承認
         $this->post('/cu-mcp/oauth2/authorize?' . http_build_query([
-            'grant_type' => 'authorization_code',
-            'client_id' => $metadata['client_id'],
-            'client_secret' => $metadata['client_secret'],
-            'response_type' => 'code',
-            'redirect_uri' => $metadata['redirect_uris'][0]
-        ]), ['action' => 'approve']);
+                'grant_type' => 'authorization_code',
+                'client_id' => $metadata['client_id'],
+                'client_secret' => $metadata['client_secret'],
+                'response_type' => 'code',
+                'redirect_uri' => $metadata['redirect_uris'][0]
+            ]), ['action' => 'approve']);
         $this->assertResponseCode(302);
         $redirectUrl = $this->_response->getHeaderLine('Location');
         $this->assertStringContainsString('code=', $redirectUrl);
@@ -208,7 +208,7 @@ class OAuth2ControllerTest extends BcTestCase
         $this->assertNotEmpty($refreshToken);
 
         // アクセストークンを使用してMCPサーバーのツールリストを取得
-        $requestConfig= [
+        $requestConfig = [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Content-Type' => 'application/json',
@@ -478,7 +478,7 @@ class OAuth2ControllerTest extends BcTestCase
         $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
         $verifier = '';
 
-        for ($i = 0; $i < $length; $i++) {
+        for($i = 0; $i < $length; $i++) {
             $verifier .= $characters[random_int(0, strlen($characters) - 1)];
         }
 

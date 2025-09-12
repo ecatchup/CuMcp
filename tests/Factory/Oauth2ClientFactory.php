@@ -30,14 +30,14 @@ class Oauth2ClientFactory extends CakephpBaseFactory
      */
     protected function setDefaultTemplate(): void
     {
-        $this->setDefaultData(function (Generator $faker) {
+        $this->setDefaultData(function(Generator $faker) {
             return [
                 'name' => 'Generated from Admin Panel',
                 'client_id' => 'mcp-client',
                 'client_secret' => 'mcp-secret-key',
                 'redirect_uris' => ["http://localhost"],
-                'grants' => ["authorization_code","refresh_token"],
-                'scopes' => ["mcp:read","mcp:write"],
+                'grants' => ["authorization_code", "refresh_token"],
+                'scopes' => ["mcp:read", "mcp:write"],
                 'is_confidential' => false,
                 'created' => FrozenTime::now(),
                 'modified' => FrozenTime::now()

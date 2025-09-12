@@ -67,7 +67,7 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
         $accessToken->setClient($clientEntity);
         $accessToken->setUserIdentifier($userIdentifier);
 
-        foreach ($scopes as $scope) {
+        foreach($scopes as $scope) {
             $accessToken->addScope($scope);
         }
 
@@ -95,7 +95,7 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
         }
         $scopes = $accessTokenEntity->getScopes();
         $scopeArray = [];
-        foreach ($scopes as $scope) {
+        foreach($scopes as $scope) {
             $scopeArray[] = $scope->getIdentifier();
         }
         // データベースに保存
@@ -204,4 +204,5 @@ class OAuth2AccessTokenRepository implements AccessTokenRepositoryInterface
     {
         return $this->accessTokensTable->cleanExpiredTokens();
     }
+
 }

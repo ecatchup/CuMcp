@@ -174,7 +174,7 @@ class BlogPostsTool extends BaseMcpTool
 
             // アイキャッチ画像の処理
             if (!empty($eyeCatch) && $this->isFileUploadable($eyeCatch)) {
-                if(!is_array($eyeCatch)) {
+                if (!is_array($eyeCatch)) {
                     $eyeCatchData = $this->processFileUpload($eyeCatch, 'eye_catch');
                 }
                 if ($eyeCatchData !== false && is_array($eyeCatchData)) {
@@ -266,7 +266,7 @@ class BlogPostsTool extends BaseMcpTool
             // アイキャッチ画像の処理
             if ($eyeCatch !== null) {
                 if (!empty($eyeCatch) && $this->isFileUploadable($eyeCatch)) {
-                    if(!is_array($eyeCatch)) {
+                    if (!is_array($eyeCatch)) {
                         $eyeCatchData = $this->processFileUpload($eyeCatch, 'eye_catch');
                     }
                     if ($eyeCatchData !== false && is_array($eyeCatchData)) {

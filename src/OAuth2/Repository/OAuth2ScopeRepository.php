@@ -13,6 +13,7 @@ use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
  */
 class OAuth2ScopeRepository implements ScopeRepositoryInterface
 {
+
     /**
      * 利用可能なスコープ
      *
@@ -61,8 +62,10 @@ class OAuth2ScopeRepository implements ScopeRepositoryInterface
         $grantType,
         ClientEntityInterface $clientEntity,
         $userIdentifier = null
-    ): array {
+    ): array
+    {
         // クライアントが要求したスコープをそのまま返す
         return $scopes;
     }
+
 }

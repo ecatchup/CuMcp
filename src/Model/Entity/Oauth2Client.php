@@ -22,9 +22,9 @@ use Cake\ORM\Entity;
  */
 class Oauth2Client extends Entity
 {
+
     /**
-     * Fields that can be mass assigned using newEntity() or patchEntity().
-     *
+     * accessible properties
      * @var array<string, bool>
      */
     protected array $_accessible = [
@@ -41,7 +41,7 @@ class Oauth2Client extends Entity
     ];
 
     /**
-     * Fields that should be hidden for arrays
+     * hidden properties
      *
      * @var array<string>
      */
@@ -51,7 +51,7 @@ class Oauth2Client extends Entity
     ];
 
     /**
-     * JSON fields that should be automatically decoded
+     * json fields
      *
      * @var array<string>
      */
@@ -78,16 +78,16 @@ class Oauth2Client extends Entity
         $scopes = $this->scopes ?? [];
         // 追加の一時プロパティは存在すれば利用
         $registrationClientUri = $this->get('registration_client_uri');
-        $tokenEndpointAuthMethod = $this->get('token_endpoint_auth_method') ?? ($this->is_confidential ? 'client_secret_basic' : 'none');
-        $clientIdIssuedAt = $this->get('client_id_issued_at') ?? ($this->created ? $this->created->getTimestamp() : null);
+        $tokenEndpointAuthMethod = $this->get('token_endpoint_auth_method') ?? ($this->is_confidential? 'client_secret_basic' : 'none');
+        $clientIdIssuedAt = $this->get('client_id_issued_at') ?? ($this->created? $this->created->getTimestamp() : null);
         $clientSecretExpiresAt = $this->get('client_secret_expires_at');
         $contacts = $this->get('contacts');
         $clientUri = $this->get('client_uri');
         $logoUri = $this->get('logo_uri');
-    $tosUri = $this->get('tos_uri');
-    $policyUri = $this->get('policy_uri');
-    $softwareId = $this->get('software_id');
-    $softwareVersion = $this->get('software_version');
+        $tosUri = $this->get('tos_uri');
+        $policyUri = $this->get('policy_uri');
+        $softwareId = $this->get('software_id');
+        $softwareVersion = $this->get('software_version');
 
         $response = [
             'client_id' => $this->client_id,
@@ -113,7 +113,7 @@ class Oauth2Client extends Entity
         ];
 
         // null を含めたくないキーをフィルタ（client_secret_expires_at は null を許可）
-        foreach (['client_secret', 'registration_access_token', 'registration_client_uri', 'contacts', 'client_uri', 'logo_uri', 'tos_uri', 'policy_uri', 'software_id', 'software_version'] as $nullableKey) {
+        foreach(['client_secret', 'registration_access_token', 'registration_client_uri', 'contacts', 'client_uri', 'logo_uri', 'tos_uri', 'policy_uri', 'software_id', 'software_version'] as $nullableKey) {
             if ($response[$nullableKey] === null) {
                 unset($response[$nullableKey]);
             }
@@ -123,22 +123,93 @@ class Oauth2Client extends Entity
     }
 
     // 旧サービス層からの呼び出しに対応するための簡易ゲッター
-    public function getName(): string { return (string)$this->name; }
-    public function getRedirectUri(): array { return (array)($this->redirect_uris ?? []); }
-    public function getGrants(): array { return (array)($this->grants ?? []); }
-    public function getScopes(): array { return (array)($this->scopes ?? []); }
-    public function getRegistrationAccessToken(): ?string { return $this->registration_access_token ?? null; }
-    public function getRegistrationClientUri(): ?string { return $this->get('registration_client_uri'); }
-    public function getClientIdIssuedAt(): ?int { return $this->get('client_id_issued_at'); }
-    public function getClientSecretExpiresAt(): ?int { return $this->get('client_secret_expires_at'); }
-    public function getTokenEndpointAuthMethod(): ?string { return $this->get('token_endpoint_auth_method'); }
-    public function getContacts(): array { return (array)($this->get('contacts') ?? []); }
-    public function getClientUri(): ?string { return $this->get('client_uri'); }
-    public function getLogoUri(): ?string { return $this->get('logo_uri'); }
-    public function getTosUri(): ?string { return $this->get('tos_uri'); }
-    public function getPolicyUri(): ?string { return $this->get('policy_uri'); }
-    public function getSoftwareId(): ?string { return $this->get('software_id'); }
-    public function getSoftwareVersion(): ?string { return $this->get('software_version'); }
-    public function getSecret(): ?string { return $this->client_secret ?? null; }
-    public function getIdentifier(): string { return (string)$this->client_id; }
+    public function getName(): string
+    {
+        return (string)$this->name;
+    }
+
+    public function getRedirectUri(): array
+    {
+        return (array)($this->redirect_uris ?? []);
+    }
+
+    public function getGrants(): array
+    {
+        return (array)($this->grants ?? []);
+    }
+
+    public function getScopes(): array
+    {
+        return (array)($this->scopes ?? []);
+    }
+
+    public function getRegistrationAccessToken(): ?string
+    {
+        return $this->registration_access_token ?? null;
+    }
+
+    public function getRegistrationClientUri(): ?string
+    {
+        return $this->get('registration_client_uri');
+    }
+
+    public function getClientIdIssuedAt(): ?int
+    {
+        return $this->get('client_id_issued_at');
+    }
+
+    public function getClientSecretExpiresAt(): ?int
+    {
+        return $this->get('client_secret_expires_at');
+    }
+
+    public function getTokenEndpointAuthMethod(): ?string
+    {
+        return $this->get('token_endpoint_auth_method');
+    }
+
+    public function getContacts(): array
+    {
+        return (array)($this->get('contacts') ?? []);
+    }
+
+    public function getClientUri(): ?string
+    {
+        return $this->get('client_uri');
+    }
+
+    public function getLogoUri(): ?string
+    {
+        return $this->get('logo_uri');
+    }
+
+    public function getTosUri(): ?string
+    {
+        return $this->get('tos_uri');
+    }
+
+    public function getPolicyUri(): ?string
+    {
+        return $this->get('policy_uri');
+    }
+
+    public function getSoftwareId(): ?string
+    {
+        return $this->get('software_id');
+    }
+
+    public function getSoftwareVersion(): ?string
+    {
+        return $this->get('software_version');
+    }
+
+    public function getSecret(): ?string
+    {
+        return $this->client_secret ?? null;
+    }
+
+    public function getIdentifier(): string
+    {
+        return (string)$this->client_id;
+    }
 }

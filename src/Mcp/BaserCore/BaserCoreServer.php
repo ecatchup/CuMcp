@@ -10,6 +10,7 @@ namespace CuMcp\Mcp\BaserCore;
  */
 class BaserCoreServer
 {
+
     /**
      * 利用可能なブログツールクラス名の配列を返却
      *
@@ -23,4 +24,5 @@ class BaserCoreServer
             // FileUploadTool::class
         ];
     }
+
 }

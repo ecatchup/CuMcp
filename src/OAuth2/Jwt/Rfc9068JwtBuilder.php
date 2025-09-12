@@ -177,4 +177,5 @@ class Rfc9068JwtBuilder
     {
         return $this->builder->getToken($signer, $key);
     }
+
 }

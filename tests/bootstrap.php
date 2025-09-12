@@ -33,7 +33,7 @@ chdir($root);
 require_once $root . '/vendor/autoload.php';
 
 $env = dirname(__DIR__) . DS . 'tests' . DS . 'TestApp' . DS . 'config' . DS . '.env';
-if(file_exists($env)) {
+if (file_exists($env)) {
     $dotenv = new Loader([$env]);
     $dotenv->parse()
         ->putenv()
@@ -43,7 +43,7 @@ if(file_exists($env)) {
 
 require_once dirname(__DIR__) . '/tests/setup.php';
 
-if(!file_exists(CONFIG . 'jwt.pem')) {
+if (!file_exists(CONFIG . 'jwt.pem')) {
     BcApiUtil::createJwt();
 }
 
@@ -56,6 +56,6 @@ if(!file_exists(CONFIG . 'jwt.pem')) {
 ]);
 
 $mcpServerManager = new McpServerManger();
-if(!$mcpServerManager->isServerRunning()) {
+if (!$mcpServerManager->isServerRunning()) {
     $result = $mcpServerManager->startMcpServer($mcpServerManager->getServerConfig());
 }

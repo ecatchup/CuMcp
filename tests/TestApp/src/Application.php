@@ -14,6 +14,7 @@ declare(strict_types=1);
  * @since     3.3.0
  * @license   https://opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace App;
 
 use Cake\Core\Configure;
@@ -66,9 +67,9 @@ class Application extends BaseApplication
     {
         $csrfProtectionMiddlewareOptions = ['httponly' => true];
         //リクエストがhttpsならcsrfTokenにもsecureヘッダを付与
-        $sessionConfig = (array) Configure::read('Session');
-        if (!empty($sessionConfig['ini']['session.cookie_secure']) || (int) ini_get('session.cookie_secure') === 1) {
-            $csrfProtectionMiddlewareOptions['secure'] =  true;
+        $sessionConfig = (array)Configure::read('Session');
+        if (!empty($sessionConfig['ini']['session.cookie_secure']) || (int)ini_get('session.cookie_secure') === 1) {
+            $csrfProtectionMiddlewareOptions['secure'] = true;
         }
         $middlewareQueue
             // Catch any exceptions in the lower layers,

@@ -11,6 +11,5 @@ if(in_array('--test', array_values($argv))) {
 }
 
 // Build the runner with an application and root executable name.
-//$runner = new CommandRunner(new Application(dirname(__DIR__) . '/config'), 'cake');
 $runner = new CommandRunner(new Application(CONFIG), 'cake');
 exit($runner->run($argv));

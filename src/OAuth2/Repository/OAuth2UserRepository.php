@@ -15,6 +15,7 @@ use League\OAuth2\Server\Repositories\UserRepositoryInterface;
  */
 class OAuth2UserRepository implements UserRepositoryInterface
 {
+
     /**
      * ユーザー認証情報でユーザーエンティティを取得
      *
@@ -32,10 +33,12 @@ class OAuth2UserRepository implements UserRepositoryInterface
         $password,
         $grantType,
         ClientEntityInterface $clientEntity
-    ): ?UserEntityInterface {
+    ): ?UserEntityInterface
+    {
         // Client Credentials Grant では使用されない
         // Authorization Code Grant を将来実装する場合は、
         // ここでbaserCMSのユーザー認証を行う
         return null;
     }
+
 }

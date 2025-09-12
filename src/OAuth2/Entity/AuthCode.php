@@ -13,44 +13,85 @@ use League\OAuth2\Server\Entities\Traits\TokenEntityTrait;
  */
 class AuthCode implements AuthCodeEntityInterface
 {
+
+    /**
+     * Trait
+     */
     use AuthCodeTrait, EntityTrait, TokenEntityTrait;
 
-    /** @var string */
+    /**
+     * Redirect URI
+     * @var string
+     */
     protected $redirectUri;
 
-    /** @var string|null */
+    /**
+     * Code Challenge
+     * @var string|null
+     */
     protected $codeChallenge;
 
-    /** @var string */
+    /**
+     * Code Challenge Method
+     * @var string
+     */
     protected $codeChallengeMethod = 'plain';
 
+    /**
+     * Get Redirect URI
+     * @return string
+     */
     public function getRedirectUri(): string
     {
         return $this->redirectUri;
     }
 
+    /**
+     * Set Redirect URI
+     * @param string $uri
+     * @return void
+     */
     public function setRedirectUri($uri): void
     {
         $this->redirectUri = $uri;
     }
 
+    /**
+     * Get Code Challenge
+     * @return string|null
+     */
     public function getCodeChallenge(): ?string
     {
         return $this->codeChallenge;
     }
 
+    /**
+     * Set Code Challenge
+     * @param string|null $codeChallenge
+     * @return void
+     */
     public function setCodeChallenge(?string $codeChallenge): void
     {
         $this->codeChallenge = $codeChallenge;
     }
 
+    /**
+     * Get Code Challenge Method
+     * @return string
+     */
     public function getCodeChallengeMethod(): string
     {
         return $this->codeChallengeMethod;
     }
 
+    /**
+     * Set Code Challenge Method
+     * @param string $codeChallengeMethod
+     * @return void
+     */
     public function setCodeChallengeMethod(string $codeChallengeMethod): void
     {
         $this->codeChallengeMethod = $codeChallengeMethod;
     }
+
 }

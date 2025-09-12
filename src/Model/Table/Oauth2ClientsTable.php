@@ -27,6 +27,7 @@ use Cake\Validation\Validator;
  */
 class Oauth2ClientsTable extends Table
 {
+
     /**
      * Initialize method
      *
@@ -78,12 +79,12 @@ class Oauth2ClientsTable extends Table
             ->requirePresence('name', 'create')
             ->notEmptyString('name');
 
-    // JSONカラムは型を強制しない（スキーマのjson型マッピングで処理）
-    $validator->allowEmptyString('redirect_uris');
+        // JSONカラムは型を強制しない（スキーマのjson型マッピングで処理）
+        $validator->allowEmptyString('redirect_uris');
 
-    $validator->allowEmptyString('grants');
+        $validator->allowEmptyString('grants');
 
-    $validator->allowEmptyString('scopes');
+        $validator->allowEmptyString('scopes');
 
         $validator
             ->boolean('is_confidential')
@@ -123,4 +124,5 @@ class Oauth2ClientsTable extends Table
             ->where(['client_id' => $clientId])
             ->first();
     }
+
 }

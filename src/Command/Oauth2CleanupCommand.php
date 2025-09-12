@@ -14,6 +14,7 @@ use Cake\ORM\TableRegistry;
  */
 class Oauth2CleanupCommand extends BaseCommand
 {
+
     /**
      * Hook method for defining this command's option parser.
      *

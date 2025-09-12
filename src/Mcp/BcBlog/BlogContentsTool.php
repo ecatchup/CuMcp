@@ -169,7 +169,8 @@ class BlogContentsTool extends BaseMcpTool
         ?bool $useContent = false,
         ?int $widgetArea = null,
         ?int $loginUserId = null
-    ): array {
+    ): array
+    {
         return $this->executeWithErrorHandling(function() use (
             $name, $title, $siteId, $parentId, $description, $authorId, $layoutTemplate, $status,
             $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $listCount,
@@ -209,10 +210,10 @@ class BlogContentsTool extends BaseMcpTool
                 'comment_use' => $commentUse,
                 'comment_approve' => $commentApprove,
                 'tag_use' => $tagUse,
-                'eye_catch_size_thumb_width' => $eyeCatchSizeThumbWidth?? Configure::read('BcBlog.eye_catch_size_thumb_width'),
-                'eye_catch_size_thumb_height' => $eyeCatchSizeThumbHeight?? Configure::read('BcBlog.eye_catch_size_thumb_height'),
-                'eye_catch_size_mobile_thumb_width' => $eyeCatchSizeMobileThumbWidth?? Configure::read('BcBlog.eye_catch_size_mobile_thumb_width'),
-                'eye_catch_size_mobile_thumb_height' => $eyeCatchSizeMobileThumbHeight?? Configure::read('BcBlog.eye_catch_size_mobile_thumb_height'),
+                'eye_catch_size_thumb_width' => $eyeCatchSizeThumbWidth ?? Configure::read('BcBlog.eye_catch_size_thumb_width'),
+                'eye_catch_size_thumb_height' => $eyeCatchSizeThumbHeight ?? Configure::read('BcBlog.eye_catch_size_thumb_height'),
+                'eye_catch_size_mobile_thumb_width' => $eyeCatchSizeMobileThumbWidth ?? Configure::read('BcBlog.eye_catch_size_mobile_thumb_width'),
+                'eye_catch_size_mobile_thumb_height' => $eyeCatchSizeMobileThumbHeight ?? Configure::read('BcBlog.eye_catch_size_mobile_thumb_height'),
                 'use_content' => $useContent,
                 'widget_area' => $widgetArea
             ];
@@ -290,10 +291,10 @@ class BlogContentsTool extends BaseMcpTool
             if ($commentUse !== null) $data['comment_use'] = $commentUse;
             if ($commentApprove !== null) $data['comment_approve'] = $commentApprove;
             if ($tagUse !== null) $data['tag_use'] = $tagUse;
-            if($eyeCatchSizeThumbWidth !== null) $data['eye_catch_size_thumb_width'] = $eyeCatchSizeThumbWidth;
-            if($eyeCatchSizeThumbHeight !== null) $data['eye_catch_size_thumb_height'] = $eyeCatchSizeThumbHeight;
-            if($eyeCatchSizeMobileThumbWidth !== null) $data['eye_catch_size_mobile_thumb_width'] = $eyeCatchSizeMobileThumbWidth;
-            if($eyeCatchSizeMobileThumbHeight !== null) $data['eye_catch_size_mobile_thumb_height'] = $eyeCatchSizeMobileThumbHeight;
+            if ($eyeCatchSizeThumbWidth !== null) $data['eye_catch_size_thumb_width'] = $eyeCatchSizeThumbWidth;
+            if ($eyeCatchSizeThumbHeight !== null) $data['eye_catch_size_thumb_height'] = $eyeCatchSizeThumbHeight;
+            if ($eyeCatchSizeMobileThumbWidth !== null) $data['eye_catch_size_mobile_thumb_width'] = $eyeCatchSizeMobileThumbWidth;
+            if ($eyeCatchSizeMobileThumbHeight !== null) $data['eye_catch_size_mobile_thumb_height'] = $eyeCatchSizeMobileThumbHeight;
             if ($useContent !== null) $data['use_content'] = $useContent;
             if ($widgetArea !== null) $data['widget_area'] = $widgetArea;
 

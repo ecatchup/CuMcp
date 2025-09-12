@@ -1,9 +1,15 @@
 <?php
+
 namespace CuMcp\Mcp;
 
 use BaserCore\Utility\BcUtil;
 use Cake\Routing\Router;
 
+/**
+ * MCPサーバーマネージャークラス
+ *
+ * MCPサーバーの起動、停止、状態確認、設定管理を行う
+ */
 class McpServerManger
 {
 
@@ -33,7 +39,7 @@ class McpServerManger
 
             // 起動確認（最大10秒待機）
             $attempts = 0;
-            while ($attempts < 20 && !$this->isServerRunning()) {
+            while($attempts < 20 && !$this->isServerRunning()) {
                 usleep(500000); // 0.5秒待機
                 $attempts++;
             }
@@ -41,7 +47,7 @@ class McpServerManger
             if ($this->isServerRunning()) {
                 return ['success' => true, 'message' => 'MCPサーバーが正常に起動しました'];
             } else {
-                $logContent = file_exists($logFile) ? file_get_contents($logFile) : 'ログファイルが見つかりません';
+                $logContent = file_exists($logFile)? file_get_contents($logFile) : 'ログファイルが見つかりません';
                 return ['success' => false, 'message' => 'サーバーの起動を確認できませんでした。ログ: ' . $logContent];
             }
 
@@ -98,9 +104,9 @@ class McpServerManger
         $config = $this->getServerConfig();
 
         $isRunning = $this->isServerRunning();
-        $pid = file_exists($pidFile) ? trim(file_get_contents($pidFile)) : null;
+        $pid = file_exists($pidFile)? trim(file_get_contents($pidFile)) : null;
         $request = Router::getRequest();
-        $protocol = ($request->is('https')) ? 'https' : 'http';
+        $protocol = ($request->is('https'))? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
         return [
@@ -150,7 +156,7 @@ class McpServerManger
 
         if (file_exists($configFile)) {
             $savedConfig = json_decode(file_get_contents($configFile), true);
-            return array_merge($defaultConfig, $savedConfig ?: []);
+            return array_merge($defaultConfig, $savedConfig?: []);
         }
 
         return $defaultConfig;

@@ -201,7 +201,7 @@ class McpProxyController extends AppController
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
                 ->withStringBody(json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
-            if($this->request->getData('method') === 'notifications/initialized') {
+            if ($this->request->getData('method') === 'notifications/initialized') {
                 $this->response = $this->response->withStatus(202);
             }
         } catch (BadRequestException $e) {

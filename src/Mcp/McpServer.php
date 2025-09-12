@@ -53,8 +53,6 @@ class McpServer
             ));
 
         $this->registerToolsFromServer(array_merge(
-            // ChatGPTへの対応のため、search と fetch が実装されているが、
-            //ChatGPTでうまく動作しないためコメントアウト
             BaserCoreServer::getToolClasses(),
             BcBlogServer::getToolClasses(),
             BcCustomContentServer::getToolClasses(),
@@ -66,11 +64,11 @@ class McpServer
             name: 'serverInfo',
             description: 'サーバーのバージョンや環境情報を返します',
             inputSchema: [
-				'type' => 'object',
-				'properties' => [
+                'type' => 'object',
+                'properties' => [
                     'id' => ['type' => 'number', 'description' => 'ID'],
                 ]
-			]
+            ]
         );
 
         $this->server = $builder->build();
@@ -85,7 +83,7 @@ class McpServer
      */
     private function registerToolsFromServer(array $toolClasses, ServerBuilder &$builder): void
     {
-        foreach ($toolClasses as $toolClass) {
+        foreach($toolClasses as $toolClass) {
             $toolInstance = new $toolClass();
             $builder = $toolInstance->addToolsToBuilder($builder);
         }

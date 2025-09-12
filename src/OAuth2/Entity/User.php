@@ -10,15 +10,29 @@ use League\OAuth2\Server\Entities\UserEntityInterface;
  */
 class User implements UserEntityInterface
 {
+
+    /**
+     * Identifier
+     * @var string|int
+     */
     protected string|int $identifier;
 
+    /**
+     * Get Identifier
+     * @return string|int
+     */
     public function getIdentifier(): string|int
     {
         return $this->identifier;
     }
 
+    /**
+     * Set Identifier
+     * @param string|int $identifier
+     */
     public function setIdentifier(string|int $identifier): void
     {
         $this->identifier = $identifier;
     }
+
 }

@@ -11,6 +11,7 @@ use Cake\Validation\Validator;
  */
 class Oauth2RefreshTokensTable extends Table
 {
+
     /**
      * Initialize method
      *
@@ -70,4 +71,5 @@ class Oauth2RefreshTokensTable extends Table
     {
         return $this->deleteAll(['expires_at <' => new \DateTime()]);
     }
+
 }

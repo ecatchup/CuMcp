@@ -230,7 +230,7 @@ class CustomFieldsTool extends BaseMcpTool
 
             $conditions = [];
             if (!empty($name)) $conditions['name'] = $name;
-            if( !empty($title)) $conditions['title'] = $title;
+            if (!empty($title)) $conditions['title'] = $title;
             if (!empty($type)) $conditions['type'] = $type;
             if (isset($status)) $conditions['status'] = $status;
 

@@ -5,10 +5,23 @@ namespace CuMcp\Mcp\BaserCore;
 use CuMcp\Mcp\BaseMcpTool;
 use PhpMcp\Server\ServerBuilder;
 
+/**
+ * ファイルアップロード用のMCPツール
+ *
+ * 大きなファイルをチャンクに分割して段階的にアップロードするためのツール
+ */
 class FileUploadTool extends BaseMcpTool
 {
+
+    /**
+     * アップロード一時ディレクトリ
+     * @var string
+     */
     private $uploadDir = TMP . 'mcp_uploads/';
 
+    /**
+     * コンストラクタ
+     */
     public function __construct()
     {
         if (!is_dir($this->uploadDir)) {
@@ -40,10 +53,20 @@ class FileUploadTool extends BaseMcpTool
             );
     }
 
+    /**
+     * ファイルチャンクを受信して保存
+     * チャンクが全て揃ったら結合して最終ファイルを生成
+     * @param string $fileId
+     * @param int $chunkIndex
+     * @param int $totalChunks
+     * @param string $chunkData
+     * @param string $filename
+     * @return array
+     */
     public function sendFileChunk(string $fileId, int $chunkIndex, int $totalChunks, string $chunkData, string $filename): array
     {
         return $this->executeWithErrorHandling(function() use ($fileId, $chunkIndex, $totalChunks, $chunkData, $filename) {
-            if(empty($fileId) || $chunkIndex < 0 || $totalChunks <= 0 || empty($chunkData) || empty($filename)) {
+            if (empty($fileId) || $chunkIndex < 0 || $totalChunks <= 0 || empty($chunkData) || empty($filename)) {
                 throw new \InvalidArgumentException('Invalid parameters.');
             }
 
@@ -59,6 +82,13 @@ class FileUploadTool extends BaseMcpTool
         });
     }
 
+    /**
+     * チャンクを結合して最終ファイルを生成
+     * @param $fileId
+     * @param $totalChunks
+     * @param $filename
+     * @return string[]
+     */
     private function mergeChunks($fileId, $totalChunks, $filename)
     {
         $finalFile = $this->uploadDir . $filename;
@@ -77,9 +107,16 @@ class FileUploadTool extends BaseMcpTool
         return ['status' => 'complete', 'file' => $finalFile];
     }
 
-    private function allChunksReceived($fileId, $totalChunks) {
+    /**
+     * 全チャンク受信完了チェック
+     * @param $fileId
+     * @param $totalChunks
+     * @return bool
+     */
+    private function allChunksReceived($fileId, $totalChunks)
+    {
         // 方法1: ファイル存在チェックによる確認
-        for ($i = 0; $i < $totalChunks; $i++) {
+        for($i = 0; $i < $totalChunks; $i++) {
             $chunkFile = $this->uploadDir . $fileId . '.part' . $i;
             if (!file_exists($chunkFile)) {
                 return false; // 欠損チャンクがある

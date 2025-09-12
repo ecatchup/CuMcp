@@ -16,6 +16,7 @@ use Cake\I18n\DateTime;
  */
 class OAuth2RefreshTokenRepository implements RefreshTokenRepositoryInterface
 {
+
     /**
      * OAuth2RefreshTokens Table
      *
@@ -115,4 +116,5 @@ class OAuth2RefreshTokenRepository implements RefreshTokenRepositoryInterface
     {
         return $this->refreshTokensTable->cleanExpiredTokens();
     }
+
 }

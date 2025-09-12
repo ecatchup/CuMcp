@@ -215,7 +215,7 @@ class BlogCategoriesToolTest extends BcTestCase
     public function testGetBlogCategoriesWithLimit()
     {
         // 複数のテストデータを作成
-        for ($i = 1; $i <= 5; $i++) {
+        for($i = 1; $i <= 5; $i++) {
             BlogCategoryFactory::make([
                 'id' => $i,
                 'blog_content_id' => 1,
@@ -251,7 +251,7 @@ class BlogCategoriesToolTest extends BcTestCase
     public function testGetBlogCategoriesWithPage()
     {
         // 複数のテストデータを作成
-        for ($i = 1; $i <= 10; $i++) {
+        for($i = 1; $i <= 10; $i++) {
             BlogCategoryFactory::make([
                 'id' => $i,
                 'blog_content_id' => 1,
@@ -288,7 +288,7 @@ class BlogCategoriesToolTest extends BcTestCase
     public function testGetBlogCategoriesWithoutLimit()
     {
         // 複数のテストデータを作成
-        for ($i = 1; $i <= 5; $i++) {
+        for($i = 1; $i <= 5; $i++) {
             BlogCategoryFactory::make([
                 'id' => $i,
                 'blog_content_id' => 1,
@@ -324,7 +324,7 @@ class BlogCategoriesToolTest extends BcTestCase
     public function testGetBlogCategoriesEmptyPage()
     {
         // 5件のテストデータを作成
-        for ($i = 1; $i <= 5; $i++) {
+        for($i = 1; $i <= 5; $i++) {
             BlogCategoryFactory::make([
                 'id' => $i,
                 'blog_content_id' => 1,
@@ -401,6 +401,7 @@ class BlogCategoriesToolTest extends BcTestCase
         $this->assertEquals(1, $result['pagination']['count']); // 実際に返された件数
         $this->assertEquals(1, $result['pagination']['total']); // 公開状態の総件数
     }
+
     /**
      * Test getBlogCategories method - 全ての状態のカテゴリ取得テスト
      *

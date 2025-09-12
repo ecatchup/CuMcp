@@ -231,7 +231,7 @@ class CustomEntriesTool extends BaseMcpTool
     {
         $processedFields = [];
 
-        foreach ($customFields as $fieldName => $value) {
+        foreach($customFields as $fieldName => $value) {
             if (is_array($value)) {
                 // 配列の場合、json形式またはファイルアップロードの可能性をチェック
                 $processedFields[$fieldName] = $value;

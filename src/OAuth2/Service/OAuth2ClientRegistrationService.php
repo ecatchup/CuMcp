@@ -14,6 +14,7 @@ use Cake\ORM\TableRegistry;
  */
 class OAuth2ClientRegistrationService
 {
+
     /**
      * In-memory map of registration access tokens for the current PHP process
      * [client_id => registration_access_token]
@@ -25,6 +26,7 @@ class OAuth2ClientRegistrationService
      * @var array<string,string>
      */
     private static array $registrationTokenMap = [];
+
     /**
      * OAuth2クライアントリポジトリ
      *
@@ -89,7 +91,7 @@ class OAuth2ClientRegistrationService
      *
      * @param array $requestData リクエストデータ
      * @param string $baseUrl ベースURL
-    * @return Oauth2Client
+     * @return Oauth2Client
      * @throws Exception
      */
     public function registerClient(array $requestData, string $baseUrl): Oauth2Client
@@ -173,6 +175,12 @@ class OAuth2ClientRegistrationService
         return $saved;
     }
 
+    /**
+     * クライアント情報の取得
+     * @param string $clientId
+     * @param string $registrationAccessToken
+     * @return Oauth2Client|null
+     */
     public function getClient(string $clientId, string $registrationAccessToken): ?Oauth2Client
     {
         /** @var \CuMcp\Model\Table\Oauth2ClientsTable $table */
@@ -194,13 +202,21 @@ class OAuth2ClientRegistrationService
 
         $siteUrl = rtrim(env('SITE_URL', 'https://localhost'), '/');
         $client->set('registration_client_uri', $siteUrl . '/cu-mcp/oauth2/register/' . $clientId);
-        $client->set('token_endpoint_auth_method', $client->is_confidential ? 'client_secret_basic' : 'none');
-        $client->set('client_id_issued_at', $client->created ? $client->created->getTimestamp() : null);
+        $client->set('token_endpoint_auth_method', $client->is_confidential? 'client_secret_basic' : 'none');
+        $client->set('client_id_issued_at', $client->created? $client->created->getTimestamp() : null);
         $client->set('client_secret_expires_at', null);
 
         return $client;
     }
 
+    /**
+     * クライアント情報の更新
+     * @param string $clientId
+     * @param string $registrationAccessToken
+     * @param array $requestData
+     * @return Oauth2Client|null
+     * @throws Exception
+     */
     public function updateClient(string $clientId, string $registrationAccessToken, array $requestData): ?Oauth2Client
     {
         /** @var \CuMcp\Model\Table\Oauth2ClientsTable $table */
@@ -246,13 +262,19 @@ class OAuth2ClientRegistrationService
 
         $siteUrl = rtrim(env('SITE_URL', 'https://localhost'), '/');
         $client->set('registration_client_uri', $siteUrl . '/cu-mcp/oauth2/register/' . $clientId);
-        $client->set('token_endpoint_auth_method', $client->is_confidential ? 'client_secret_basic' : 'none');
-        $client->set('client_id_issued_at', $client->created ? $client->created->getTimestamp() : null);
+        $client->set('token_endpoint_auth_method', $client->is_confidential? 'client_secret_basic' : 'none');
+        $client->set('client_id_issued_at', $client->created? $client->created->getTimestamp() : null);
         $client->set('client_secret_expires_at', null);
 
         return $client;
     }
 
+    /**
+     * クライアントの削除
+     * @param string $clientId
+     * @param string $registrationAccessToken
+     * @return bool
+     */
     public function deleteClient(string $clientId, string $registrationAccessToken): bool
     {
         $client = $this->getClient($clientId, $registrationAccessToken);
@@ -262,13 +284,19 @@ class OAuth2ClientRegistrationService
         return $this->clientRepository->deleteClient($clientId);
     }
 
+    /**
+     * 登録リクエストの検証
+     * @param array $requestData
+     * @return void
+     * @throws Exception
+     */
     private function validateRegistrationRequest(array $requestData): void
     {
         if (isset($requestData['redirect_uris'])) {
             if (!is_array($requestData['redirect_uris'])) {
                 throw new Exception('redirect_uris must be an array');
             }
-            foreach ($requestData['redirect_uris'] as $uri) {
+            foreach($requestData['redirect_uris'] as $uri) {
                 if (!filter_var($uri, FILTER_VALIDATE_URL)) {
                     throw new Exception('Invalid redirect_uri: ' . $uri);
                 }
@@ -279,7 +307,7 @@ class OAuth2ClientRegistrationService
             if (!is_array($requestData['grant_types'])) {
                 throw new Exception('grant_types must be an array');
             }
-            foreach ($requestData['grant_types'] as $grantType) {
+            foreach($requestData['grant_types'] as $grantType) {
                 if (!in_array($grantType, $this->supportedGrantTypes)) {
                     throw new Exception('Unsupported grant_type: ' . $grantType);
                 }
@@ -290,7 +318,7 @@ class OAuth2ClientRegistrationService
             if (!is_array($requestData['response_types'])) {
                 throw new Exception('response_types must be an array');
             }
-            foreach ($requestData['response_types'] as $responseType) {
+            foreach($requestData['response_types'] as $responseType) {
                 if (!in_array($responseType, $this->supportedResponseTypes)) {
                     throw new Exception('Unsupported response_type: ' . $responseType);
                 }
@@ -305,7 +333,7 @@ class OAuth2ClientRegistrationService
 
         if (isset($requestData['scope'])) {
             $scopes = $this->parseScopes($requestData['scope']);
-            foreach ($scopes as $scope) {
+            foreach($scopes as $scope) {
                 if (!in_array($scope, $this->supportedScopes)) {
                     throw new Exception('Unsupported scope: ' . $scope);
                 }
@@ -313,6 +341,11 @@ class OAuth2ClientRegistrationService
         }
     }
 
+    /**
+     * スコープ文字列を配列に変換
+     * @param string $scopeString
+     * @return array
+     */
     private function parseScopes(string $scopeString): array
     {
         if (empty($scopeString)) {
@@ -321,18 +354,34 @@ class OAuth2ClientRegistrationService
         return array_filter(explode(' ', $scopeString));
     }
 
+    /**
+     * クライアントIDを生成
+     * @return string
+     * @throws \Random\RandomException
+     */
     private function generateClientId(): string
     {
         return 'client_' . bin2hex(random_bytes(16));
     }
 
+    /**
+     * クライアントシークレットを生成
+     * @return string
+     * @throws \Random\RandomException
+     */
     private function generateClientSecret(): string
     {
         return bin2hex(random_bytes(32));
     }
 
+    /**
+     * 登録アクセストークンを生成
+     * @return string
+     * @throws \Random\RandomException
+     */
     private function generateRegistrationAccessToken(): string
     {
         return 'reg_' . bin2hex(random_bytes(32));
     }
+
 }

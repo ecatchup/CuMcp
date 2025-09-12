@@ -21,13 +21,9 @@ use Cake\ORM\Entity;
  */
 class Oauth2AuthCode extends Entity
 {
+
     /**
-     * Fields that can be mass assigned using newEntity() or patchEntity().
-     *
-     * Note that when '*' is set to true, this allows all unspecified fields to
-     * be mass assigned. For security purposes, it is advised to set '*' to false
-     * (or remove it), and explicitly make individual fields accessible as needed.
-     *
+     * accessible properties
      * @var array<string, bool>
      */
     protected array $_accessible = [
@@ -52,7 +48,6 @@ class Oauth2AuthCode extends Entity
         if (empty($this->scopes)) {
             return [];
         }
-
         return explode(' ', trim($this->scopes));
     }
 
@@ -66,4 +61,5 @@ class Oauth2AuthCode extends Entity
     {
         $this->scopes = implode(' ', $scopes);
     }
+
 }

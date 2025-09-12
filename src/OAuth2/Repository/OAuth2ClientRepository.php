@@ -14,6 +14,7 @@ use Cake\ORM\TableRegistry;
  */
 class OAuth2ClientRepository implements ClientRepositoryInterface
 {
+
     /**
      * Oauth2ClientsTable インスタンス
      *
@@ -174,7 +175,7 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
             'redirect_uris' => $client->redirect_uris,
             'grant_types' => $client->grants,
             'scope' => implode(' ', $client->scopes),
-            'client_id_issued_at' => $client->created ? $client->created->getTimestamp() : null,
+            'client_id_issued_at' => $client->created? $client->created->getTimestamp() : null,
         ];
     }
 
@@ -194,4 +195,5 @@ class OAuth2ClientRepository implements ClientRepositoryInterface
 
         return $client;
     }
+
 }

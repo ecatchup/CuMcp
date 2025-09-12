@@ -481,15 +481,15 @@ class BlogPostsToolTest extends BcTestCase
     /**
      * test processFileUpload with URL
      */
-     public function testProcessFileUploadWithUrl()
-     {
-         $url = 'https://example.com/image.jpg';
+    public function testProcessFileUploadWithUrl()
+    {
+        $url = 'https://example.com/image.jpg';
 
-         $result = $this->execPrivateMethod($this->BlogPostsTool, 'processFileUpload', [$url]);
+        $result = $this->execPrivateMethod($this->BlogPostsTool, 'processFileUpload', [$url]);
 
-         // URLの場合はダウンロードに失敗してfalseが返される（example.comは存在しない画像）
-         $this->assertFalse($result);
-     }
+        // URLの場合はダウンロードに失敗してfalseが返される（example.comは存在しない画像）
+        $this->assertFalse($result);
+    }
 
     /**
      * test processFileUpload with invalid base64 data
@@ -709,7 +709,7 @@ class BlogPostsToolTest extends BcTestCase
         $this->assertGreaterThan(1, $totalChunks, '画像ファイルが小さすぎてチャンク分割できません');
 
         // 各チャンクを順番に送信（最後のチャンク以外）
-        for ($i = 0; $i < $totalChunks - 1; $i++) {
+        for($i = 0; $i < $totalChunks - 1; $i++) {
             $result = $fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
 
             $this->assertFalse($result['isError'], "チャンク {$i} の送信でエラーが発生しました");

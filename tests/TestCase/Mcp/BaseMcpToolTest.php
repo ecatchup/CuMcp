@@ -84,7 +84,7 @@ class BaseMcpToolTest extends BcTestCase
             'unknown' => 'application/octet-stream'
         ];
 
-        foreach ($testCases as $extension => $expectedMimeType) {
+        foreach($testCases as $extension => $expectedMimeType) {
             $result = $this->execPrivateMethod($this->BaseMcpTool, 'getMimeTypeFromExtension', [$extension]);
             $this->assertEquals($expectedMimeType, $result, "Extension: {$extension}");
         }
@@ -103,7 +103,7 @@ class BaseMcpToolTest extends BcTestCase
             'application/unknown' => 'bin'
         ];
 
-        foreach ($testCases as $mimeType => $expectedExtension) {
+        foreach($testCases as $mimeType => $expectedExtension) {
             $result = $this->execPrivateMethod($this->BaseMcpTool, 'getExtensionFromMimeType', [$mimeType]);
             $this->assertEquals($expectedExtension, $result, "MIME Type: {$mimeType}");
         }
@@ -117,12 +117,12 @@ class BaseMcpToolTest extends BcTestCase
         $allowedExtensions = ['jpg', 'png', 'pdf', 'docx'];
         $disallowedExtensions = ['exe', 'bat', 'sh'];
 
-        foreach ($allowedExtensions as $extension) {
+        foreach($allowedExtensions as $extension) {
             $result = $this->execPrivateMethod($this->BaseMcpTool, 'isAllowedExtension', [$extension]);
             $this->assertTrue($result, "Extension should be allowed: {$extension}");
         }
 
-        foreach ($disallowedExtensions as $extension) {
+        foreach($disallowedExtensions as $extension) {
             $result = $this->execPrivateMethod($this->BaseMcpTool, 'isAllowedExtension', [$extension]);
             $this->assertFalse($result, "Extension should not be allowed: {$extension}");
         }

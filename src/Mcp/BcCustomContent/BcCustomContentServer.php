@@ -10,6 +10,7 @@ namespace CuMcp\Mcp\BcCustomContent;
  */
 class BcCustomContentServer
 {
+
     /**
      * 利用可能なカスタムコンテンツツールクラス名の配列を返却
      *
@@ -25,4 +26,5 @@ class BcCustomContentServer
             CustomLinksTool::class,
         ];
     }
+
 }

@@ -20,8 +20,15 @@ class SearchIndexesTool extends BaseMcpTool
     use LogTrait;
     use BcContainerTrait;
 
+    /**
+     * SearchIndexesService
+     * @var SearchIndexesService|SearchIndexesServiceInterface
+     */
     private SearchIndexesService|SearchIndexesServiceInterface $searchIndexesService;
 
+    /**
+     * コンストラクタ
+     */
     public function __construct()
     {
         $this->searchIndexesService = $this->getService(SearchIndexesServiceInterface::class);
@@ -59,15 +66,20 @@ class SearchIndexesTool extends BaseMcpTool
             );
     }
 
+    /**
+     * IDを指定して検索インデックスのデータを取得
+     * @param string $id
+     * @return array
+     */
     public function fetch(string $id): array
     {
         return $this->executeWithErrorHandling(function() use ($id) {
-            $entity = $this->searchIndexesService->get((int) $id, [
+            $entity = $this->searchIndexesService->get((int)$id, [
                 'status' => 'publish',
                 'site_id' => null
             ]);
 
-            if($entity) {
+            if ($entity) {
                 $result = [
                     'id' => $entity->id,
                     'title' => $entity->title,
@@ -81,6 +93,11 @@ class SearchIndexesTool extends BaseMcpTool
         });
     }
 
+    /**
+     * クエリ文字列で検索インデックスを検索
+     * @param string $query
+     * @return array
+     */
     public function search(string $query): array
     {
         return $this->executeWithErrorHandling(function() use ($query) {

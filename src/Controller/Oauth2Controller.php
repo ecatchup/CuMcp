@@ -139,8 +139,8 @@ class Oauth2Controller extends AppController
                 ->withStringBody($errorString);
 
             // 必要に応じてヘッダーも反映（例: WWW-Authenticate）
-            foreach ($errorPsrResponse->getHeaders() as $name => $values) {
-                foreach ($values as $value) {
+            foreach($errorPsrResponse->getHeaders() as $name => $values) {
+                foreach($values as $value) {
                     $cakeResponse = $cakeResponse->withHeader($name, $value);
                 }
             }
@@ -274,10 +274,10 @@ class Oauth2Controller extends AppController
     {
         try {
             // 現在のリクエストからベースURLを動的に取得
-            $scheme = $this->request->is('https') ? 'https' : 'http';
+            $scheme = $this->request->is('https')? 'https' : 'http';
             $host = $this->request->getHeaderLine('Host');
             if (!$host) {
-                $host = $this->request->getEnv('HTTP_HOST') ?: 'localhost';
+                $host = $this->request->getEnv('HTTP_HOST')?: 'localhost';
             }
             $baseUrl = $scheme . '://' . $host;
 
@@ -316,10 +316,10 @@ class Oauth2Controller extends AppController
     {
         try {
             // 現在のリクエストからベースURLを動的に取得
-            $scheme = $this->request->is('https') ? 'https' : 'http';
+            $scheme = $this->request->is('https')? 'https' : 'http';
             $host = $this->request->getHeaderLine('Host');
             if (!$host) {
-                $host = $this->request->getEnv('HTTP_HOST') ?: 'localhost';
+                $host = $this->request->getEnv('HTTP_HOST')?: 'localhost';
             }
             $baseUrl = $scheme . '://' . $host;
 

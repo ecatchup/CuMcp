@@ -14,6 +14,7 @@ use CuMcp\Mcp\McpServer;
  */
 class McpServerCommand extends Command
 {
+
     /**
      * コマンドの説明を設定
      *

@@ -16,9 +16,22 @@ use League\OAuth2\Server\CryptKey;
  */
 class OAuth2Service
 {
+
+    /**
+     * Authorization Server インスタンス
+     * @var AuthorizationServer|null
+     */
     private ?AuthorizationServer $authorizationServer = null;
+
+    /**
+     * Resource Server インスタンス
+     * @var ResourceServer|null
+     */
     private ?ResourceServer $resourceServer = null;
 
+    /**
+     * コンストラクタ
+     */
     public function __construct()
     {
         if (!file_exists(CONFIG . 'oauth2_public.key')) {
@@ -26,6 +39,10 @@ class OAuth2Service
         }
     }
 
+    /**
+     * Get Authorization Server
+     * @return AuthorizationServer
+     */
     public function getAuthorizationServer(): AuthorizationServer
     {
         if ($this->authorizationServer === null) {
@@ -34,6 +51,10 @@ class OAuth2Service
         return $this->authorizationServer;
     }
 
+    /**
+     * Get Resource Server
+     * @return ResourceServer
+     */
     public function getResourceServer(): ResourceServer
     {
         if ($this->resourceServer === null) {
@@ -42,6 +63,11 @@ class OAuth2Service
         return $this->resourceServer;
     }
 
+    /**
+     * Create Authorization Server
+     * @return AuthorizationServer
+     * @throws \Exception
+     */
     private function createAuthorizationServer(): AuthorizationServer
     {
         $clientRepository = new OAuth2ClientRepository();
@@ -92,6 +118,11 @@ class OAuth2Service
         return $server;
     }
 
+    /**
+     * Create Resource Server
+     * @return ResourceServer
+     * @throws \Exception
+     */
     private function createResourceServer(): ResourceServer
     {
         $accessTokenRepository = OAuth2AccessTokenRepository::getInstance();
@@ -102,6 +133,10 @@ class OAuth2Service
         );
     }
 
+    /**
+     * Get Private Key
+     * @return CryptKey
+     */
     private function getPrivateKey(): CryptKey
     {
         $keyPath = CONFIG . 'oauth2_private.key';
@@ -111,6 +146,10 @@ class OAuth2Service
         return new CryptKey($keyPath, null, false);
     }
 
+    /**
+     * Get Public Key
+     * @return CryptKey
+     */
     private function getPublicKey(): CryptKey
     {
         $keyPath = CONFIG . 'oauth2_public.key';
@@ -120,11 +159,20 @@ class OAuth2Service
         return new CryptKey($keyPath, null, false);
     }
 
+    /**
+     * Get Encryption Key
+     * @return string
+     */
     private function getEncryptionKey(): string
     {
         return env('OAUTH2_ENC_KEY', 'j6eyb4oPtNL0R8i9uU8PlQJ2WY1f8yRk5AVXb7OJd3s');
     }
 
+    /**
+     * Generate RSA Key Pair
+     * @return void
+     * @throws \Exception
+     */
     private function generateKeyPair(): void
     {
         $privateKeyPath = CONFIG . 'oauth2_private.key';
@@ -146,6 +194,11 @@ class OAuth2Service
         file_put_contents($publicKeyPath, $publicKey);
     }
 
+    /**
+     * Validate Access Token
+     * @param string $token
+     * @return array|null
+     */
     public function validateAccessToken(string $token): ?array
     {
         try {
@@ -167,9 +220,15 @@ class OAuth2Service
         }
     }
 
+    /**
+     * Store Authorization Code
+     * @param array $data
+     * @return void
+     */
     public function storeAuthorizationCode(array $data): void
     {
         $authCodeRepository = new \CuMcp\OAuth2\Repository\OAuth2AuthCodeRepository();
         $authCodeRepository->storeAuthorizationCode($data);
     }
+
 }

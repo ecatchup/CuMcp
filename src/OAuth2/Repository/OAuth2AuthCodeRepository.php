@@ -124,7 +124,7 @@ class OAuth2AuthCodeRepository implements AuthCodeRepositoryInterface
             'code' => $data['code'],
             'client_id' => $data['client_id'],
             'user_id' => $data['user_id'],
-            'scopes' => is_array($data['scope'] ?? []) ?
+            'scopes' => is_array($data['scope'] ?? [])?
                 implode(' ', $data['scope']) :
                 ($data['scope'] ?? ''),
             'expires_at' => DateTime::createFromTimestamp($data['expires_at']),

@@ -12,6 +12,7 @@ use Cake\View\Helper;
  */
 class OAuth2Helper extends Helper
 {
+
     /**
      * スコープの説明を取得
      *
@@ -27,4 +28,5 @@ class OAuth2Helper extends Helper
 
         return $descriptions[$scope] ?? $scope;
     }
+
 }
