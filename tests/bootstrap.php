@@ -56,7 +56,8 @@ if(!$mcpServerManager->isServerRunning()) {
 
     if (!$isRunning) {
         // PIDファイルの確認
-        $pidFile = '/Users/ryuring/Projects/baserplugin/plugins/CuMcp/tests/TestApp/tmp/cu_mcp_server.pid';
+        $pidFile = TMP . 'cu_mcp_server.pid';
+        echo "PID file path: {$pidFile}\n";
         if (file_exists($pidFile)) {
             $pid = trim(file_get_contents($pidFile));
             echo "PID file exists with PID: {$pid}\n";
@@ -66,7 +67,8 @@ if(!$mcpServerManager->isServerRunning()) {
             echo "Process details:\n{$psResult}\n";
 
             // ログファイルの確認
-            $logFile = '/Users/ryuring/Projects/baserplugin/plugins/CuMcp/tests/TestApp/logs/cu_mcp_server.log';
+            $logFile = LOGS . 'cu_mcp_server.log';
+            echo "Log file path: {$logFile}\n";
             if (file_exists($logFile)) {
                 $logContent = file_get_contents($logFile);
                 echo "Log file content:\n{$logContent}\n";
