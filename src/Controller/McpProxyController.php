@@ -171,7 +171,7 @@ class McpProxyController extends AppController
             $config = $this->mcpServerManager->getServerConfig();
 
             // MCPサーバーが起動しているかチェック
-            if (!$this->mcpServerManager->isMcpServerRunning($config)) {
+            if (!$this->mcpServerManager->isServerRunning()) {
                 throw new ServiceUnavailableException(
                     'MCPサーバーが起動していません。管理画面からMCPサーバーを起動してください。'
                 );

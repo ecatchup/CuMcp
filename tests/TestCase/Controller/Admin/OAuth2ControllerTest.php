@@ -26,6 +26,9 @@ class OAuth2ControllerTest extends BcTestCase
     public function setUp(): void
     {
         parent::setUp();
+
+        $_ENV['UNIT_TEST'] = true;
+
         $this->loadFixtureScenario(InitAppScenario::class);
         // OAuth2設定をセットアップ
         Configure::write('CuMcp.OAuth2.clients', [
