@@ -43,6 +43,28 @@ if(file_exists($env)) {
 
 require_once dirname(__DIR__) . '/tests/setup.php';
 
+if(!file_exists(CONFIG . 'jwt.pem')) {
+    BcApiUtil::createJwt();
+}
+
+/**
+ * Load schema from a SQL dump file.
+ *
+ * If your plugin does not use database fixtures you can
+ * safely delete this.
+ *
+ * If you want to support multiple databases, consider
+ * using migrations to provide schema for your plugin,
+ * and using \Migrations\TestSuite\Migrator to load schema.
+ */
+(new Migrator())->runMany([
+    ['plugin' => 'BaserCore'],
+    ['plugin' => 'CuMcp'],
+    ['plugin' => 'BcBlog'],
+    ['plugin' => 'BcCustomContent'],
+    ['plugin' => 'BcSearchIndex']
+]);
+
 $mcpServerManager = new McpServerManger();
 if(!$mcpServerManager->isServerRunning()) {
     echo "Starting MCP Server...\n";
@@ -82,25 +104,3 @@ if(!$mcpServerManager->isServerRunning()) {
 } else {
     echo "MCP Server already running\n";
 }
-
-if(!file_exists(CONFIG . 'jwt.pem')) {
-    BcApiUtil::createJwt();
-}
-
-/**
- * Load schema from a SQL dump file.
- *
- * If your plugin does not use database fixtures you can
- * safely delete this.
- *
- * If you want to support multiple databases, consider
- * using migrations to provide schema for your plugin,
- * and using \Migrations\TestSuite\Migrator to load schema.
- */
-(new Migrator())->runMany([
-    ['plugin' => 'BaserCore'],
-    ['plugin' => 'CuMcp'],
-    ['plugin' => 'BcBlog'],
-    ['plugin' => 'BcCustomContent'],
-    ['plugin' => 'BcSearchIndex']
-]);
