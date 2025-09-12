@@ -1,0 +1,65 @@
+name: CuMcp Plugin Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_basercms
+          MYSQL_USER: root
+          MYSQL_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    strategy:
+      matrix:
+        php-version: [8.2]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP with extensions
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: pdo_mysql, mbstring, exif, xml, zip, intl, gd
+        ini-values: memory_limit=-1
+        coverage: none
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: |
+        composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader
+
+    - name: Wait for MySQL
+      run: |
+        while ! mysqladmin ping -h"127.0.0.1" -u"cumcp" -p"cumcp" --silent; do
+          sleep 1
+        done
+
+    - name: Run PHPUnit tests
+      run: vendor/bin/phpunit --configuration phpunit.xml.dist
