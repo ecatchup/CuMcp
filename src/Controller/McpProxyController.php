@@ -9,6 +9,7 @@ use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
+use CuMcp\Mcp\McpServerManger;
 use CuMcp\OAuth2\Service\OAuth2Service;
 
 /**
@@ -25,6 +26,8 @@ class McpProxyController extends AppController
      */
     private OAuth2Service $oauth2Service;
 
+    private McpServerManger $mcpServerManager;
+
     /**
      * 初期化
      */
@@ -34,6 +37,7 @@ class McpProxyController extends AppController
         $this->FormProtection->setConfig('validate', false);
         // OAuth2サービスを初期化
         $this->oauth2Service = new OAuth2Service();
+        $this->mcpServerManager = new McpServerManger();
 
         // CORS設定（統一された設定）
         $this->response = $this->response->withHeader('Access-Control-Allow-Origin', '*');
@@ -164,10 +168,10 @@ class McpProxyController extends AppController
 
         try {
             // MCPサーバーの設定を取得
-            $config = $this->getMcpServerConfig();
+            $config = $this->mcpServerManager->getServerConfig();
 
             // MCPサーバーが起動しているかチェック
-            if (!$this->isMcpServerRunning($config)) {
+            if (!$this->mcpServerManager->isMcpServerRunning($config)) {
                 throw new ServiceUnavailableException(
                     'MCPサーバーが起動していません。管理画面からMCPサーバーを起動してください。'
                 );
@@ -273,53 +277,6 @@ class McpProxyController extends AppController
     public function options()
     {
         return $this->_handleOptionsRequest();
-    }
-
-    /**
-     * MCPサーバーの設定を取得
-     */
-    private function getMcpServerConfig(): array
-    {
-        $configFile = CONFIG . 'cu_mcp_server.json';
-
-        $defaultConfig = [
-            'host' => '127.0.0.1',
-            'port' => '3000'
-        ];
-
-        if (file_exists($configFile)) {
-            $savedConfig = json_decode(file_get_contents($configFile), true);
-            return array_merge($defaultConfig, $savedConfig?: []);
-        }
-
-        return $defaultConfig;
-    }
-
-    /**
-     * MCPサーバーが起動しているかチェック
-     */
-    private function isMcpServerRunning(array $config): bool
-    {
-        try {
-            $client = new Client(['timeout' => 3]);
-            // POSTリクエストでサーバーの生存確認（軽量なリクエスト）
-            $response = $client->post("http://127.0.0.1:{$config['port']}/", json_encode([
-                'jsonrpc' => '2.0',
-                'id' => 'ping',
-                'method' => 'tools/list'  // 実際に存在するメソッドを使用
-            ]), [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json'
-                ]
-            ]);
-
-            // レスポンスが返ってきたらサーバーが起動していると判定
-            return $response->getStatusCode() === 200;
-
-        } catch (\Exception $e) {
-            return false;
-        }
     }
 
 }

@@ -1,6 +1,7 @@
 <?php
 namespace CuMcp\Mcp;
 use Cake\Routing\Router;
+use Cake\Http\Client;
 
 class McpServerManger
 {
@@ -142,7 +143,7 @@ class McpServerManger
 
         $defaultConfig = [
             'host' => '127.0.0.1',
-            'port' => '3000'
+            'port' => '3001'
         ];
 
         if (file_exists($configFile)) {
@@ -151,6 +152,33 @@ class McpServerManger
         }
 
         return $defaultConfig;
+    }
+
+    /**
+     * MCPサーバーが起動しているかチェック
+     */
+    public function isMcpServerRunning(array $config): bool
+    {
+        try {
+            $client = new Client(['timeout' => 3]);
+            // POSTリクエストでサーバーの生存確認（軽量なリクエスト）
+            $response = $client->post("http://127.0.0.1:{$config['port']}/", json_encode([
+                'jsonrpc' => '2.0',
+                'id' => 'ping',
+                'method' => 'tools/list'  // 実際に存在するメソッドを使用
+            ]), [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ]
+            ]);
+
+            // レスポンスが返ってきたらサーバーが起動していると判定
+            return $response->getStatusCode() === 200;
+
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**
