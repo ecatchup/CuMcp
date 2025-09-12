@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'Migrator' => null,
+    'Migrations' => null,
     'BaserCore' => null
 ];
