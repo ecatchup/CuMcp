@@ -12,7 +12,7 @@ declare(strict_types=1);
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Core\Configure\Engine\PhpConfig;
-use Cake\Core\Plugin;
+use Migrations\TestSuite\Migrator;
 use Cake\Utility\Security;
 
 $findRoot = function ($root) {
