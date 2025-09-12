@@ -32,11 +32,14 @@ chdir($root);
 
 require_once $root . '/vendor/autoload.php';
 
-$dotenv = new Loader([dirname(__DIR__) . DS . 'tests' . DS . 'TestApp' . DS . 'config' . DS . '.env']);
-$dotenv->parse()
-    ->putenv()
-    ->toEnv()
-    ->toServer();
+$env = dirname(__DIR__) . DS . 'tests' . DS . 'TestApp' . DS . 'config' . DS . '.env';
+if(file_exists($env)) {
+    $dotenv = new Loader([$env]);
+    $dotenv->parse()
+        ->putenv()
+        ->toEnv()
+        ->toServer();
+}
 
 require_once dirname(__DIR__) . '/tests/setup.php';
 
