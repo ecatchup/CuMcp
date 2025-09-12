@@ -5,7 +5,6 @@ namespace CuMcp\Test\TestCase\Mcp\BcBlog;
 
 use BaserCore\TestSuite\BcTestCase;
 use BcSearchIndex\Test\Factory\SearchIndexFactory;
-use Cake\Datasource\Exception\RecordNotFoundException;
 use CuMcp\Mcp\BaserCore\SearchIndexesTool;
 
 /**

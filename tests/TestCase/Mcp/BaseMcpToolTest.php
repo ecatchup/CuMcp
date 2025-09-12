@@ -63,7 +63,7 @@ class BaseMcpToolTest extends BcTestCase
      */
     public function testProcessFileUploadWithUrl()
     {
-        $url = env('SITE_URL') . 'img/basercms.png';
+        $url = 'https://basercms.net/img/basercms_logo.png';
         $result = $this->execPrivateMethod($this->BaseMcpTool, 'processFileUpload', [$url]);
 
         // URLの場合はそのまま返される

@@ -25,7 +25,7 @@ class SearchIndexesTool extends BaseMcpTool
     public function __construct()
     {
         $this->searchIndexesService = $this->getService(SearchIndexesServiceInterface::class);
-        Configure::write('App.fullBaseUrl', preg_replace('/\/$/', '', env('SITE_URL')));
+        Configure::write('App.fullBaseUrl', preg_replace('/\/$/', '', env('SITE_URL', 'https://localhost/')));
     }
 
     /**

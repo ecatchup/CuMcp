@@ -8,6 +8,13 @@ declare(strict_types=1);
  * has been installed as a dependency of the plugin, or the plugin is itself
  * installed as a dependency of an application.
  */
+
+use Cake\Cache\Cache;
+use Cake\Core\Configure;
+use Cake\Core\Configure\Engine\PhpConfig;
+use Cake\Core\Plugin;
+use Cake\Utility\Security;
+
 $findRoot = function ($root) {
     do {
         $lastRoot = $root;
@@ -26,22 +33,44 @@ chdir($root);
 
 require_once $root . '/vendor/autoload.php';
 
-/**
- * Define fallback values for required constants and configuration.
- * To customize constants and configuration remove this require
- * and define the data required by your plugin here.
+/*
+ * Configure paths required to find CakePHP + general filepath constants
  */
-if (file_exists($root . '/config/bootstrap.php')) {
-    require $root . '/config/bootstrap.php';
+define('ROOT', $root);
+define('TESTS', ROOT . DS . 'tests' . DS);
+define('APP_DIR', 'src');
+define('APP_PATH', ROOT . DS . 'tests' . DS . 'TestApp' . DS);
+define('CONFIG', APP_PATH . 'config' . DS);
+define('CAKE_CORE_INCLUDE_PATH', ROOT . DS . 'vendor' . DS . 'cakephp' . DS . 'cakephp');
+define('CORE_PATH', CAKE_CORE_INCLUDE_PATH . DS);
+define('CAKE', CORE_PATH . 'src' . DS);
+define('LOGS', APP_PATH . 'logs' . DS);
+define('WWW_ROOT', APP_PATH . 'webroot' . DS);
+define('RESOURCES', ROOT . DS . 'resources' . DS);
+define('TMP', APP_PATH . 'tmp' . DS);
+define('CACHE', TMP . 'cache' . DS);
+
+require CORE_PATH . 'config' . DS . 'bootstrap.php';
+require CAKE . 'functions.php';
+
+if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
+    $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
+    $dotenv->parse()
+        ->putenv()
+        ->toEnv()
+        ->toServer();
 }
+
+Configure::config('default', new PhpConfig());
+Configure::load('app', 'default', false);
+Configure::load('app_local', 'default');
+Cache::setConfig(Configure::consume('Cache'));
+Security::setSalt(Configure::consume('Security.salt'));
 
 \Cake\Datasource\ConnectionManager::drop('default');
 \Cake\Datasource\ConnectionManager::drop('test');
 \Cake\Core\Configure::load('install');
 \Cake\Datasource\ConnectionManager::setConfig(\Cake\Core\Configure::consume('Datasources'));
-
-// CuMcpプラグインをロード
-\Cake\Core\Plugin::getCollection()->add(new \CuMcp\CuMcpPlugin());
 
 // テスト用の設定
 \Cake\Core\Configure::write('CuMcp.logging.enabled', false);
@@ -59,3 +88,4 @@ if (file_exists($root . '/config/bootstrap.php')) {
  * and using \Migrations\TestSuite\Migrator to load schema.
  */
 (new \Migrations\TestSuite\Migrator())->run(['plugin' => 'CuMcp']);
+Plugin::getCollection()->remove('CuMcp');

@@ -1,10 +1,11 @@
 <?php
 
+use BaserCore\Utility\BcUtil;
 use Cake\Core\Configure;
 use Cake\Log\Log;
 use Psr\Log\LogLevel;
 
-if(\BaserCore\Utility\BcUtil::isConsole()) return;
+if(BcUtil::isConsole() || BcUtil::isTest()) return;
 
 Log::setConfig(Configure::consume('Log'));
 
