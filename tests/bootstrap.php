@@ -12,17 +12,19 @@ declare(strict_types=1);
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Core\Configure\Engine\PhpConfig;
+use Cake\Datasource\ConnectionManager;
+use josegonzalez\Dotenv\Loader;
 use Migrations\TestSuite\Migrator;
 use Cake\Utility\Security;
 
-$findRoot = function ($root) {
+$findRoot = function($root) {
     do {
         $lastRoot = $root;
         $root = dirname($root);
         if (is_dir($root . '/vendor/cakephp/cakephp')) {
             return $root;
         }
-    } while ($root !== $lastRoot);
+    } while($root !== $lastRoot);
 
     throw new Exception('Cannot find the root of the application, unable to run tests');
 };
@@ -54,7 +56,7 @@ require CORE_PATH . 'config' . DS . 'bootstrap.php';
 require CAKE . 'functions.php';
 
 if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
-    $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
+    $dotenv = new Loader([CONFIG . '.env']);
     $dotenv->parse()
         ->putenv()
         ->toEnv()
@@ -67,15 +69,15 @@ Configure::load('app_local', 'default');
 Cache::setConfig(Configure::consume('Cache'));
 Security::setSalt(Configure::consume('Security.salt'));
 
-\Cake\Datasource\ConnectionManager::drop('default');
-\Cake\Datasource\ConnectionManager::drop('test');
-\Cake\Core\Configure::load('install');
-\Cake\Datasource\ConnectionManager::setConfig(\Cake\Core\Configure::consume('Datasources'));
+ConnectionManager::drop('default');
+ConnectionManager::drop('test');
+Configure::load('install');
+ConnectionManager::setConfig(Configure::consume('Datasources'));
 
 // テスト用の設定
-\Cake\Core\Configure::write('CuMcp.logging.enabled', false);
-\Cake\Core\Configure::write('CuMcp.defaults.user_id', 1);
-\Cake\Core\Configure::write('CuMcp.defaults.blog_content_id', 1);
+Configure::write('CuMcp.logging.enabled', false);
+Configure::write('CuMcp.defaults.user_id', 1);
+Configure::write('CuMcp.defaults.blog_content_id', 1);
 
 /**
  * Load schema from a SQL dump file.
@@ -90,15 +92,7 @@ Security::setSalt(Configure::consume('Security.salt'));
 (new Migrator())->runMany([
     ['plugin' => 'BaserCore'],
     ['plugin' => 'CuMcp'],
-     ['plugin' => 'BcBlog'],
-    // ['plugin' => 'BcContentLink'],
-     ['plugin' => 'BcCustomContent'],
-    // ['plugin' => 'BcFavorite'],
-    // ['plugin' => 'BcMail'],
-     ['plugin' => 'BcSearchIndex'],
-    // ['plugin' => 'BcThemeConfig'],
-    // ['plugin' => 'BcThemeFile'],
-    // ['plugin' => 'BcUploader'],
-    // ['plugin' => 'BcWidgetArea']
+    ['plugin' => 'BcBlog'],
+    ['plugin' => 'BcCustomContent'],
+    ['plugin' => 'BcSearchIndex']
 ]);
-// Plugin::getCollection()->remove('CuMcp');

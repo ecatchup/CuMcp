@@ -53,6 +53,10 @@ jobs:
       run: |
         composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader
 
+    - name: Setup test directories
+      run: |
+        chmod -R 777 tests/TestApp/tmp tests/TestApp/logs tests/TestApp/config tests/TestApp/webroot/files
+
     - name: Wait for MySQL
       run: |
         while ! mysqladmin ping -h"127.0.0.1" -u"root" -p"root" --silent; do
