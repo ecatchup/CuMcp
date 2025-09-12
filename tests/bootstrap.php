@@ -47,16 +47,6 @@ if(!file_exists(CONFIG . 'jwt.pem')) {
     BcApiUtil::createJwt();
 }
 
-/**
- * Load schema from a SQL dump file.
- *
- * If your plugin does not use database fixtures you can
- * safely delete this.
- *
- * If you want to support multiple databases, consider
- * using migrations to provide schema for your plugin,
- * and using \Migrations\TestSuite\Migrator to load schema.
- */
 (new Migrator())->runMany([
     ['plugin' => 'BaserCore'],
     ['plugin' => 'CuMcp'],
@@ -67,40 +57,5 @@ if(!file_exists(CONFIG . 'jwt.pem')) {
 
 $mcpServerManager = new McpServerManger();
 if(!$mcpServerManager->isServerRunning()) {
-    echo "Starting MCP Server...\n";
     $result = $mcpServerManager->startMcpServer($mcpServerManager->getServerConfig());
-    echo "MCP Server start result: " . json_encode($result) . "\n";
-
-    // 起動直後のプロセス確認
-    sleep(2); // 2秒待機
-    $isRunning = $mcpServerManager->isServerRunning();
-    echo "MCP Server running after start: " . ($isRunning ? 'YES' : 'NO') . "\n";
-
-    if (!$isRunning) {
-        // PIDファイルの確認
-        $pidFile = TMP . 'cu_mcp_server.pid';
-        echo "PID file path: {$pidFile}\n";
-        if (file_exists($pidFile)) {
-            $pid = trim(file_get_contents($pidFile));
-            echo "PID file exists with PID: {$pid}\n";
-
-            // プロセスの詳細確認
-            $psResult = shell_exec("ps -p {$pid} -o pid,ppid,command 2>/dev/null");
-            echo "Process details:\n{$psResult}\n";
-
-            // ログファイルの確認
-            $logFile = LOGS . 'cu_mcp_server.log';
-            echo "Log file path: {$logFile}\n";
-            if (file_exists($logFile)) {
-                $logContent = file_get_contents($logFile);
-                echo "Log file content:\n{$logContent}\n";
-            } else {
-                echo "Log file does not exist\n";
-            }
-        } else {
-            echo "PID file does not exist\n";
-        }
-    }
-} else {
-    echo "MCP Server already running\n";
 }

@@ -8,6 +8,7 @@ return [
         'port' => '3306',
         'username' => 'root',
         'password' => 'root',
+        // MCPサーバーのアクセス際、defaultを利用するため、database名をtest_basercmsに固定
         'database' => 'test_basercms',
         'prefix' => '',
         'schema' => '',
