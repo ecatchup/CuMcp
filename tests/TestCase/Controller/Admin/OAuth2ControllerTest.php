@@ -63,11 +63,6 @@ class OAuth2ControllerTest extends BcTestCase
                 'HTTPS' => 'off'
             ]
         ]);
-
-        $mcpServerManager = new \CuMcp\Mcp\McpServerManger();
-        if(!$mcpServerManager->isServerRunning()) {
-            $mcpServerManager->startMcpServer($mcpServerManager->getServerConfig());
-        }
     }
 
     /**
