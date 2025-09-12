@@ -87,5 +87,18 @@ Security::setSalt(Configure::consume('Security.salt'));
  * using migrations to provide schema for your plugin,
  * and using \Migrations\TestSuite\Migrator to load schema.
  */
-(new \Migrations\TestSuite\Migrator())->run(['plugin' => 'CuMcp']);
-Plugin::getCollection()->remove('CuMcp');
+(new Migrator())->runMany([
+    ['plugin' => 'BaserCore'],
+    ['plugin' => 'CuMcp'],
+    // ['plugin' => 'BcEditorTemplate'],
+    // ['plugin' => 'BcContentLink'],
+    // ['plugin' => 'BcCustomContent'],
+    // ['plugin' => 'BcFavorite'],
+    // ['plugin' => 'BcMail'],
+    // ['plugin' => 'BcSearchIndex'],
+    // ['plugin' => 'BcThemeConfig'],
+    // ['plugin' => 'BcThemeFile'],
+    // ['plugin' => 'BcUploader'],
+    // ['plugin' => 'BcWidgetArea']
+]);
+// Plugin::getCollection()->remove('CuMcp');
