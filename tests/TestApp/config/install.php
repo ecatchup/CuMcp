@@ -8,7 +8,7 @@ return [
         'port' => '3306',
         'username' => 'root',
         'password' => 'root',
-        'database' => 'basercms',
+        'database' => 'test_basercms',
         'prefix' => '',
         'schema' => '',
         'persistent' => '',
