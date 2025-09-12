@@ -220,22 +220,13 @@ class BlogContentsToolTest extends BcTestCase
         $this->loadFixtureScenario(SmallSetContentsScenario::class);
 
         $result = $this->BlogContentsTool->addBlogContent(
-            'eyecatch-test-blog',
-            'アイキャッチテストブログ',
-            1, // siteId
-            1, // parentId
-            'アイキャッチサイズのテスト', // description
-            'default', // template
-            10, // listCount
-            'DESC', // listDirection
-            10, // feedCount
-            false, // commentUse
-            false, // commentApprove
-            false, // tagUse
-            300, // eyeCatchSizeThumbWidth
-            200, // eyeCatchSizeThumbHeight
-            150, // eyeCatchSizeMobileThumbWidth
-            100  // eyeCatchSizeMobileThumbHeight
+            name: 'eyecatch-test-blog',
+            title: 'アイキャッチテストブログ',
+            description: 'アイキャッチサイズのテスト',
+            eyeCatchSizeThumbWidth: 300,
+            eyeCatchSizeThumbHeight: 200,
+            eyeCatchSizeMobileThumbWidth: 150,
+            eyeCatchSizeMobileThumbHeight: 100
         );
 
         $this->assertIsArray($result);
@@ -275,23 +266,11 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $result = $this->BlogContentsTool->editBlogContent(
-            1,
-            null, // name（変更しない）
-            null, // title（変更しない）
-            null, // siteId（変更しない）
-            null, // parentId（変更しない）
-            null, // description（変更しない）
-            null, // template（変更しない）
-            null, // listCount（変更しない）
-            null, // listDirection（変更しない）
-            null, // feedCount（変更しない）
-            null, // commentUse（変更しない）
-            null, // commentApprove（変更しない）
-            null, // tagUse（変更しない）
-            400, // eyeCatchSizeThumbWidth（更新）
-            300, // eyeCatchSizeThumbHeight（更新）
-            200, // eyeCatchSizeMobileThumbWidth（更新）
-            150  // eyeCatchSizeMobileThumbHeight（更新）
+            id: 1,
+            eyeCatchSizeThumbWidth: 400,
+            eyeCatchSizeThumbHeight: 300,
+            eyeCatchSizeMobileThumbWidth: 200,
+            eyeCatchSizeMobileThumbHeight: 150
         );
 
         $this->assertIsArray($result);

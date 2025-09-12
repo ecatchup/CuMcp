@@ -245,7 +245,7 @@ abstract class BaseMcpTool
         }
 
         // ユーザーエージェントを設定してファイルをダウンロード
-        $context = stream_context_create([
+        $option = [
             'http' => [
                 'method' => 'GET',
                 'header' => "User-Agent: baserCMS-MCP-Client/1.0\r\n",
@@ -253,8 +253,14 @@ abstract class BaseMcpTool
                 'follow_location' => true,
                 'max_redirects' => 3
             ]
-        ]);
-
+        ];
+        if(BcUtil::isTest()) {
+            $option['ssl'] = [
+                'verify_peer'      => false,
+                'verify_peer_name' => false
+            ];
+        }
+        $context = stream_context_create($option);
         $fileData = @file_get_contents($url, false, $context);
 
         if ($fileData === false) {

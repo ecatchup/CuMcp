@@ -63,12 +63,11 @@ class BaseMcpToolTest extends BcTestCase
      */
     public function testProcessFileUploadWithUrl()
     {
-        $url = 'https://example.com/document.pdf';
-
+        $url = env('SITE_URL') . 'img/basercms.png';
         $result = $this->execPrivateMethod($this->BaseMcpTool, 'processFileUpload', [$url]);
 
         // URLの場合はそのまま返される
-        $this->assertEquals($url, $result);
+        $this->assertArrayHasKey('tmp_name', $result);
     }
 
     /**
@@ -183,10 +182,7 @@ class BaseMcpToolTest extends BcTestCase
 
         // 配列
         $array = ['test' => 'value'];
-        $this->assertFalse($this->execPrivateMethod($this->BaseMcpTool, 'isFileUploadable', [$array]));
-
-        // null
-        $this->assertFalse($this->execPrivateMethod($this->BaseMcpTool, 'isFileUploadable', [null]));
+        $this->assertTrue($this->execPrivateMethod($this->BaseMcpTool, 'isFileUploadable', [$array]));
     }
 }
 

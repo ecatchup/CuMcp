@@ -70,7 +70,7 @@ class BlogPostsTool extends BaseMcpTool
                         'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日（省略時は現在日時）'],
                         'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時（省略時はなし）'],
                         'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時（省略時はなし）'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。30KB以下の小さなファイルの場合はbase64データ形式（data:image/jpeg;base64,iVB...）、30KB以上の大きなファイルの場合は事前にsendFileChunkツールで分割アップロード後にファイル名を指定、または外部画像URLを直接指定'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。外部画像URLを直接指定'],
                     ],
                     'required' => ['title', 'detail']
                 ]
@@ -94,7 +94,7 @@ class BlogPostsTool extends BaseMcpTool
                         'posted' => ['type' => 'string', 'format' => 'date-time', 'description' => '投稿日'],
                         'publishBegin' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開開始日時'],
                         'publishEnd' => ['type' => 'string', 'format' => 'date-time', 'description' => '公開終了日時'],
-                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。30KB以下の小さなファイルの場合はbase64データ形式（data:image/jpeg;base64,iVB...）、30KB以上の大きなファイルの場合は事前にsendFileChunkツールで分割アップロード後にファイル名を指定、または外部画像URLを直接指定'],
+                        'eyeCatch' => ['type' => 'string', 'description' => 'アイキャッチ画像。外部画像URLを直接指定'],
                     ],
                     'required' => ['id']
                 ]
