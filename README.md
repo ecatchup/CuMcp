@@ -173,4 +173,4 @@ CuMcpプラグインは以下の仕組みでクラアントと連携します：
 ```bash
 # MCPサーバーのログを確認
 tail -f tmp/logs/mcp_server.log
-``
+```
