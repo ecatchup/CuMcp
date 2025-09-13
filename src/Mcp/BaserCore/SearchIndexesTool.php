@@ -106,7 +106,8 @@ class SearchIndexesTool extends BaseMcpTool
             $entities = $this->searchIndexesService->getIndex([
                 'status' => 'publish',
                 'keyword' => $query,
-                'site_id' => null
+                'site_id' => null,
+                'op' => 'or'
             ]);
 
             $results = [];
