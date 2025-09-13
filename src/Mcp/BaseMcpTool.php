@@ -278,31 +278,47 @@ abstract class BaseMcpTool
         }
 
         // レスポンスヘッダーからContent-Typeを取得
-        $mimeType = 'application/octet-stream';
+        $headerMimeType = 'application/octet-stream';
         if (isset($http_response_header)) {
             foreach($http_response_header as $header) {
                 if (stripos($header, 'content-type:') === 0) {
-                    $mimeType = trim(substr($header, 13));
+                    $headerMimeType = trim(substr($header, 13));
                     // パラメータを除去（例: "image/jpeg; charset=utf-8" -> "image/jpeg"）
-                    if (strpos($mimeType, ';') !== false) {
-                        $mimeType = trim(explode(';', $mimeType)[0]);
+                    if (strpos($headerMimeType, ';') !== false) {
+                        $headerMimeType = trim(explode(';', $headerMimeType)[0]);
                     }
                     break;
                 }
             }
         }
 
+        // ファイル内容から実際のMIMEタイプを検出
+        $actualMimeType = $this->detectMimeTypeFromContent($fileData);
+
         // URLから拡張子を推測
         $urlPath = parse_url($url, PHP_URL_PATH);
-        $extension = '';
+        $urlExtension = '';
         if ($urlPath) {
             $pathInfo = pathinfo($urlPath);
-            $extension = strtolower($pathInfo['extension'] ?? '');
+            $urlExtension = strtolower($pathInfo['extension'] ?? '');
         }
 
-        // MIMEタイプから拡張子を取得（URLから取得できない場合）
-        if (empty($extension)) {
-            $extension = $this->getExtensionFromMimeType($mimeType);
+        // 最終的なMIMEタイプと拡張子を決定（優先順位: ファイル内容 > URL拡張子 > HTTPヘッダー）
+        $mimeType = $actualMimeType;
+        $extension = $this->getExtensionFromMimeType($actualMimeType);
+
+        // ファイル内容から検出できなかった場合、URL拡張子を使用
+        if ($actualMimeType === 'application/octet-stream' && !empty($urlExtension)) {
+            $extension = $urlExtension;
+            $mimeType = $this->getMimeTypeFromExtension($urlExtension);
+        }
+
+        // それでも不明な場合はHTTPヘッダーを使用
+        if ($mimeType === 'application/octet-stream' && $headerMimeType !== 'application/octet-stream') {
+            $mimeType = $headerMimeType;
+            if (empty($extension)) {
+                $extension = $this->getExtensionFromMimeType($headerMimeType);
+            }
         }
 
         // ファイル形式のチェック
@@ -327,6 +343,130 @@ abstract class BaseMcpTool
             'size' => $fileSize,
             'ext' => $extension
         ];
+    }
+
+    /**
+     * ファイル内容からMIMEタイプを検出
+     *
+     * @param string $fileData ファイルのバイナリデータ
+     * @return string MIMEタイプ
+     */
+    protected function detectMimeTypeFromContent(string $fileData): string
+    {
+        // ファイルデータが空の場合
+        if (empty($fileData)) {
+            return 'application/octet-stream';
+        }
+
+        // マジックナンバーを確認してファイル形式を判定
+        $header = substr($fileData, 0, 20); // 最初の20バイトを取得
+
+        // JPEG
+        if (substr($header, 0, 3) === "\xFF\xD8\xFF") {
+            return 'image/jpeg';
+        }
+
+        // PNG
+        if (substr($header, 0, 8) === "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A") {
+            return 'image/png';
+        }
+
+        // GIF87a, GIF89a
+        if (substr($header, 0, 6) === 'GIF87a' || substr($header, 0, 6) === 'GIF89a') {
+            return 'image/gif';
+        }
+
+        // WebP
+        if (substr($header, 0, 4) === 'RIFF' && substr($header, 8, 4) === 'WEBP') {
+            return 'image/webp';
+        }
+
+        // BMP
+        if (substr($header, 0, 2) === 'BM') {
+            return 'image/bmp';
+        }
+
+        // SVG (XMLなのでテキストベース)
+        if (strpos($header, '<?xml') === 0 || strpos($header, '<svg') !== false) {
+            // より詳細にチェック
+            $sample = substr($fileData, 0, 1024);
+            if (strpos($sample, '<svg') !== false || strpos($sample, 'xmlns="http://www.w3.org/2000/svg"') !== false) {
+                return 'image/svg+xml';
+            }
+        }
+
+        // ICO
+        if (substr($header, 0, 4) === "\x00\x00\x01\x00") {
+            return 'image/x-icon';
+        }
+
+        // PDF
+        if (substr($header, 0, 5) === '%PDF-') {
+            return 'application/pdf';
+        }
+
+        // ZIP (DOCX, XLSX, PPTXなどもZIPベース)
+        if (substr($header, 0, 4) === "PK\x03\x04" || substr($header, 0, 4) === "PK\x05\x06" || substr($header, 0, 4) === "PK\x07\x08") {
+            // より詳細な判定のため、ファイル内容を確認
+            $sample = substr($fileData, 0, 1024);
+            if (strpos($sample, 'word/') !== false) {
+                return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            } elseif (strpos($sample, 'xl/') !== false) {
+                return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            } elseif (strpos($sample, 'ppt/') !== false) {
+                return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+            }
+            return 'application/zip';
+        }
+
+        // RAR
+        if (substr($header, 0, 7) === "Rar!\x1A\x07\x00") {
+            return 'application/x-rar-compressed';
+        }
+
+        // GZIP
+        if (substr($header, 0, 2) === "\x1F\x8B") {
+            return 'application/gzip';
+        }
+
+        // MP3
+        if (substr($header, 0, 3) === 'ID3' || substr($header, 0, 2) === "\xFF\xFB" || substr($header, 0, 2) === "\xFF\xF3" || substr($header, 0, 2) === "\xFF\xF2") {
+            return 'audio/mpeg';
+        }
+
+        // WAV
+        if (substr($header, 0, 4) === 'RIFF' && substr($header, 8, 4) === 'WAVE') {
+            return 'audio/wav';
+        }
+
+        // MP4 (ftypで始まるMOVやMP4)
+        if (substr($header, 4, 4) === 'ftyp') {
+            $type = substr($header, 8, 4);
+            if (in_array($type, ['mp41', 'mp42', 'isom', 'dash'])) {
+                return 'video/mp4';
+            } elseif ($type === 'qt  ') {
+                return 'video/quicktime';
+            }
+        }
+
+        // AVI
+        if (substr($header, 0, 4) === 'RIFF' && substr($header, 8, 4) === 'AVI ') {
+            return 'video/x-msvideo';
+        }
+
+        // Microsoft Office旧形式 (OLE2)
+        if (substr($header, 0, 8) === "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1") {
+            // より詳細な判定が必要だが、とりあえず汎用的に
+            return 'application/msword'; // DOC, XLS, PPTなどの可能性
+        }
+
+        // プレーンテキスト（ASCIIまたはUTF-8）
+        if (mb_check_encoding($fileData, 'UTF-8') && ctype_print(str_replace(["\n", "\r", "\t"], '', substr($fileData, 0, 100)))) {
+            return 'text/plain';
+        }
+
+        // 判定できない場合
+        return 'application/octet-stream';
     }
 
     /**

@@ -14,6 +14,10 @@ namespace CuMcp\Test\TestCase\Mcp\BcCustomContent;
 
 use BaserCore\TestSuite\BcTestCase;
 use BaserCore\Utility\BcContainerTrait;
+use BcCustomContent\Service\CustomEntriesService;
+use BcCustomContent\Service\CustomEntriesServiceInterface;
+use BcCustomContent\Service\CustomTablesService;
+use BcCustomContent\Test\Factory\CustomFieldFactory;
 use CuMcp\Mcp\BcCustomContent\CustomEntriesTool;
 use BaserCore\Service\BcDatabaseServiceInterface;
 use BcCustomContent\Test\Factory\CustomTableFactory;
@@ -160,6 +164,76 @@ class CustomEntriesToolTest extends BcTestCase
 
         // テーブルをクリーンアップ
         $dataBaseService->dropTable('custom_entry_1_contact_with_files');
+    }
+
+    /**
+     * Test addCustomEntry method - 外部画像URL指定テスト
+     *
+     * @return void
+     */
+    public function testAddCustomEntryWithImageUrl()
+    {
+        $dataBaseService = $this->getService(BcDatabaseServiceInterface::class);
+        /** @var CustomTablesService $customTablesService */
+        $customTablesService = $this->getService(CustomTablesServiceInterface::class);
+
+        CustomFieldFactory::make([
+            'id' => 1,
+            'title' => 'ファイル',
+            'name' => 'image_field',
+            'type' => 'BcCcFile',
+        ])->persist();
+
+        $customTableId = 1;
+        $title = '外部画像URL付きエントリー';
+        // GitHubのアバター画像（確実にアクセス可能）
+        $imageUrl = 'https://github.com/github.png';
+        $customFields = [
+            'image_field' => $imageUrl
+        ];
+
+        // カスタムテーブルを作成
+        $customTable = $customTablesService->create([
+            'type' => 'contact',
+            'name' => 'contact_with_image_url',
+            'title' => '画像URL付きお問い合わせ',
+            'display_field' => 'お問い合わせ'
+        ]);
+        $customTablesService->update($customTable, [
+            'id' => $customTable->id,
+            'custom_links' => [
+                'new-2' => [
+                    'custom_field_id' => 1,
+                    'title' => 'ファイル',
+                    'name' => 'image_field',
+                    'type' => 'BcCcFile',
+                    'status' => true,
+                ]
+            ]
+        ]);
+
+        /** @var CustomEntriesService $customEntriesService */
+        $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
+        $customEntriesService->setup(1);
+
+        $result = $this->CustomEntriesTool->addCustomEntry(
+            customTableId: $customTableId,
+            title: $title,
+            customFields: $customFields,
+            status: true
+        );
+
+        $this->assertIsArray($result);
+        // isError が false であることを確認（登録成功）
+        $this->assertFalse($result['isError'] ?? true, 'カスタムエントリーの登録が失敗しました');
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals($title, $result['content']['title']);
+        // 外部画像URLが正しく保存されていることを確認
+        $this->assertEquals('2025/09/00000001_image_field.png', $result['content']['image_field'] ?? '');
+        $this->assertTrue($result['content']['status'] ?? false);
+
+        // テーブルをクリーンアップ
+        $dataBaseService->dropTable('custom_entry_1_contact_with_image_url');
     }
 
     /**

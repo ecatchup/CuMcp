@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace CuMcp\Mcp\BcCustomContent;
 
+use BcCcFile\Utility\BcCcFileUtil;
 use BcCustomContent\Service\CustomEntriesService;
 use BcCustomContent\Service\CustomEntriesServiceInterface;
+use Cake\ORM\TableRegistry;
 use PhpMcp\Server\ServerBuilder;
 use CuMcp\Mcp\BaseMcpTool;
 use InvalidArgumentException;
@@ -136,8 +138,13 @@ class CustomEntriesTool extends BaseMcpTool
             $customTableId, $title, $parentId, $name, $creatorId, $status,
             $publishBegin, $publishEnd, $published, $customFields
         ) {
+            /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
+            // BcCcFileUtil::setupUploader 内で呼び出されるテーブルと確実に同一インスタンスとなるように改めてテーブルを設定
+            $customEntriesService->CustomEntries = TableRegistry::getTableLocator()->get('BcCustomContent.CustomEntries');
+            BcCcFileUtil::setupUploader($customTableId);
             $customEntriesService->setup($customTableId);
+
             $data = [
                 'custom_table_id' => $customTableId,
                 'title' => $title,
@@ -189,7 +196,11 @@ class CustomEntriesTool extends BaseMcpTool
         ) {
             /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
+            // BcCcFileUtil::setupUploader 内で呼び出されるテーブルと確実に同一インスタンスとなるように改めてテーブルを設定
+            $customEntriesService->CustomEntries = TableRegistry::getTableLocator()->get('BcCustomContent.CustomEntries');
+            BcCcFileUtil::setupUploader($customTableId);
             $customEntriesService->setup($customTableId);
+
             $entity = $customEntriesService->get($id);
 
             if (!$entity) return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
