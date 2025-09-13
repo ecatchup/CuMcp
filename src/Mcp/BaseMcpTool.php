@@ -28,12 +28,7 @@ abstract class BaseMcpTool
      */
     protected function createSuccessResponse($content, array $meta = []): array
     {
-        $response = [
-            'isError' => false,
-            'content' => $content
-        ];
-
-        return array_merge($response, $meta);
+        return array_merge($content, $meta);
     }
 
     /**
@@ -46,14 +41,11 @@ abstract class BaseMcpTool
     protected function createErrorResponse(string $message, ?\Exception $exception = null): array
     {
         $response = [
-            'isError' => true,
             'content' => $message
         ];
-
         if ($exception) {
             $response['trace'] = $exception->getTraceAsString();
         }
-
         return $response;
     }
 
