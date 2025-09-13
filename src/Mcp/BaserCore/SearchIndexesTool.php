@@ -81,10 +81,12 @@ class SearchIndexesTool extends BaseMcpTool
 
             if ($entity) {
                 $result = [
-                    'id' => $entity->id,
-                    'title' => $entity->title,
-                    'text' => $entity->detail,
-                    'url' => Router::url($entity->url, true)
+                    'type' => 'resource',
+                    'resource' => [
+                        'url' => Router::url($entity->url, true),
+                        'text' => $entity->detail,
+                        'mineType' => 'text/html',
+                    ]
                 ];
                 return $this->createSuccessResponse($result);
             } else {
@@ -110,15 +112,15 @@ class SearchIndexesTool extends BaseMcpTool
             $results = [];
             foreach($entities as $entity) {
                 $results[] = [
-                    'id' => $entity->id,
+                    'type' => 'resource_link',
+                    'name' => $entity->id,
+                    'uri' => Router::url($entity->url, true),
                     'title' => $entity->title,
-                    'text' => $entity->detail,
-                    'url' => Router::url($entity->url, true)
+                    'description' => $entity->detail,
                 ];
             }
 
-            return $this->createSuccessResponse([
-                'results' => $results,
+            return $this->createSuccessResponse($results, [
                 'count' => count($results),
                 'query' => $query
             ]);
