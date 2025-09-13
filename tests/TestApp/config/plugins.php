@@ -1,6 +1,6 @@
 <?php
 
 return [
-//    'Migrations' => null,
-    'BaserCore' => null
+    'BaserCore' => null,
+    'CuMcp' => null,
 ];

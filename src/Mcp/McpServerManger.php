@@ -25,12 +25,11 @@ class McpServerManger
 
             // バックグラウンドでMCPサーバーを起動
             $command = sprintf(
-                'cd %s && nohup %s cu_mcp.server --transport=sse --host=%s --port=%s %s > %s 2>&1 & echo $! > %s',
+                'cd %s && nohup %s cu_mcp.server --transport=sse --host=%s --port=%s > %s 2>&1 & echo $! > %s',
                 ROOT,
                 $cakeCommand,
                 escapeshellarg($config['host']),
                 escapeshellarg($config['port']),
-                (BcUtil::isTest())? '--test' : '',
                 escapeshellarg($logFile),
                 escapeshellarg($pidFile)
             );
