@@ -26,16 +26,4 @@ class BcBlogServer
         ];
     }
 
-    /**
-     * 利用可能なリソースクラス名の配列を返却
-     *
-     * @return array<string> リソースクラス名の配列
-     */
-    public static function getResourceClasses(): array
-    {
-        return [
-            // 現在はリソースクラスなし
-        ];
-    }
-
 }

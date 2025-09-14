@@ -58,12 +58,6 @@ class McpServer
             BcCustomContentServer::getToolClasses(),
         ), $builder);
 
-        $this->registerResourcesFromServer(array_merge(
-            BaserCoreServer::getResourceClasses(),
-            BcBlogServer::getResourceClasses(),
-            BcCustomContentServer::getResourceClasses(),
-        ), $builder);
-
         // サーバー情報ツールを追加
         $builder = $builder->withTool(
             handler: [self::class, 'serverInfo'],

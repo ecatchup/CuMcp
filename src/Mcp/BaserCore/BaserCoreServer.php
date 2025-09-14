@@ -19,21 +19,8 @@ class BaserCoreServer
     public static function getToolClasses(): array
     {
         return [
-            // SearchIndexesTool::class, // リソースに移行したためコメントアウト
-            // AI側のメッセージ制限によりチャンクによるアップロードを実装したが、それでも、現実的でなかったため、一旦、停止
-            // FileUploadTool::class
-        ];
-    }
-
-    /**
-     * 利用可能なリソースクラス名の配列を返却
-     *
-     * @return array<string> リソースクラス名の配列
-     */
-    public static function getResourceClasses(): array
-    {
-        return [
-            SearchIndexesResource::class,
+            // SearchIndexesTool::class, // ChatGPTで動作しないため一旦、停止
+            // FileUploadTool::class // AI側のメッセージ制限によりチャンクによるアップロードを実装したが、それでも、現実的でなかったため、一旦、停止
         ];
     }
 
