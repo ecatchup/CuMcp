@@ -9,8 +9,13 @@ use BcSearchIndex\Service\SearchIndexesServiceInterface;
 use Cake\Core\Configure;
 use Cake\Log\LogTrait;
 use Cake\Routing\Router;
+use Cake\Utility\Text;
 use CuMcp\Mcp\BaseMcpTool;
+use CuMcp\Schema\Content\ResourceLinkContent;
 use PhpMcp\Server\ServerBuilder;
+use PhpMcp\Schema\Content\TextContent;
+use PhpMcp\Schema\Content\EmbeddedResource;
+use PhpMcp\Schema\Content\TextResourceContents;
 
 /**
  * 検索インデックスツールクラス
@@ -112,19 +117,15 @@ class SearchIndexesTool extends BaseMcpTool
 
             $results = [];
             foreach($entities as $entity) {
-                $results[] = [
-                    'type' => 'resource_link',
-                    'name' => $entity->id,
-                    'uri' => Router::url($entity->url, true),
-                    'title' => $entity->title,
-                    'description' => $entity->detail,
-                ];
+                $results[] = ResourceLinkContent::make(
+                    name: (string)$entity->id,
+                    uri: Router::url($entity->url, true),
+                    title: $entity->title,
+                    description: mb_substr($entity->detail, 0, 200, 'UTF-8'),
+                );
             }
 
-            return $this->createSuccessResponse($results, [
-                'count' => count($results),
-                'query' => $query
-            ]);
+            return $this->createSuccessResponse($results);
         });
     }
 
