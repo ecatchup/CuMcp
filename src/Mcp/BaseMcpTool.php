@@ -7,7 +7,7 @@ use BaserCore\Utility\BcContainerTrait;
 use BaserCore\Utility\BcUtil;
 
 /**
- * MCPツールの基底クラス
+ * MCPツール・リソースの基底クラス
  *
  * 共通の戻り値作成メソッドとエラーハンドリングを提供
  */

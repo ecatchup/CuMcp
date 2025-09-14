@@ -58,6 +58,12 @@ class McpServer
             BcCustomContentServer::getToolClasses(),
         ), $builder);
 
+        $this->registerResourcesFromServer(array_merge(
+            BaserCoreServer::getResourceClasses(),
+            BcBlogServer::getResourceClasses(),
+            BcCustomContentServer::getResourceClasses(),
+        ), $builder);
+
         // サーバー情報ツールを追加
         $builder = $builder->withTool(
             handler: [self::class, 'serverInfo'],
@@ -86,6 +92,21 @@ class McpServer
         foreach($toolClasses as $toolClass) {
             $toolInstance = new $toolClass();
             $builder = $toolInstance->addToolsToBuilder($builder);
+        }
+    }
+
+    /**
+     * リソースクラス配列からリソースを登録
+     *
+     * @param array<string> $resourceClasses リソースクラス名の配列
+     * @param ServerBuilder $builder サーバービルダー
+     * @return void
+     */
+    private function registerResourcesFromServer(array $resourceClasses, ServerBuilder &$builder): void
+    {
+        foreach($resourceClasses as $resourceClass) {
+            $resourceInstance = new $resourceClass();
+            $builder = $resourceInstance->addResourcesToBuilder($builder);
         }
     }
 
