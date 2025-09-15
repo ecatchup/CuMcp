@@ -56,6 +56,7 @@ jobs:
     - name: Setup test directories
       run: |
         chmod -R 777 tests/TestApp/tmp tests/TestApp/logs tests/TestApp/config tests/TestApp/webroot/files
+        cp tests/TestApp/config/.env.example tests/TestApp/config/.env
 
     - name: Wait for MySQL
       run: |

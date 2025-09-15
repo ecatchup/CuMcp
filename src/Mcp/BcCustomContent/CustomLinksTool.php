@@ -377,7 +377,7 @@ class CustomLinksTool extends BaseMcpTool
 
             if ($result) {
                 return $this->createSuccessResponse(
-                    'カスタムリンクを削除しました',
+                    ['message' => 'カスタムリンクを削除しました'],
                     ['customLink' => ['title' => $title]],
                     sprintf('カスタムリンク「%s」を削除しました。', $title),
                     $loginUserId

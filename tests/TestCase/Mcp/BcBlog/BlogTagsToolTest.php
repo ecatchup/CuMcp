@@ -56,10 +56,9 @@ class BlogTagsToolTest extends BcTestCase
 
         $result = $this->BlogTagsTool->addBlogTag('テストタグ');
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals('テストタグ', $result['content']['name']);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('id', $result);
+        $this->assertEquals('テストタグ', $result['name']);
     }
 
     /**
@@ -70,11 +69,10 @@ class BlogTagsToolTest extends BcTestCase
         $this->loadFixtureScenario(BlogTagsScenario::class);
         $result = $this->BlogTagsTool->getBlogTags();
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result['content']);
-        $this->assertIsArray($result['content']['data']);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('pagination', $result);
+        $this->assertArrayHasKey('data', $result);
+        $this->assertIsArray($result['data']);
     }
 
     /**
@@ -85,10 +83,8 @@ class BlogTagsToolTest extends BcTestCase
         $this->loadFixtureScenario(BlogTagsScenario::class);
         $result = $this->BlogTagsTool->getBlogTag(1);
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals(1, $result['content']['id']);
+        $this->assertIsArray($result);
+        $this->assertEquals(1, $result['id']);
     }
 
     /**
@@ -99,10 +95,8 @@ class BlogTagsToolTest extends BcTestCase
         $this->loadFixtureScenario(BlogTagsScenario::class);
         $result = $this->BlogTagsTool->editBlogTag(1, '更新されたタグ');
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals('更新されたタグ', $result['content']['name']);
+        $this->assertIsArray($result);
+        $this->assertEquals('更新されたタグ', $result['name']);
     }
 
     /**
@@ -113,10 +107,9 @@ class BlogTagsToolTest extends BcTestCase
         $this->loadFixtureScenario(BlogTagsScenario::class);
         $result = $this->BlogTagsTool->deleteBlogTag(1);
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals('ブログタグを削除しました', $result['content']);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('message', $result);
+        $this->assertEquals('ブログタグを削除しました', $result['message']);
     }
 
     /**
@@ -129,12 +122,10 @@ class BlogTagsToolTest extends BcTestCase
             name: 'tag1'
         );
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result['content']);
-        $this->assertEquals(1, $result['content']['pagination']['page']);
-        $this->assertEquals(10, $result['content']['pagination']['limit']);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('pagination', $result);
+        $this->assertEquals(1, $result['pagination']['page']);
+        $this->assertEquals(10, $result['pagination']['limit']);
     }
 
     /**
@@ -145,13 +136,12 @@ class BlogTagsToolTest extends BcTestCase
         $this->loadFixtureScenario(BlogTagsScenario::class);
         $result = $this->BlogTagsTool->getBlogTags(null, 2, 1);
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result['content']);
-        $this->assertEquals(1, $result['content']['pagination']['page']);
-        $this->assertEquals(2, $result['content']['pagination']['limit']);
-        $this->assertLessThanOrEqual(2, count($result['content']['data']));
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('pagination', $result);
+        $this->assertEquals(1, $result['pagination']['page']);
+        $this->assertEquals(2, $result['pagination']['limit']);
+        $this->assertArrayHasKey('data', $result);
+        $this->assertLessThanOrEqual(2, count($result['data']));
     }
 
     /**
@@ -162,12 +152,10 @@ class BlogTagsToolTest extends BcTestCase
         $this->loadFixtureScenario(BlogTagsScenario::class);
         $result = $this->BlogTagsTool->getBlogTags(null, 2, 2);
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertArrayHasKey('pagination', $result['content']);
-        $this->assertEquals(2, $result['content']['pagination']['page']);
-        $this->assertEquals(2, $result['content']['pagination']['limit']);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('pagination', $result);
+        $this->assertEquals(2, $result['pagination']['page']);
+        $this->assertEquals(2, $result['pagination']['limit']);
     }
 
     /**
@@ -177,7 +165,7 @@ class BlogTagsToolTest extends BcTestCase
     {
         $result = $this->BlogTagsTool->getBlogTag(999);
 
-        $this->assertTrue($result['isError']);
+        $this->assertIsArray($result);
         $this->assertArrayHasKey('content', $result);
         $this->assertEquals('Record not found in table `blog_tags`.', $result['content']);
     }
@@ -189,7 +177,7 @@ class BlogTagsToolTest extends BcTestCase
     {
         $result = $this->BlogTagsTool->editBlogTag(999, 'Test Tag');
 
-        $this->assertTrue($result['isError']);
+        $this->assertIsArray($result);
         $this->assertArrayHasKey('content', $result);
         $this->assertEquals('Record not found in table `blog_tags`.', $result['content']);
     }
@@ -201,7 +189,7 @@ class BlogTagsToolTest extends BcTestCase
     {
         $result = $this->BlogTagsTool->deleteBlogTag(999);
 
-        $this->assertTrue($result['isError']);
+        $this->assertIsArray($result);
         $this->assertArrayHasKey('content', $result);
         $this->assertEquals('Record not found in table `blog_tags`.', $result['content']);
     }

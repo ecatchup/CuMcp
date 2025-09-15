@@ -325,7 +325,7 @@ class CustomTablesTool extends BaseMcpTool
 
             if ($result) {
                 return $this->createSuccessResponse(
-                    'カスタムテーブルを削除しました',
+                    ['message' => 'カスタムテーブルを削除しました'],
                     ['customTable' => ['title' => $title]],
                     sprintf('カスタムテーブル「%s」を削除しました。', $title),
                     $loginUserId

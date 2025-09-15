@@ -68,11 +68,9 @@ class CustomTablesToolTest extends BcTestCase
             customFieldNames: ['field1', 'field2']
         );
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals('test_table', $result['content']['name']);
-        $this->assertEquals('テストテーブル', $result['content']['title']);
+        $this->assertArrayHasKey('title', $result);
+        $this->assertEquals('test_table', $result['name']);
+        $this->assertEquals('テストテーブル', $result['title']);
     }
 
     /**
@@ -83,9 +81,8 @@ class CustomTablesToolTest extends BcTestCase
         $this->loadFixtureScenario(CustomTablesScenario::class);
         $result = $this->CustomTablesTool->getCustomTables();
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
     }
 
     /**
@@ -96,10 +93,8 @@ class CustomTablesToolTest extends BcTestCase
         $this->loadFixtureScenario(CustomTablesScenario::class);
         $result = $this->CustomTablesTool->getCustomTable(2);
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals(2, $result['content']['id']);
+        $this->assertArrayHasKey('title', $result);
+        $this->assertEquals(2, $result['id']);
     }
 
     /**
@@ -115,11 +110,9 @@ class CustomTablesToolTest extends BcTestCase
             customFieldNames: ['field3', 'field4']
         );
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals('updated_table', $result['content']['name']);
-        $this->assertEquals('更新されたテーブル', $result['content']['title']);
+        $this->assertArrayHasKey('title', $result);
+        $this->assertEquals('updated_table', $result['name']);
+        $this->assertEquals('更新されたテーブル', $result['title']);
     }
 
     /**
@@ -137,10 +130,8 @@ class CustomTablesToolTest extends BcTestCase
         $customEntriesService->setup(1);
         $result = $this->CustomTablesTool->deleteCustomTable(1);
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals('カスタムテーブルを削除しました', $result['content']);
+        $this->assertArrayHasKey('message', $result);
+        $this->assertEquals('カスタムテーブルを削除しました', $result['message']);
     }
 
     /**
@@ -149,11 +140,10 @@ class CustomTablesToolTest extends BcTestCase
     public function testGetCustomTablesWithSearch()
     {
         $this->loadFixtureScenario(CustomTablesScenario::class);
-        $result = $this->CustomTablesTool->getCustomTables('test', 1, 'default', 10, 1);
+        $result = $this->CustomTablesTool->getCustomTables(2, 1, 'default', 10, 1);
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
     }
 
     /**
@@ -163,7 +153,6 @@ class CustomTablesToolTest extends BcTestCase
     {
         $result = $this->CustomTablesTool->getCustomTable(999);
 
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
         $this->assertEquals('Record not found in table `custom_tables`.', $result['content']);
     }
@@ -175,7 +164,6 @@ class CustomTablesToolTest extends BcTestCase
     {
         $result = $this->CustomTablesTool->editCustomTable(999, 'test', 'Test Table');
 
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
         $this->assertEquals('Record not found in table `custom_tables`.', $result['content']);
     }
@@ -187,7 +175,6 @@ class CustomTablesToolTest extends BcTestCase
     {
         $result = $this->CustomTablesTool->deleteCustomTable(999);
 
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
         $this->assertEquals('Record not found in table `custom_tables`.', $result['content']);
     }
@@ -202,10 +189,8 @@ class CustomTablesToolTest extends BcTestCase
             title: 'シンプルテーブル'
         );
 
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals('simple_table', $result['content']['name']);
-        $this->assertEquals('シンプルテーブル', $result['content']['title']);
+        $this->assertArrayHasKey('title', $result);
+        $this->assertEquals('simple_table', $result['name']);
+        $this->assertEquals('シンプルテーブル', $result['title']);
     }
 }

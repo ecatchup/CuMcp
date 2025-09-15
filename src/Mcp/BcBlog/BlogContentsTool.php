@@ -437,7 +437,7 @@ class BlogContentsTool extends BaseMcpTool
 
             if ($result) {
                 return $this->createSuccessResponse(
-                    'ブログコンテンツを削除しました',
+                    ['message' => 'ブログコンテンツを削除しました'],
                     [],
                     sprintf('ブログコンテンツ「%s」を削除しました。', $title),
                     $loginUserId

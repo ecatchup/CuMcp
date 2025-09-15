@@ -71,8 +71,7 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
+        $this->assertArrayHasKey('id', $result);
     }
 
     /**
@@ -94,9 +93,7 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->getBlogCategories(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertNotEmpty($result);
     }
 
     /**
@@ -119,8 +116,7 @@ class BlogCategoriesToolTest extends BcTestCase
 
         $this->assertIsArray($result);
         // IDが存在する場合は成功を想定
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals(1, $result['content']['id']);
+        $this->assertEquals(1, $result['id']);
     }
 
     /**
@@ -147,10 +143,7 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals($newTitle, $result['content']['title']);
+        $this->assertEquals($newTitle, $result['title']);
     }
 
     /**
@@ -172,9 +165,7 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->deleteBlogCategory(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('message', $result);
     }
 
     /**
@@ -187,8 +178,8 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->addBlogCategory('');
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('titleは必須です', $result['content']);
     }
 
     /**
@@ -203,8 +194,8 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->getBlogCategory($nonExistentId);
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('Record not found in table `blog_categories`.', $result['content']);
     }
 
     /**
@@ -232,8 +223,6 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
 
         // ページネーション情報の確認
@@ -269,8 +258,6 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
 
         // ページネーション情報の確認
@@ -305,8 +292,6 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
 
         // ページネーション情報の確認
@@ -342,8 +327,6 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
 
         // ページネーション情報の確認
@@ -387,12 +370,14 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
 
         // 結果の確認：公開されているカテゴリのみが取得される
-        $categories = $result['content'];
+        // paginationキーを除外してカテゴリデータを取得
+        $categories = array_values(array_filter($result, function($key) {
+            return $key !== 'pagination';
+        }, ARRAY_FILTER_USE_KEY));
+
         $this->assertCount(1, $categories); // 公開されているカテゴリのみ1件
         $this->assertEquals('公開カテゴリ', $categories[0]['title']);
         $this->assertEquals(1, $categories[0]['status']);
@@ -432,12 +417,12 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
 
         // 結果の確認
-        $categories = $result['content'];
+        $categories = array_values(array_filter($result, function($key) {
+            return $key !== 'pagination';
+        }, ARRAY_FILTER_USE_KEY));
         $this->assertCount(2, $categories); // 公開・非公開両方取得される
 
         // ページネーション情報の確認
@@ -476,12 +461,12 @@ class BlogCategoriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
         $this->assertArrayHasKey('pagination', $result);
 
         // 結果の確認：status=0は対応しないため、全てのカテゴリが取得される
-        $categories = $result['content'];
+        $categories = array_values(array_filter($result, function($key) {
+            return $key !== 'pagination';
+        }, ARRAY_FILTER_USE_KEY));
         $this->assertCount(2, $categories); // 公開・非公開両方取得される
 
         // ページネーション情報の確認
@@ -516,12 +501,18 @@ class BlogCategoriesToolTest extends BcTestCase
         $result = $this->BlogCategoriesTool->getBlogCategories(
             title: 'カテゴリ'
         );
-        $this->assertCount(2, $result['content']);
+        $categories = array_values(array_filter($result, function($key) {
+            return $key !== 'pagination';
+        }, ARRAY_FILTER_USE_KEY));
+        $this->assertCount(2, $categories);
 
         $result = $this->BlogCategoriesTool->getBlogCategories(
             title: '1'
         );
-        $this->assertCount(1, $result['content']);
+        $categories = array_values(array_filter($result, function($key) {
+            return $key !== 'pagination';
+        }, ARRAY_FILTER_USE_KEY));
+        $this->assertCount(1, $categories);
     }
 
 }

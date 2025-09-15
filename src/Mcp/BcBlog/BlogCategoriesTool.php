@@ -350,7 +350,7 @@ class BlogCategoriesTool extends BaseMcpTool
 
             if ($result) {
                 return $this->createSuccessResponse(
-                    'ブログカテゴリを削除しました',
+                    ['message' => 'ブログカテゴリを削除しました'],
                     [],
                     sprintf('ブログカテゴリ「%s」を削除しました。', $title),
                     $loginUserId

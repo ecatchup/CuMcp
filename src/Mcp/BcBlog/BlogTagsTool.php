@@ -235,7 +235,7 @@ class BlogTagsTool extends BaseMcpTool
 
             if ($result) {
                 return $this->createSuccessResponse(
-                    'ブログタグを削除しました',
+                    ['message' => 'ブログタグを削除しました'],
                     [],
                     sprintf('ブログタグ「%s」を削除しました。', $name),
                     $loginUserId

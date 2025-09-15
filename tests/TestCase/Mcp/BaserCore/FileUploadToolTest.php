@@ -69,9 +69,8 @@ class FileUploadToolTest extends BcTestCase
 
         $result = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, $chunkData, $filename);
 
-        $this->assertFalse($result['isError']);
-        $this->assertEquals('complete', $result['content']['status']);
-        $this->assertArrayHasKey('file', $result['content']);
+        $this->assertEquals('complete', $result['status']);
+        $this->assertArrayHasKey('file', $result);
 
         // ファイルが正しく作成されているかチェック
         $finalFile = TMP . 'mcp_uploads/' . $filename;
@@ -93,16 +92,14 @@ class FileUploadToolTest extends BcTestCase
         // 最初のチャンクを送信
         $result1 = $this->fileUploadTool->sendFileChunk($fileId, 0, $totalChunks, base64_encode($content1), $filename);
 
-        $this->assertFalse($result1['isError']);
-        $this->assertEquals('chunk_received', $result1['content']['status']);
-        $this->assertEquals(1, $result1['content']['progress']);
+        $this->assertEquals('chunk_received', $result1['status']);
+        $this->assertEquals(1, $result1['progress']);
 
         // 2番目のチャンクを送信
         $result2 = $this->fileUploadTool->sendFileChunk($fileId, 1, $totalChunks, base64_encode($content2), $filename);
 
-        $this->assertFalse($result2['isError']);
-        $this->assertEquals('complete', $result2['content']['status']);
-        $this->assertArrayHasKey('file', $result2['content']);
+        $this->assertEquals('complete', $result2['status']);
+        $this->assertArrayHasKey('file', $result2);
 
         // マージされたファイルが正しく作成されているかチェック
         $finalFile = TMP . 'mcp_uploads/' . $filename;
@@ -128,15 +125,13 @@ class FileUploadToolTest extends BcTestCase
         // 2番目のチャンクを先に送信
         $result1 = $this->fileUploadTool->sendFileChunk($fileId, 1, $totalChunks, base64_encode($content2), $filename);
 
-        $this->assertFalse($result1['isError']);
-        $this->assertEquals('chunk_received', $result1['content']['status']);
-        $this->assertEquals(2, $result1['content']['progress']);
+        $this->assertEquals('chunk_received', $result1['status']);
+        $this->assertEquals(2, $result1['progress']);
 
         // 1番目のチャンクを後で送信
         $result2 = $this->fileUploadTool->sendFileChunk($fileId, 0, $totalChunks, base64_encode($content1), $filename);
 
-        $this->assertFalse($result2['isError']);
-        $this->assertEquals('complete', $result2['content']['status']);
+        $this->assertEquals('complete', $result2['status']);
 
         // マージされたファイルが正しい順序で作成されているかチェック
         $finalFile = TMP . 'mcp_uploads/' . $filename;
@@ -162,17 +157,15 @@ class FileUploadToolTest extends BcTestCase
         for($i = 0; $i < $totalChunks - 1; $i++) {
             $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
 
-            $this->assertFalse($result['isError']);
-            $this->assertEquals('chunk_received', $result['content']['status']);
-            $this->assertEquals($i + 1, $result['content']['progress']);
+            $this->assertEquals('chunk_received', $result['status']);
+            $this->assertEquals($i + 1, $result['progress']);
         }
 
         // 最後のチャンクを送信
         $lastIndex = $totalChunks - 1;
         $result = $this->fileUploadTool->sendFileChunk($fileId, $lastIndex, $totalChunks, base64_encode($chunks[$lastIndex]), $filename);
 
-        $this->assertFalse($result['isError']);
-        $this->assertEquals('complete', $result['content']['status']);
+        $this->assertEquals('complete', $result['status']);
 
         // マージされたファイルが正しく作成されているかチェック
         $finalFile = TMP . 'mcp_uploads/' . $filename;
@@ -193,8 +186,7 @@ class FileUploadToolTest extends BcTestCase
         $result = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, $invalidBase64, $filename);
 
         // base64_decodeはfalseを返すが、空文字列として処理される
-        $this->assertFalse($result['isError']);
-        $this->assertEquals('complete', $result['content']['status']);
+        $this->assertEquals('complete', $result['status']);
 
         $finalFile = TMP . 'mcp_uploads/' . $filename;
         $this->assertTrue(file_exists($finalFile));
@@ -226,13 +218,11 @@ class FileUploadToolTest extends BcTestCase
 
         // 最初のアップロード
         $result1 = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, base64_encode($content1), $filename);
-        $this->assertFalse($result1['isError']);
-        $this->assertEquals('complete', $result1['content']['status']);
+        $this->assertEquals('complete', $result1['status']);
 
         // 同じファイルIDで2回目のアップロード（上書きされる）
         $result2 = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, base64_encode($content2), $filename);
-        $this->assertFalse($result2['isError']);
-        $this->assertEquals('complete', $result2['content']['status']);
+        $this->assertEquals('complete', $result2['status']);
 
         // 最後にアップロードされたファイルの内容を確認
         $finalFile = TMP . 'mcp_uploads/' . $filename;
@@ -256,9 +246,8 @@ class FileUploadToolTest extends BcTestCase
         // 画像ファイルを単一チャンクでアップロード
         $result = $this->fileUploadTool->sendFileChunk($fileId, 0, 1, base64_encode($imageContent), $filename);
 
-        $this->assertFalse($result['isError']);
-        $this->assertEquals('complete', $result['content']['status']);
-        $this->assertArrayHasKey('file', $result['content']);
+        $this->assertEquals('complete', $result['status']);
+        $this->assertArrayHasKey('file', $result);
 
         // アップロードされたファイルが元のファイルと同じであることを確認
         $uploadedFile = TMP . 'mcp_uploads/' . $filename;
@@ -297,17 +286,15 @@ class FileUploadToolTest extends BcTestCase
         for($i = 0; $i < $totalChunks - 1; $i++) {
             $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
 
-            $this->assertFalse($result['isError'], "チャンク {$i} の送信でエラーが発生しました");
-            $this->assertEquals('chunk_received', $result['content']['status']);
-            $this->assertEquals($i + 1, $result['content']['progress']);
+            $this->assertEquals('chunk_received', $result['status']);
+            $this->assertEquals($i + 1, $result['progress']);
         }
 
         // 最後のチャンクを送信
         $lastIndex = $totalChunks - 1;
         $result = $this->fileUploadTool->sendFileChunk($fileId, $lastIndex, $totalChunks, base64_encode($chunks[$lastIndex]), $filename);
 
-        $this->assertFalse($result['isError']);
-        $this->assertEquals('complete', $result['content']['status']);
+        $this->assertEquals('complete', $result['status']);
 
         // マージされたファイルが元のファイルと同じであることを確認
         $uploadedFile = TMP . 'mcp_uploads/' . $filename;
@@ -351,12 +338,11 @@ class FileUploadToolTest extends BcTestCase
         for($i = 0; $i < $totalChunks; $i++) {
             $result = $this->fileUploadTool->sendFileChunk($fileId, $i, $totalChunks, base64_encode($chunks[$i]), $filename);
 
-            $this->assertFalse($result['isError'], "チャンク {$i} の送信でエラーが発生しました");
 
             if ($i < $totalChunks - 1) {
-                $this->assertEquals('chunk_received', $result['content']['status']);
+                $this->assertEquals('chunk_received', $result['status']);
             } else {
-                $this->assertEquals('complete', $result['content']['status']);
+                $this->assertEquals('complete', $result['status']);
             }
         }
 

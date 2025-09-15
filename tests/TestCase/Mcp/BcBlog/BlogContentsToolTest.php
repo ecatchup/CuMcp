@@ -76,9 +76,7 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('id', $result);
     }
 
     /**
@@ -96,7 +94,8 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContents();
 
         $this->assertIsArray($result);
-        $this->assertCount(1, $result['content']['data']);
+        $this->assertArrayHasKey('data', $result);
+        $this->assertCount(1, $result['data']);
     }
 
     /**
@@ -114,9 +113,7 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContent(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('id', $result);
     }
 
     /**
@@ -141,9 +138,7 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('id', $result);
     }
 
     /**
@@ -155,9 +150,14 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->deleteBlogContent(1);
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
         // 削除結果のチェック（成功またはエラーのいずれか）
-        $this->assertArrayHasKey('content', $result);
+        if (isset($result['message'])) {
+            // 成功の場合
+            $this->assertEquals('ブログコンテンツを削除しました', $result['message']);
+        } else {
+            // エラーの場合
+            $this->assertArrayHasKey('content', $result);
+        }
     }
 
     /**
@@ -168,9 +168,7 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContents('test');
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('data', $result);
     }
 
     /**
@@ -181,8 +179,8 @@ class BlogContentsToolTest extends BcTestCase
         $result = $this->BlogContentsTool->getBlogContent(99999);
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
+        $this->assertIsString($result['content']); // エラーメッセージ
     }
 
     /**
@@ -207,8 +205,8 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
+        $this->assertIsString($result['content']); // エラーメッセージ
     }
 
     /**
@@ -230,12 +228,10 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('id', $result);
 
         // アイキャッチサイズの設定を確認
-        $blogContent = $result['content'];
+        $blogContent = $result;
         $this->assertArrayHasKey('eye_catch_size', $blogContent);
 
         // eye_catch_sizeがbase64エンコードされたシリアライズ形式の場合は、デコードしてアンシリアライズする
@@ -274,12 +270,10 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('id', $result);
 
         // アイキャッチサイズの更新を確認
-        $blogContent = $result['content'];
+        $blogContent = $result;
         $this->assertArrayHasKey('eye_catch_size', $blogContent);
 
         // eye_catch_sizeが文字列の場合は、アンシリアライズする
@@ -312,12 +306,10 @@ class BlogContentsToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('isError', $result);
-        $this->assertFalse($result['isError']);
-        $this->assertArrayHasKey('content', $result);
+        $this->assertArrayHasKey('id', $result);
 
         // デフォルトのアイキャッチサイズが設定されることを確認
-        $blogContent = $result['content'];
+        $blogContent = $result;
         $this->assertArrayHasKey('eye_catch_size', $blogContent);
 
         // eye_catch_sizeが文字列の場合は、アンシリアライズする

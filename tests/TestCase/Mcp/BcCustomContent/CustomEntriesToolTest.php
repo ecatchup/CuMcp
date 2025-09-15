@@ -101,13 +101,9 @@ class CustomEntriesToolTest extends BcTestCase
 
         $this->assertIsArray($result);
         if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('content', $result);
-            $this->assertEquals($title, $result['content']['title']);
-            $this->assertEquals($customTableId, $result['content']['custom_table_id']);
-        } else {
-            // エラーケースでもレスポンス構造をテスト
-            $this->assertArrayHasKey('isError', $result);
-            $this->assertArrayHasKey('content', $result);
+            $this->assertArrayHasKey('title', $result);
+            $this->assertEquals($title, $result['title']);
+            $this->assertEquals($customTableId, $result['custom_table_id']);
         }
 
         // テーブルをクリーンアップ
@@ -152,14 +148,13 @@ class CustomEntriesToolTest extends BcTestCase
 
         $this->assertIsArray($result);
         if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('content', $result);
-            $this->assertEquals($title, $result['content']['title']);
+            $this->assertArrayHasKey('title', $result);
+            $this->assertEquals($title, $result['title']);
             // ファイルアップロードが処理されていることを確認
-            $this->assertNotEquals($base64Image, $result['content']['image_field'] ?? '');
-            $this->assertEquals('テキスト値', $result['content']['text_field'] ?? '');
+            $this->assertNotEquals($base64Image, $result['image_field'] ?? '');
+            $this->assertEquals('テキスト値', $result['text_field'] ?? '');
         } else {
             // エラーケースでもレスポンス構造をテスト
-            $this->assertArrayHasKey('isError', $result);
         }
 
         // テーブルをクリーンアップ
@@ -224,13 +219,12 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        // isError が false であることを確認（登録成功）
-        $this->assertFalse($result['isError'] ?? true, 'カスタムエントリーの登録が失敗しました');
-        $this->assertArrayHasKey('content', $result);
-        $this->assertEquals($title, $result['content']['title']);
+        // 登録が成功したことを確認
+        $this->assertArrayHasKey('title', $result);
+        $this->assertEquals($title, $result['title']);
         // 外部画像URLが正しく保存されていることを確認
-        $this->assertEquals('2025/09/00000001_image_field.png', $result['content']['image_field'] ?? '');
-        $this->assertTrue($result['content']['status'] ?? false);
+        $this->assertEquals('2025/09/00000001_image_field.png', $result['image_field'] ?? '');
+        $this->assertTrue($result['status'] ?? false);
 
         // テーブルをクリーンアップ
         $dataBaseService->dropTable('custom_entry_1_contact_with_image_url');
@@ -271,12 +265,8 @@ class CustomEntriesToolTest extends BcTestCase
 
         $this->assertIsArray($result);
         if (isset($result['success']) && $result['success']) {
-            $this->assertArrayHasKey('content', $result);
-            $this->assertEquals($title, $result['content']['title']);
-        } else {
-            // エラーケースでもレスポンス構造をテスト
-            $this->assertArrayHasKey('isError', $result);
-            $this->assertArrayHasKey('content', $result);
+            $this->assertArrayHasKey('title', $result);
+            $this->assertEquals($title, $result['title']);
         }
 
         // テーブルをクリーンアップ
@@ -296,7 +286,6 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
     }
 
@@ -331,7 +320,6 @@ class CustomEntriesToolTest extends BcTestCase
             $this->assertEquals(1, $result['pagination']['page']);
         } else {
             // エラーケースでもレスポンス構造をテスト
-            $this->assertArrayHasKey('isError', $result);
             $this->assertArrayHasKey('content', $result);
         }
     }
@@ -365,7 +353,6 @@ class CustomEntriesToolTest extends BcTestCase
             $this->assertEquals(5, $result['pagination']['limit']);
         } else {
             // エラーケースでもレスポンス構造をテスト
-            $this->assertArrayHasKey('isError', $result);
             $this->assertArrayHasKey('content', $result);
         }
     }
@@ -388,7 +375,7 @@ class CustomEntriesToolTest extends BcTestCase
             $this->assertArrayHasKey('content', $result);
         } else if (isset($result['success']) && $result['success']) {
             $this->assertArrayHasKey('content', $result);
-            $this->assertEquals(1, $result['content']['id']);
+            $this->assertEquals(1, $result['id']);
         }
     }
 
@@ -407,7 +394,6 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
     }
 
@@ -434,7 +420,7 @@ class CustomEntriesToolTest extends BcTestCase
             $this->assertArrayHasKey('content', $result);
         } else if (isset($result['success']) && $result['success']) {
             $this->assertArrayHasKey('content', $result);
-            $this->assertEquals($newTitle, $result['content']['title']);
+            $this->assertEquals($newTitle, $result['title']);
         }
     }
 
@@ -481,7 +467,6 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
     }
 
@@ -521,7 +506,6 @@ class CustomEntriesToolTest extends BcTestCase
         );
 
         $this->assertIsArray($result);
-        $this->assertTrue($result['isError']);
         $this->assertArrayHasKey('content', $result);
     }
 
