@@ -132,6 +132,7 @@ class BlogCategoriesTool extends BaseMcpTool
      * @param int|null $blogContentId
      * @param int|null $parentId
      * @param int|null $status
+     * @param int|null $loginUserId
      * @return array
      */
     public function addBlogCategory(
@@ -139,10 +140,11 @@ class BlogCategoriesTool extends BaseMcpTool
         ?string $name = null,
         ?int $blogContentId = 1,
         ?int $parentId = null,
-        ?int $status = 1
+        ?int $status = 1,
+        ?int $loginUserId = null
     ): array
     {
-        return $this->executeWithErrorHandling(function() use ($title, $name, $blogContentId, $parentId, $status) {
+        return $this->executeWithErrorHandling(function() use ($title, $name, $blogContentId, $parentId, $status, $loginUserId) {
             // 必須パラメータのチェック
             if (empty($title)) return $this->createErrorResponse('titleは必須です');
 
@@ -156,7 +158,12 @@ class BlogCategoriesTool extends BaseMcpTool
             ]);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('ブログカテゴリ「%s」を追加しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログカテゴリの保存に失敗しました');
             }
@@ -246,6 +253,7 @@ class BlogCategoriesTool extends BaseMcpTool
      * @param int|null $blogContentId
      * @param int|null $parentId
      * @param int|null $status
+     * @param int|null $loginUserId
      * @return array
      */
     public function editBlogCategory(
@@ -254,7 +262,8 @@ class BlogCategoriesTool extends BaseMcpTool
         ?string $name = null,
         ?int $blogContentId = null,
         ?int $parentId = null,
-        ?int $status = null
+        ?int $status = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
@@ -263,7 +272,8 @@ class BlogCategoriesTool extends BaseMcpTool
             $name,
             $blogContentId,
             $parentId,
-            $status
+            $status,
+            $loginUserId
         ) {
             // 必須パラメータのチェック
             if (empty($id)) return $this->createErrorResponse('idは必須です');
@@ -306,7 +316,12 @@ class BlogCategoriesTool extends BaseMcpTool
             $result = $blogCategoriesService->update($entity, $data, $options);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('ブログカテゴリ「%s」を編集しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログカテゴリの更新に失敗しました');
             }
@@ -316,11 +331,12 @@ class BlogCategoriesTool extends BaseMcpTool
     /**
      * ブログカテゴリを削除
      * @param int $id
+     * @param int|null $loginUserId
      * @return array
      */
-    public function deleteBlogCategory(int $id): array
+    public function deleteBlogCategory(int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
+        return $this->executeWithErrorHandling(function() use ($id, $loginUserId) {
             // 必須パラメータのチェック
             if (empty($id)) return $this->createErrorResponse('idは必須です');
 
@@ -329,10 +345,16 @@ class BlogCategoriesTool extends BaseMcpTool
 
             if (!$entity) return $this->createErrorResponse('指定されたIDのブログカテゴリが見つかりません');
 
+            $title = $entity->title;
             $result = $blogCategoriesService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('ブログカテゴリを削除しました');
+                return $this->createSuccessResponse(
+                    'ブログカテゴリを削除しました',
+                    [],
+                    sprintf('ブログカテゴリ「%s」を削除しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログカテゴリの削除に失敗しました');
             }

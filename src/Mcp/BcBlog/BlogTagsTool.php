@@ -116,16 +116,21 @@ class BlogTagsTool extends BaseMcpTool
     /**
      * ブログタグを追加
      */
-    public function addBlogTag(string $name): array
+    public function addBlogTag(string $name, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($name) {
+        return $this->executeWithErrorHandling(function() use ($name, $loginUserId) {
             /** @var BlogTagsService $blogTagsService */
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
             $result = $blogTagsService->create([
                 'name' => $name
             ]);
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('ブログタグ「%s」を追加しました。', $result->name),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログタグの保存に失敗しました');
             }
@@ -184,9 +189,9 @@ class BlogTagsTool extends BaseMcpTool
     /**
      * ブログタグを編集
      */
-    public function editBlogTag(int $id, string $name): array
+    public function editBlogTag(int $id, string $name, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id, $name) {
+        return $this->executeWithErrorHandling(function() use ($id, $name, $loginUserId) {
             /** @var BlogTagsService $blogTagsService */
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
             $entity = $blogTagsService->get($id);
@@ -198,7 +203,12 @@ class BlogTagsTool extends BaseMcpTool
             ]);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('ブログタグ「%s」を編集しました。', $result->name),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログタグの更新に失敗しました');
             }
@@ -208,16 +218,28 @@ class BlogTagsTool extends BaseMcpTool
     /**
      * ブログタグを削除
      */
-    public function deleteBlogTag(int $id): array
+    public function deleteBlogTag(int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
+        return $this->executeWithErrorHandling(function() use ($id, $loginUserId) {
             /** @var BlogTagsService $blogTagsService */
             $blogTagsService = $this->getService(BlogTagsServiceInterface::class);
 
+            // 削除前にタグ名を取得
+            $entity = $blogTagsService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのブログタグが見つかりません');
+            }
+
+            $name = $entity->name;
             $result = $blogTagsService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('ブログタグを削除しました');
+                return $this->createSuccessResponse(
+                    'ブログタグを削除しました',
+                    [],
+                    sprintf('ブログタグ「%s」を削除しました。', $name),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログタグの削除に失敗しました');
             }

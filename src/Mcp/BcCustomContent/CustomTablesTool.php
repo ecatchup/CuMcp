@@ -140,11 +140,12 @@ class CustomTablesTool extends BaseMcpTool
         ?int $type = 1,
         ?string $displayField = 'title',
         ?int $hasChild = 0,
-        ?array $customFieldNames = []
+        ?array $customFieldNames = [],
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
-            $title, $name, $type, $displayField, $hasChild, $customFieldNames
+            $title, $name, $type, $displayField, $hasChild, $customFieldNames, $loginUserId
         ) {
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
 
@@ -169,7 +170,12 @@ class CustomTablesTool extends BaseMcpTool
             }
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    ['customTable' => $result->toArray()],
+                    sprintf('カスタムテーブル「%s」を追加しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムテーブルの保存に失敗しました');
             }
@@ -253,11 +259,12 @@ class CustomTablesTool extends BaseMcpTool
         ?int $type = 1,
         ?string $displayField = 'title',
         ?int $hasChild = 0,
-        ?array $customFieldNames = []
+        ?array $customFieldNames = [],
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
-            $id, $title, $name, $type, $displayField, $hasChild, $customFieldNames
+            $id, $title, $name, $type, $displayField, $hasChild, $customFieldNames, $loginUserId
         ) {
             /** @var CustomTablesService $customTablesService */
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
@@ -286,7 +293,12 @@ class CustomTablesTool extends BaseMcpTool
             }
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    ['customTable' => $result->toArray()],
+                    sprintf('カスタムテーブル「%s」を編集しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムテーブルの更新に失敗しました');
             }
@@ -296,15 +308,28 @@ class CustomTablesTool extends BaseMcpTool
     /**
      * カスタムテーブルを削除
      */
-    public function deleteCustomTable(int $id): array
+    public function deleteCustomTable(int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
+        return $this->executeWithErrorHandling(function() use ($id, $loginUserId) {
             /** @var CustomTablesService $customTablesService */
             $customTablesService = $this->getService(CustomTablesServiceInterface::class);
+
+            // 削除前にタイトルを取得してログ用に保存
+            $entity = $customTablesService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのカスタムテーブルが見つかりません');
+            }
+            $title = $entity->title;
+
             $result = $customTablesService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('カスタムテーブルを削除しました');
+                return $this->createSuccessResponse(
+                    'カスタムテーブルを削除しました',
+                    ['customTable' => ['title' => $title]],
+                    sprintf('カスタムテーブル「%s」を削除しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムテーブルの削除に失敗しました');
             }

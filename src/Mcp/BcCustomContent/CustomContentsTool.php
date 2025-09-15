@@ -217,7 +217,12 @@ class CustomContentsTool extends BaseMcpTool
             $result = $customContentsService->create($data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('カスタムコンテンツ「%s」を追加しました。', $result->content->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムコンテンツの保存に失敗しました');
             }
@@ -247,13 +252,14 @@ class CustomContentsTool extends BaseMcpTool
         ?int $widgetArea = null,
         ?int $listCount = null,
         ?string $listOrder = null,
-        ?string $listDirection = null
+        ?string $listDirection = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
             $id, $name, $title, $customTableId, $siteId, $parentId, $description, $authorId, $layoutTemplate, $status,
             $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $widgetArea, $listCount,
-            $listOrder, $listDirection
+            $listOrder, $listDirection, $loginUserId
         ) {
             /** @var CustomContentsService $customContentsService */
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
@@ -287,7 +293,12 @@ class CustomContentsTool extends BaseMcpTool
             $result = $customContentsService->update($entity, $data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('カスタムコンテンツ「%s」を編集しました。', $result->content->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムコンテンツの更新に失敗しました');
             }
@@ -345,15 +356,28 @@ class CustomContentsTool extends BaseMcpTool
     /**
      * カスタムコンテンツを削除
      */
-    public function deleteCustomContent(int $id): array
+    public function deleteCustomContent(int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
+        return $this->executeWithErrorHandling(function() use ($id, $loginUserId) {
             /** @var CustomContentsService $customContentsService */
             $customContentsService = $this->getService(CustomContentsServiceInterface::class);
+
+            // 削除前にタイトルを取得
+            $entity = $customContentsService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのカスタムコンテンツが見つかりません');
+            }
+
+            $title = $entity->content->title;
             $result = $customContentsService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('カスタムコンテンツを削除しました');
+                return $this->createSuccessResponse(
+                    'カスタムコンテンツを削除しました',
+                    [],
+                    sprintf('カスタムコンテンツ「%s」を削除しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムコンテンツの削除に失敗しました');
             }

@@ -28,7 +28,7 @@ abstract class BaseMcpTool
      * @param array $meta 追加のメタデータ（paginationなど）
      * @return array MCP仕様に準拠した成功レスポンス
      */
-    protected function createSuccessResponse($userId, $content, array $meta = [], $message = ''): array
+    protected function createSuccessResponse($content, array $meta = [], $message = '', $userId = null): array
     {
         if($message) {
             $this->saveDblog($userId, $message);

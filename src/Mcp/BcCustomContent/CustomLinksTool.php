@@ -178,12 +178,13 @@ class CustomLinksTool extends BaseMcpTool
         ?bool $useApi = null,
         ?bool $required = null,
         ?bool $status = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
             $name, $title, $customTableId, $customFieldId, $parentId, $beforeHead, $afterHead, $description,
             $attention, $options, $class, $beforeLinefeed, $afterLinefeed, $displayAdminList, $displayFront,
-            $searchTargetFront, $searchTargetAdmin, $useApi, $required, $status
+            $searchTargetFront, $searchTargetAdmin, $useApi, $required, $status, $loginUserId
         ) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
@@ -213,7 +214,12 @@ class CustomLinksTool extends BaseMcpTool
             $result = $customLinksService->create($data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    ['customLink' => $result->toArray()],
+                    sprintf('カスタムリンク「%s」を追加しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムリンクの保存に失敗しました');
             }
@@ -298,12 +304,13 @@ class CustomLinksTool extends BaseMcpTool
         ?bool $useApi = null,
         ?bool $required = null,
         ?bool $status = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
             $id, $name, $title, $customTableId, $customFieldId, $parentId, $beforeHead, $afterHead, $description,
             $attention, $options, $class, $beforeLinefeed, $afterLinefeed, $displayAdminList, $displayFront,
-            $searchTargetFront, $searchTargetAdmin, $useApi, $required, $status
+            $searchTargetFront, $searchTargetAdmin, $useApi, $required, $status, $loginUserId
         ) {
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
 
@@ -338,7 +345,12 @@ class CustomLinksTool extends BaseMcpTool
             $result = $customLinksService->update($entity, $data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    ['customLink' => $result->toArray()],
+                    sprintf('カスタムリンク「%s」を編集しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムリンクの更新に失敗しました');
             }
@@ -348,15 +360,28 @@ class CustomLinksTool extends BaseMcpTool
     /**
      * カスタムリンクを削除
      */
-    public function deleteCustomLink(int $id): array
+    public function deleteCustomLink(int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
+        return $this->executeWithErrorHandling(function() use ($id, $loginUserId) {
             /** @var CustomLinksService $customLinksService */
             $customLinksService = $this->getService(CustomLinksServiceInterface::class);
+
+            // 削除前にタイトルを取得してログ用に保存
+            $entity = $customLinksService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのカスタムリンクが見つかりません');
+            }
+            $title = $entity->title;
+
             $result = $customLinksService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('カスタムリンクを削除しました');
+                return $this->createSuccessResponse(
+                    'カスタムリンクを削除しました',
+                    ['customLink' => ['title' => $title]],
+                    sprintf('カスタムリンク「%s」を削除しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムリンクの削除に失敗しました');
             }

@@ -253,7 +253,12 @@ class BlogContentsTool extends BaseMcpTool
             $result = $blogContentsService->create($data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('ブログコンテンツ「%s」を追加しました。', $result->content->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログコンテンツの保存に失敗しました');
             }
@@ -291,6 +296,7 @@ class BlogContentsTool extends BaseMcpTool
         ?int $eyeCatchSizeMobileThumbHeight = null,
         ?bool $useContent = null,
         ?int $widgetArea = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
@@ -298,7 +304,7 @@ class BlogContentsTool extends BaseMcpTool
             $publishBegin, $publishEnd, $excludeSearch, $excludeMenu, $blankLink, $template, $listCount,
             $listDirection, $feedCount, $commentUse, $commentApprove, $tagUse, $eyeCatchSizeThumbWidth,
             $eyeCatchSizeThumbHeight, $eyeCatchSizeMobileThumbWidth, $eyeCatchSizeMobileThumbHeight,
-            $useContent, $widgetArea
+            $useContent, $widgetArea, $loginUserId
         ) {
             if (empty($id)) return $this->createErrorResponse('IDは必須です');
 
@@ -345,7 +351,12 @@ class BlogContentsTool extends BaseMcpTool
             $result = $blogContentsService->update($entity, $data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('ブログコンテンツ「%s」を編集しました。', $result->content->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログコンテンツの更新に失敗しました');
             }
@@ -408,17 +419,29 @@ class BlogContentsTool extends BaseMcpTool
     /**
      * ブログコンテンツを削除
      */
-    public function deleteBlogContent(int $id): array
+    public function deleteBlogContent(int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
+        return $this->executeWithErrorHandling(function() use ($id, $loginUserId) {
             if (empty($id)) return $this->createErrorResponse('IDは必須です');
             /** @var BlogContentsService $blogContentsService */
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
 
+            // 削除前にタイトルを取得
+            $entity = $blogContentsService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのブログコンテンツが見つかりません');
+            }
+
+            $title = $entity->content->title;
             $result = $blogContentsService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('ブログコンテンツを削除しました');
+                return $this->createSuccessResponse(
+                    'ブログコンテンツを削除しました',
+                    [],
+                    sprintf('ブログコンテンツ「%s」を削除しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログコンテンツの削除に失敗しました');
             }

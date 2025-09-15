@@ -202,12 +202,13 @@ class CustomFieldsTool extends BaseMcpTool
         ?int $line = null,
         ?int $maxLength = null,
         ?string $source = null,
-        ?string $meta = null
+        ?string $meta = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
             $name, $title, $type, $status, $defaultValue, $validate, $regex, $regexErrorMessage,
-            $counter, $autoConvert, $placeholder, $size, $line, $maxLength, $source, $meta
+            $counter, $autoConvert, $placeholder, $size, $line, $maxLength, $source, $meta, $loginUserId
         ) {
             /** @var CustomFieldsService $customFieldsService */
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
@@ -234,7 +235,12 @@ class CustomFieldsTool extends BaseMcpTool
             $result = $customFieldsService->create($data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('カスタムフィールド「%s」を追加しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムフィールドの保存に失敗しました');
             }
@@ -306,12 +312,13 @@ class CustomFieldsTool extends BaseMcpTool
         ?int $line = null,
         ?int $maxLength = null,
         ?string $source = null,
-        ?string $meta = null
+        ?string $meta = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
             $id, $name, $title, $type, $status, $defaultValue, $validate, $regex, $regexErrorMessage,
-            $counter, $autoConvert, $placeholder, $size, $line, $maxLength, $source, $meta
+            $counter, $autoConvert, $placeholder, $size, $line, $maxLength, $source, $meta, $loginUserId
         ) {
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
@@ -342,7 +349,12 @@ class CustomFieldsTool extends BaseMcpTool
             $result = $customFieldsService->update($entity, $data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('カスタムフィールド「%s」を編集しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムフィールドの更新に失敗しました');
             }
@@ -352,16 +364,28 @@ class CustomFieldsTool extends BaseMcpTool
     /**
      * カスタムフィールドを削除
      */
-    public function deleteCustomField(int $id): array
+    public function deleteCustomField(int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
+        return $this->executeWithErrorHandling(function() use ($id, $loginUserId) {
             /** @var CustomFieldsService $customFieldsService */
             $customFieldsService = $this->getService(CustomFieldsServiceInterface::class);
 
+            // 削除前にタイトルを取得
+            $entity = $customFieldsService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのカスタムフィールドが見つかりません');
+            }
+
+            $title = $entity->title;
             $result = $customFieldsService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('カスタムフィールドを削除しました');
+                return $this->createSuccessResponse(
+                    'カスタムフィールドを削除しました',
+                    [],
+                    sprintf('カスタムフィールド「%s」を削除しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムフィールドの削除に失敗しました');
             }

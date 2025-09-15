@@ -221,10 +221,10 @@ class BlogPostsTool extends BaseMcpTool
             $result = $blogPostsService->create($data);
             if ($result) {
                 return $this->createSuccessResponse(
-                    $loginUserId,
                     $result->toArray(),
                     [],
-                    sprintf('ブログ記事「%s」を追加しました。', $result->title)
+                    sprintf('ブログ記事「%s」を追加しました。', $result->title),
+                    $loginUserId
                 );
             } else {
                 return $this->createErrorResponse('ブログ記事の保存に失敗しました');
@@ -249,7 +249,8 @@ class BlogPostsTool extends BaseMcpTool
         ?string $posted = null,
         ?string $publishBegin = null,
         ?string $publishEnd = null,
-        ?string $eyeCatch = null
+        ?string $eyeCatch = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
@@ -265,7 +266,8 @@ class BlogPostsTool extends BaseMcpTool
             $posted,
             $publishBegin,
             $publishEnd,
-            $eyeCatch
+            $eyeCatch,
+            $loginUserId
         ) {
             // 必須パラメータのチェック
             if (empty($id)) {
@@ -314,7 +316,12 @@ class BlogPostsTool extends BaseMcpTool
             $result = $blogPostsService->update($entity, $data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('ブログ記事「%s」を編集しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログ記事の更新に失敗しました');
             }
@@ -408,18 +415,31 @@ class BlogPostsTool extends BaseMcpTool
     /**
      * ブログ記事を削除
      */
-    public function deleteBlogPost(int $id): array
+    public function deleteBlogPost(int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($id) {
+        return $this->executeWithErrorHandling(function() use ($id, $loginUserId) {
             // 必須パラメータのチェック
             if (empty($id)) return $this->createErrorResponse('IDは必須です');
 
             /** @var \BcBlog\Service\BlogPostsService $blogPostsService */
             $blogPostsService = $this->getService(BlogPostsServiceInterface::class);
+
+            // 削除前にタイトルを取得
+            $entity = $blogPostsService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのブログ記事が見つかりません');
+            }
+
+            $title = $entity->title;
             $result = $blogPostsService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('ブログ記事を削除しました');
+                return $this->createSuccessResponse(
+                    'ブログ記事を削除しました',
+                    [],
+                    sprintf('ブログ記事「%s」を削除しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('ブログ記事の削除に失敗しました');
             }

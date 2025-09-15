@@ -158,12 +158,13 @@ class CustomEntriesTool extends BaseMcpTool
         ?string $publishBegin = null,
         ?string $publishEnd = null,
         ?string $published = null,
-        ?array $customFields = null
+        ?array $customFields = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
             $customTableId, $title, $parentId, $name, $creatorId, $status,
-            $publishBegin, $publishEnd, $published, $customFields
+            $publishBegin, $publishEnd, $published, $customFields, $loginUserId
         ) {
             /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
@@ -193,7 +194,12 @@ class CustomEntriesTool extends BaseMcpTool
             $result = $customEntriesService->create($data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('カスタムエントリー「%s」を追加しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムエントリーの保存に失敗しました');
             }
@@ -214,12 +220,13 @@ class CustomEntriesTool extends BaseMcpTool
         ?string $publishBegin = null,
         ?string $publishEnd = null,
         ?string $published = null,
-        ?array $customFields = null
+        ?array $customFields = null,
+        ?int $loginUserId = null
     ): array
     {
         return $this->executeWithErrorHandling(function() use (
             $id, $customTableId, $title, $parentId, $name, $creatorId, $status,
-            $publishBegin, $publishEnd, $published, $customFields
+            $publishBegin, $publishEnd, $published, $customFields, $loginUserId
         ) {
             /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
@@ -251,7 +258,12 @@ class CustomEntriesTool extends BaseMcpTool
             $result = $customEntriesService->update($entity, $data);
 
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $result->toArray(),
+                    [],
+                    sprintf('カスタムエントリー「%s」を編集しました。', $result->title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムエントリーの更新に失敗しました');
             }
@@ -420,16 +432,29 @@ class CustomEntriesTool extends BaseMcpTool
     /**
      * カスタムエントリーを削除
      */
-    public function deleteCustomEntry(int $customTableId, int $id): array
+    public function deleteCustomEntry(int $customTableId, int $id, ?int $loginUserId = null): array
     {
-        return $this->executeWithErrorHandling(function() use ($customTableId, $id) {
+        return $this->executeWithErrorHandling(function() use ($customTableId, $id, $loginUserId) {
             /** @var CustomEntriesService $customEntriesService */
             $customEntriesService = $this->getService(CustomEntriesServiceInterface::class);
             $customEntriesService->setup($customTableId);
+
+            // 削除前にタイトルを取得
+            $entity = $customEntriesService->get($id);
+            if (!$entity) {
+                return $this->createErrorResponse('指定されたIDのカスタムエントリーが見つかりません');
+            }
+
+            $title = $entity->title;
             $result = $customEntriesService->delete($id);
 
             if ($result) {
-                return $this->createSuccessResponse('カスタムエントリーを削除しました');
+                return $this->createSuccessResponse(
+                    'カスタムエントリーを削除しました',
+                    [],
+                    sprintf('カスタムエントリー「%s」を削除しました。', $title),
+                    $loginUserId
+                );
             } else {
                 return $this->createErrorResponse('カスタムエントリーの削除に失敗しました');
             }
