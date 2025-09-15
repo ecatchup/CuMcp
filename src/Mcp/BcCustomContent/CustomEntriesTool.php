@@ -124,9 +124,25 @@ class CustomEntriesTool extends BaseMcpTool
      * @param $args
      * @return false|string[]
      */
-    public static function getPermissionUrl($action, $arguments = [])
+    public static function getPermissionUrl($action, $args = [])
     {
-        return false;
+        switch ($action) {
+            case 'addCustomEntry':
+                return ['POST' => "/bc-custom-content/custom_entries/add.json"];
+            case 'editCustomEntry':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_entries/edit/{$args['id']}.json"];
+            case 'getCustomEntries':
+                return ['GET' => "/bc-custom-content/custom_entries.json"];
+            case 'getCustomEntry':
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-custom-content/custom_entries/view/{$args['id']}.json"];
+            case 'deleteCustomEntry':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_entries/delete/{$args['id']}.json"];
+            default:
+                return false;
+        }
     }
 
     /**

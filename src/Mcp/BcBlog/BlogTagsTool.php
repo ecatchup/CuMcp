@@ -92,7 +92,7 @@ class BlogTagsTool extends BaseMcpTool
      * @param $args
      * @return false|string[]
      */
-    public static function getPermissionUrl($action, $arguments = [])
+    public static function getPermissionUrl($action, $args = [])
     {
         switch ($action) {
             case 'addBlogTag':

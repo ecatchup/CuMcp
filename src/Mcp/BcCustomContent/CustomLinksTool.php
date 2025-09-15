@@ -133,9 +133,25 @@ class CustomLinksTool extends BaseMcpTool
      * @param $args
      * @return false|string[]
      */
-    public static function getPermissionUrl($action, $arguments = [])
+    public static function getPermissionUrl($action, $args = [])
     {
-        return false;
+        switch ($action) {
+            case 'addCustomLink':
+                return ['POST' => "/bc-custom-content/custom_links/add.json"];
+            case 'editCustomLink':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_links/edit/{$args['id']}.json"];
+            case 'getCustomLinks':
+                return ['GET' => "/bc-custom-content/custom_links.json"];
+            case 'getCustomLink':
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-custom-content/custom_links/view/{$args['id']}.json"];
+            case 'deleteCustomLink':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_links/delete/{$args['id']}.json"];
+            default:
+                return false;
+        }
     }
 
     /**

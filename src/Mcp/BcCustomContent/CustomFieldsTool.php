@@ -162,9 +162,25 @@ class CustomFieldsTool extends BaseMcpTool
      * @param $args
      * @return false|string[]
      */
-    public static function getPermissionUrl($action, $arguments = [])
+    public static function getPermissionUrl($action, $args = [])
     {
-        return false;
+        switch ($action) {
+            case 'addCustomField':
+                return ['POST' => "/bc-custom-content/custom_fields/add.json"];
+            case 'editCustomField':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_fields/edit/{$args['id']}.json"];
+            case 'getCustomFields':
+                return ['GET' => "/bc-custom-content/custom_fields/index.json"];
+            case 'getCustomField':
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-custom-content/custom_fields/view/{$args['id']}.json"];
+            case 'deleteCustomField':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_fields/delete/{$args['id']}.json"];
+            default:
+                return false;
+        }
     }
 
     /**

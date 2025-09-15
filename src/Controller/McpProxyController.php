@@ -9,6 +9,7 @@ use BaserCore\Service\UsersServiceInterface;
 use BaserCore\Utility\BcUtil;
 use Cake\Http\Client;
 use Cake\Http\Exception\BadRequestException;
+use Cake\Http\Exception\ForbiddenException;
 use Cake\Http\Exception\ServiceUnavailableException;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
@@ -224,10 +225,28 @@ class McpProxyController extends AppController
             }
         } catch (BadRequestException $e) {
             throw $e;
+        } catch (ForbiddenException $e) {
+            return $this->response
+                ->withStatus(403)
+                ->withHeader('Content-Type', 'application/json')
+                ->withStringBody(json_encode([
+                    'jsonrpc' => '2.0',
+                    'error' => [
+                        'code' => 403,
+                        'message' => 'MCPサーバーとの通信に失敗しました: ' . $e->getMessage()
+                    ]
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         } catch (\Exception $e) {
-            throw new ServiceUnavailableException(
-                'MCPサーバーとの通信に失敗しました: ' . $e->getMessage()
-            );
+            return $this->response
+                ->withStatus(500)
+                ->withHeader('Content-Type', 'application/json')
+                ->withStringBody(json_encode([
+                    'jsonrpc' => '2.0',
+                    'error' => [
+                        'code' => 500,
+                        'message' => 'MCPサーバーとの通信に失敗しました: ' . $e->getMessage()
+                    ]
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         }
 
         return $this->response;
@@ -241,6 +260,11 @@ class McpProxyController extends AppController
     public function checkPermission(array $mcpRequest): bool
     {
         if($mcpRequest['method'] !== 'tools/call') return true;
+
+        if (!filter_var(env('USE_CORE_ADMIN_API', false), FILTER_VALIDATE_BOOLEAN)) {
+            throw new ForbiddenException(__d('baser_core', 'baser Admin APIは許可されていません。'));
+        }
+
         /** @var UsersService $usersService */
         $usersService = $this->getService(UsersServiceInterface::class);
         $user = $usersService->get($mcpRequest['params']['arguments']['loginUserId']);

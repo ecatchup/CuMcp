@@ -110,9 +110,25 @@ class CustomTablesTool extends BaseMcpTool
      * @param $args
      * @return false|string[]
      */
-    public static function getPermissionUrl($action, $arguments = [])
+    public static function getPermissionUrl($action, $args = [])
     {
-        return false;
+        switch ($action) {
+            case 'addCustomTable':
+                return ['POST' => "/bc-custom-content/custom_tables/add.json"];
+            case 'editCustomTable':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_tables/edit/{$args['id']}.json"];
+            case 'getCustomTables':
+                return ['GET' => "/bc-custom-content/custom_tables/index.json"];
+            case 'getCustomTable':
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-custom-content/custom_tables/view/{$args['id']}.json"];
+            case 'deleteCustomTable':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_tables/delete/{$args['id']}.json"];
+            default:
+                return false;
+        }
     }
 
     /**

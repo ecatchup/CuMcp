@@ -128,9 +128,25 @@ class CustomContentsTool extends BaseMcpTool
      * @param $args
      * @return false|string[]
      */
-    public static function getPermissionUrl($action, $arguments = [])
+    public static function getPermissionUrl($action, $args = [])
     {
-        return false;
+        switch ($action) {
+            case 'addCustomContent':
+                return ['POST' => "/bc-custom-content/custom_contents/add.json"];
+            case 'editCustomContent':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_contents/edit/{$args['id']}.json"];
+            case 'getCustomContents':
+                return ['GET' => "/bc-custom-content/custom_contents/index.json"];
+            case 'getCustomContent':
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-custom-content/custom_contents/view/{$args['id']}.json"];
+            case 'deleteCustomContent':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-custom-content/custom_contents/delete/{$args['id']}.json"];
+            default:
+                return false;
+        }
     }
 
     /**
