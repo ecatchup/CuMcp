@@ -138,19 +138,28 @@ class BlogContentsTool extends BaseMcpTool
             );
     }
 
+    /**
+     * 権限チェック用のURLを取得する
+     * @param $action
+     * @param $args
+     * @return false|string[]
+     */
     public static function getPermissionUrl($action, $arguments = [])
     {
         switch ($action) {
             case 'addBlogContent':
-                return ['POST' => '/bc-blog/blog_contents/add.json'];
+                return ['POST' => "/bc-blog/blog_contents/add.json"];
             case 'editBlogContent':
-                return ['POST' => '/bc-blog/blog_contents/edit' . $arguments['id']?? '' . '.json'];
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-blog/blog_contents/edit/{$args['id']}.json"];
             case 'getBlogContents':
-                return ['GET' => '/bc-blog/blog_contents/index.json'];
+                return ['GET' => "/bc-blog/blog_contents/index.json"];
             case 'getBlogContent':
-                return ['GET' => '/bc-blog/blog_contents/view/' . $arguments['id']?? '' . '.json'];
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-blog/blog_contents/view/{$args['id']}.json"];
             case 'deleteBlogContent':
-                return ['POST' => '/bc-blog/blog_contents/delete/' . $arguments['id']?? '' . '.json'];
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-blog/blog_contents/delete/{$args['id']}.json"];
             default:
                 return false;
         }

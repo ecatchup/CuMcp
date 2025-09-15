@@ -96,9 +96,33 @@ class BlogCategoriesTool extends BaseMcpTool
             );
     }
 
+    /**
+     * 権限チェック用のURLを取得する
+     * @param $action
+     * @param $args
+     * @return false|string[]
+     */
     public static function getPermissionUrl($action, $arguments = [])
     {
-        return false;
+        switch ($action) {
+            case 'addBlogCategory':
+                if(empty($args['blogContentId'])) return false;
+                return ['POST' => "/bc-blog/blog_categories/add/{$args['blogContentId']}.json"];
+            case 'editBlogCategory':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-blog/blog_categories/edit/{$args['id']}.json"];
+            case 'getBlogCategories':
+                $blogContentId = $args['blogContentId'] ?? 1;
+                return ['GET' => "/bc-blog/blog_categories/index/{$blogContentId}.json"];
+            case 'getBlogCategory':
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-blog/blog_categories/view/{$args['id']}.json"];
+            case 'deleteBlogCategory':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-blog/blog_categories/delete/{$args['id']}.json"];
+            default:
+                return false;
+        }
     }
 
     /**

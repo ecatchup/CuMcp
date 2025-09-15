@@ -86,9 +86,31 @@ class BlogTagsTool extends BaseMcpTool
             );
     }
 
+    /**
+     * 権限チェック用のURLを取得する
+     * @param $action
+     * @param $args
+     * @return false|string[]
+     */
     public static function getPermissionUrl($action, $arguments = [])
     {
-        return false;
+        switch ($action) {
+            case 'addBlogTag':
+                return ['POST' => "/bc-blog/blog_tags/add.json"];
+            case 'editBlogTag':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-blog/blog_tags/edit/{$args['id']}.json"];
+            case 'getBlogTags':
+                return ['GET' => "/bc-blog/blog_tags/index.json"];
+            case 'getBlogTag':
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-blog/blog_tags/view/{$args['id']}.json"];
+            case 'deleteBlogTag':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-blog/blog_tags/delete/{$args['id']}.json"];
+            default:
+                return false;
+        }
     }
 
     /**

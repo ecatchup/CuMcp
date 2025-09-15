@@ -156,6 +156,12 @@ class CustomFieldsTool extends BaseMcpTool
             );
     }
 
+    /**
+     * 権限チェック用のURLを取得する
+     * @param $action
+     * @param $args
+     * @return false|string[]
+     */
     public static function getPermissionUrl($action, $arguments = [])
     {
         return false;
