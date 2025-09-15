@@ -5,6 +5,8 @@ namespace CuMcp\Mcp;
 
 use BaserCore\Utility\BcContainerTrait;
 use BaserCore\Utility\BcUtil;
+use Cake\ORM\TableRegistry;
+use Cake\Routing\Router;
 
 /**
  * MCPツール・リソースの基底クラス
@@ -26,9 +28,33 @@ abstract class BaseMcpTool
      * @param array $meta 追加のメタデータ（paginationなど）
      * @return array MCP仕様に準拠した成功レスポンス
      */
-    protected function createSuccessResponse($content, array $meta = []): array
+    protected function createSuccessResponse($userId, $content, array $meta = [], $message = ''): array
     {
+        if($message) {
+            $this->saveDblog($userId, $message);
+        }
         return array_merge($content, $meta);
+    }
+
+    /**
+     * 操作ログを保存する
+     * @param $userId
+     * @param $message
+     * @return void
+     */
+    protected function saveDblog($userId, $message)
+    {
+        try {
+            $data = [
+                'message' => $message,
+                'controller' => 'McpProxy',
+                'action' => 'index',
+                'user_id' => $userId
+            ];
+            $dbLogsTable = TableRegistry::getTableLocator()->get('BaserCore.Dblogs');
+            $dblog = $dbLogsTable->newEntity($data);
+            $dbLogsTable->saveOrFail($dblog);
+        } catch (\Exception) {}
     }
 
     /**

@@ -220,7 +220,12 @@ class BlogPostsTool extends BaseMcpTool
 
             $result = $blogPostsService->create($data);
             if ($result) {
-                return $this->createSuccessResponse($result->toArray());
+                return $this->createSuccessResponse(
+                    $loginUserId,
+                    $result->toArray(),
+                    [],
+                    sprintf('ブログ記事「%s」を追加しました。', $result->title)
+                );
             } else {
                 return $this->createErrorResponse('ブログ記事の保存に失敗しました');
             }

@@ -54,7 +54,7 @@ class McpServer
 
         $availableServers = Configure::read('CuMcp.availableServers',);
         foreach($availableServers as $serverClass) {
-            $this->registerResourcesFromServer($serverClass::getResourceClasses(), $builder);
+            $this->registerToolsFromServer($serverClass::getToolClasses(), $builder);
         }
 
         // サーバー情報ツールを追加
