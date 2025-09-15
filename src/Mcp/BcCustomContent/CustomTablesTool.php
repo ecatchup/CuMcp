@@ -104,6 +104,11 @@ class CustomTablesTool extends BaseMcpTool
             );
     }
 
+    public static function getPermissionUrl($action, $arguments = [])
+    {
+        return false;
+    }
+
     /**
      * カスタムテーブルを追加
      */

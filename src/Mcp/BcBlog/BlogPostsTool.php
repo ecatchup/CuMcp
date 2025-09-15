@@ -114,6 +114,33 @@ class BlogPostsTool extends BaseMcpTool
     }
 
     /**
+     * 権限チェック用のURLを取得する
+     * @param $action
+     * @param $args
+     * @return false|string[]
+     */
+    public static function getPermissionUrl($action, $args = [])
+    {
+        switch ($action) {
+            case 'addBlogPost':
+                return ['POST' => "/bc-blog/blog_posts/add.json"];
+            case 'editBlogPost':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-blog/blog_posts/edit/{$args['id']}.json"];
+            case 'getBlogPosts':
+                return ['GET' => '/bc-blog/blog_posts/index.json'];
+            case 'getBlogPost':
+                if(empty($args['id'])) return false;
+                return ['GET' => "/bc-blog/blog_posts/view/{$args['id']}.json"];
+            case 'deleteBlogPost':
+                if(empty($args['id'])) return false;
+                return ['POST' => "/bc-blog/blog_posts/delete/{$args['id']}.json"];
+            default:
+                return false;
+        }
+    }
+
+    /**
      * ブログ記事を追加
      */
     public function addBlogPost(

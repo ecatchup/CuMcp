@@ -51,4 +51,14 @@ return [
             'levels' => ['info', 'error']
         ]
     ],
+    'CuMcp' => [
+        /**
+         * 利用可能なMCPサーバー
+         */
+        'availableServers' => [
+            'BaserCore' => \CuMcp\Mcp\BaserCore\BaserCoreServer::class,
+            'BcBlog' => \CuMcp\Mcp\BcBlog\BcBlogServer::class,
+            'BcCustomContent' => \CuMcp\Mcp\BcCustomContent\BcCustomContentServer::class,
+        ]
+    ]
 ];

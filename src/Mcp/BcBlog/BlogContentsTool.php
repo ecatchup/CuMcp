@@ -138,6 +138,24 @@ class BlogContentsTool extends BaseMcpTool
             );
     }
 
+    public static function getPermissionUrl($action, $arguments = [])
+    {
+        switch ($action) {
+            case 'addBlogContent':
+                return ['POST' => '/bc-blog/blog_contents/add.json'];
+            case 'editBlogContent':
+                return ['POST' => '/bc-blog/blog_contents/edit' . $arguments['id']?? '' . '.json'];
+            case 'getBlogContents':
+                return ['GET' => '/bc-blog/blog_contents/index.json'];
+            case 'getBlogContent':
+                return ['GET' => '/bc-blog/blog_contents/view/' . $arguments['id']?? '' . '.json'];
+            case 'deleteBlogContent':
+                return ['POST' => '/bc-blog/blog_contents/delete/' . $arguments['id']?? '' . '.json'];
+            default:
+                return false;
+        }
+    }
+
     /**
      * ブログコンテンツを追加
      */

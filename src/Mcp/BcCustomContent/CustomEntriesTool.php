@@ -118,6 +118,11 @@ class CustomEntriesTool extends BaseMcpTool
             );
     }
 
+    public static function getPermissionUrl($action, $arguments = [])
+    {
+        return false;
+    }
+
     /**
      * カスタムエントリーを追加
      */

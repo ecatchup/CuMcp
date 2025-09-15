@@ -96,6 +96,11 @@ class BlogCategoriesTool extends BaseMcpTool
             );
     }
 
+    public static function getPermissionUrl($action, $arguments = [])
+    {
+        return false;
+    }
+
     /**
      * ブログカテゴリを追加
      * @param string $title

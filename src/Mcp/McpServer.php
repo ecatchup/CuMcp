@@ -48,15 +48,14 @@ class McpServer
             ->withServerInfo($serverName, $serverVersion)
             ->withCapabilities(new ServerCapabilities(
                 tools: true,
-                resources: true,
-                prompts: true
+                resources: false,
+                prompts: false
             ));
 
-        $this->registerToolsFromServer(array_merge(
-            BaserCoreServer::getToolClasses(),
-            BcBlogServer::getToolClasses(),
-            BcCustomContentServer::getToolClasses(),
-        ), $builder);
+        $availableServers = Configure::read('CuMcp.availableServers',);
+        foreach($availableServers as $serverClass) {
+            $this->registerResourcesFromServer($serverClass::getResourceClasses(), $builder);
+        }
 
         // サーバー情報ツールを追加
         $builder = $builder->withTool(

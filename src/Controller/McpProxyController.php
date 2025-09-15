@@ -4,12 +4,17 @@ declare(strict_types=1);
 namespace CuMcp\Controller;
 
 use BaserCore\Controller\AppController;
+use BaserCore\Service\UsersService;
+use BaserCore\Service\UsersServiceInterface;
+use BaserCore\Utility\BcUtil;
 use Cake\Http\Client;
 use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\ServiceUnavailableException;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
+use Cake\Utility\Hash;
 use CuMcp\Mcp\McpServerManger;
+use CuMcp\Mcp\PermissionManager;
 use CuMcp\OAuth2\Service\OAuth2Service;
 
 /**
@@ -193,6 +198,19 @@ class McpProxyController extends AppController
 
             $mcpRequest['params']['arguments']['loginUserId'] = $this->request->getAttribute('oauth_user_id');
 
+            if(!$this->checkPermission($mcpRequest)) {
+                return $this->response
+                    ->withStatus(403)
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withStringBody(json_encode([
+                        'jsonrpc' => '2.0',
+                        'error' => [
+                            'code' => 403,
+                            'message' => 'Forbidden: You do not have permission to perform this action.'
+                        ]
+                    ]));
+            }
+
             // SSEクライアントとしてMCPサーバーに接続してリクエストを処理
             $response = $this->sendMcpRequest($config, $mcpRequest);
 
@@ -213,6 +231,30 @@ class McpProxyController extends AppController
         }
 
         return $this->response;
+    }
+
+    /**
+     * 権限チェック
+     * @param array $mcpRequest
+     * @return bool
+     */
+    public function checkPermission(array $mcpRequest): bool
+    {
+        if($mcpRequest['method'] !== 'tools/call') return true;
+        /** @var UsersService $usersService */
+        $usersService = $this->getService(UsersServiceInterface::class);
+        $user = $usersService->get($mcpRequest['params']['arguments']['loginUserId']);
+        if(!$user) return false;
+        if (BcUtil::isAdminUser($user)) {
+            return true;
+        }
+        $userGroupsIds = Hash::extract($user->toArray()['user_groups'], '{n}.id');
+        $permissionManager = new PermissionManager();
+        return $permissionManager->checkPermission(
+            $mcpRequest['params']['name'],
+            $userGroupsIds,
+            $mcpRequest['params']['arguments']
+        );
     }
 
     /**

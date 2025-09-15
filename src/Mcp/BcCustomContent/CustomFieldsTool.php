@@ -156,6 +156,11 @@ class CustomFieldsTool extends BaseMcpTool
             );
     }
 
+    public static function getPermissionUrl($action, $arguments = [])
+    {
+        return false;
+    }
+
     /**
      * カスタムフィールドを追加
      */

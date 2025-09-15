@@ -86,6 +86,11 @@ class BlogTagsTool extends BaseMcpTool
             );
     }
 
+    public static function getPermissionUrl($action, $arguments = [])
+    {
+        return false;
+    }
+
     /**
      * ブログタグを追加
      */

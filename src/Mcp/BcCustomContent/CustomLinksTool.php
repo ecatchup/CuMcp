@@ -127,6 +127,11 @@ class CustomLinksTool extends BaseMcpTool
             );
     }
 
+    public static function getPermissionUrl($action, $arguments = [])
+    {
+        return false;
+    }
+
     /**
      * カスタムリンクを追加
      */

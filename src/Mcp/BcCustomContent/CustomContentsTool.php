@@ -122,6 +122,11 @@ class CustomContentsTool extends BaseMcpTool
             );
     }
 
+    public static function getPermissionUrl($action, $arguments = [])
+    {
+        return false;
+    }
+
     /**
      * カスタムコンテンツを追加
      */
