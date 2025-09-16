@@ -9,6 +9,10 @@ baserCMS用のMCP（Model Context Protocol）サーバープラグインです�
 - サーバー情報の取得
 - HTTP トランスポートサポート
 
+## 動作要件
+PHP 8.1 以降
+baserCMS 5.1.10 以降
+
 ## インストール
 
 ### Composerを使用したインストール
