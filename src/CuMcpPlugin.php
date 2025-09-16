@@ -36,6 +36,8 @@ class CuMcpPlugin extends BcPlugin
         $siteConfigsService = $this->getService(SiteConfigsServiceInterface::class);
         $oauth2EncKey = base64_encode(random_bytes(32));
         $siteConfigsService->putEnv('OAUTH2_ENC_KEY', $oauth2EncKey);
+        $siteConfigsService->putEnv('USE_CORE_API', "true");
+        $siteConfigsService->putEnv('USE_CORE_ADMIN_API', "true");
         return true;
     }
 
