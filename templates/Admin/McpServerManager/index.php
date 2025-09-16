@@ -80,11 +80,11 @@
         ) ?>
       <?php endif; ?>
 
-      <?= $this->Html->link(
-        '設定',
-        ['action' => 'configure'],
-        ['class' => 'bca-btn bca-btn--default']
-      ) ?>
+<!-- 設定はちゃんと動作確認していないためコメントアウト --><?php //= $this->Html->link(
+//        '設定',
+//        ['action' => 'configure'],
+//        ['class' => 'bca-btn bca-btn--default']
+//      ) ?>
     </div>
 
   </div>
