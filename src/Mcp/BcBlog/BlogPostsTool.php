@@ -453,12 +453,15 @@ class BlogPostsTool extends BaseMcpTool
     {
         try {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
-            $conditions = ['name' => $blogContentName];
-            $content = $blogContentsService->getIndex($conditions)->first();
-            if(!$content) {
+            $conditions = [];
+            if($blogContentName) {
+                $conditions = ['name' => $blogContentName];
+            }
+            $blogContent = $blogContentsService->getIndex($conditions)->first();
+            if(!$blogContent) {
                 throw new \Exception('ブログコンテンツが見つかりません。');
             }
-            return $content;
+            return $blogContent->id;
         } catch (\Exception $e) {
             throw new \Exception('ブログコンテンツ検索中にエラーが発生しました。' . $e->getMessage());
         }
