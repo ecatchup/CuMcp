@@ -18,7 +18,7 @@ baserCMS 5.1.10 以降
 ### Composerを使用したインストール
 
 ```bash
-composer require ecatchup/cu-mcp
+composer require ecatchup/cu-mcp --with-all-dependencies
 ```
 
 ### 手動インストール

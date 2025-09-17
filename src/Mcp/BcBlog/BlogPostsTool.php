@@ -451,15 +451,16 @@ class BlogPostsTool extends BaseMcpTool
      */
     protected function getBlogContentId(?string $blogContentName): int
     {
-        if (empty($blogContentName)) return 1; // デフォルト
-
         try {
             $blogContentsService = $this->getService(BlogContentsServiceInterface::class);
             $conditions = ['name' => $blogContentName];
             $content = $blogContentsService->getIndex($conditions)->first();
-            return $content? $content->id : 1;
+            if(!$content) {
+                throw new \Exception('ブログコンテンツが見つかりません。');
+            }
+            return $content;
         } catch (\Exception $e) {
-            return 1; // エラー時はデフォルト
+            throw new \Exception('ブログコンテンツ検索中にエラーが発生しました。' . $e->getMessage());
         }
     }
 
