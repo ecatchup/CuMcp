@@ -19,6 +19,7 @@ use BaserCore\Utility\BcFolder;
 use BcBlog\Test\Factory\BlogCategoryFactory;
 use BcBlog\Test\Factory\BlogContentFactory;
 use BcBlog\Test\Factory\BlogPostFactory;
+use BcBlog\Test\Scenario\BlogContentScenario;
 use BcBlog\Test\Scenario\BlogPostsAdminServiceScenario;
 use CakephpFixtureFactories\Scenario\ScenarioAwareTrait;
 use CuMcp\Mcp\BcBlog\BlogPostsTool;
@@ -427,7 +428,14 @@ class BlogPostsToolTest extends BcTestCase
      */
     public function testGetBlogContentId()
     {
-        $contentId = $this->execPrivateMethod($this->BlogPostsTool, 'getBlogContentId', ['news']);
+        $this->loadFixtureScenario(BlogContentScenario::class,
+            1, // id
+            1,
+            null,
+            'test-blog',
+            'test-blog-url',
+        );
+        $contentId = $this->execPrivateMethod($this->BlogPostsTool, 'getBlogContentId', ['test-blog']);
 
         $this->assertIsInt($contentId);
         $this->assertGreaterThan(0, $contentId);
