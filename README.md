@@ -25,14 +25,6 @@ composer require ecatchup/cu-mcp --with-all-dependencies
 
 1. このリポジトリをクローンまたはダウンロード
 2. `plugins/CuMcp/` ディレクトリに配置
-3. 依存関係をインストール：
-
-```bash
-# 直下の composer.json の require に次を追加
-"ecatchup/cu-mcp": "^1.0"
-# 依存関係をインストール
-composer install
-```
 
 ## 設定
 ### configフォルダの権限設定
@@ -198,3 +190,6 @@ CuMcpプラグインは以下の仕組みでクラアントと連携します：
 # MCPサーバーのログを確認
 tail -f tmp/logs/mcp_server.log
 ```
+
+## 開発への貢献
+[CONTRIBUTING.md](.github/CONTRIBUTING.md) をご覧ください。

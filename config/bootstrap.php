@@ -5,6 +5,11 @@ use Cake\Core\Configure;
 use Cake\Log\Log;
 use Psr\Log\LogLevel;
 
+$vendor = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($vendor)) {
+    require_once $vendor;
+}
+
 if (BcUtil::isConsole() || BcUtil::isTest()) return;
 if (!Configure::read('debug')) return;
 

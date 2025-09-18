@@ -9,12 +9,12 @@
         "league/oauth2-server": "^8.5",
         "php-mcp/server": "^3.3",
         "nyholm/psr7": "^1.8",
-        "symfony/psr-http-message-bridge": "^2.3",
-        "baserproject/baser-core": "^5.1.10"
+        "symfony/psr-http-message-bridge": "^2.3"
     },
     "require-dev": {
         "phpunit/phpunit": "10.5.31",
         "josegonzalez/dotenv": "^4.0",
+        "baserproject/baser-core": "^5.1.10",
         "vierge-noire/cakephp-fixture-factories": "^3.0",
         "vierge-noire/cakephp-test-suite-light": "^3.0"
     },
