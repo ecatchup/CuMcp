@@ -6,6 +6,7 @@ namespace CuMcp;
 use BaserCore\BcPlugin;
 use BaserCore\Service\SiteConfigsService;
 use BaserCore\Service\SiteConfigsServiceInterface;
+use BaserCore\Utility\BcApiUtil;
 use BaserCore\Utility\BcContainerTrait;
 use BaserCore\Utility\BcUtil;
 use Cake\Console\CommandCollection;
@@ -38,6 +39,9 @@ class CuMcpPlugin extends BcPlugin
         $siteConfigsService->putEnv('OAUTH2_ENC_KEY', $oauth2EncKey);
         $siteConfigsService->putEnv('USE_CORE_API', "true");
         $siteConfigsService->putEnv('USE_CORE_ADMIN_API', "true");
+        if (!file_exists(CONFIG . 'jwt.pem')) {
+            BcApiUtil::createJwt();
+        }
         return true;
     }
 
