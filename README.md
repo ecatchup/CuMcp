@@ -191,6 +191,15 @@ CuMcpプラグインは以下の仕組みでクラアントと連携します：
    - baserCMSのデータベースに接続できているか確認
    - 必要なプラグイン（BcBlog、BcCustomContent）が有効になっているか確認
 
+3. **認可画面が表示されない**
+    - baserCMSを古いバージョンからアップデートした場合、`/.htaccess` が正しく設定されていない可能性があります。次のように変更をお願いします。
+```bash
+# 変更前
+RewriteRule ^(\.well-known/.*)$ $1 [L]
+# 変更後
+RewriteRule ^(\.well-known/.*)$ webroot/$1 [L]
+```
+
 ### MCPサーバーのログの確認
 
 ```bash
