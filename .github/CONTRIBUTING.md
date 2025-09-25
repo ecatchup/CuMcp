@@ -12,7 +12,16 @@ baserマーケットでの配布版用に、vendorフォルダを含む形でリ
 その際、次のコマンドで、vendor フォルダを生成しなおしてください。
 
 ```shell
+rm -rf vendor
 composer install --no-dev -o
+rm -rf .git
+rm -rf .github
+rm -rf .idea
+rm -rf .phpunit.cache
+rm -rf tests
+rm .gitignore
+rm .phpunit.result.cache
+rm phpunit.xml.dist
 ```
 
 ## 注意事項
