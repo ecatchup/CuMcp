@@ -223,7 +223,7 @@ class CustomEntriesToolTest extends BcTestCase
         $this->assertArrayHasKey('title', $result);
         $this->assertEquals($title, $result['title']);
         // 外部画像URLが正しく保存されていることを確認
-        $this->assertEquals('2025/09/00000001_image_field.png', $result['image_field'] ?? '');
+        $this->assertEquals(date('Y/m') . '/00000001_image_field.png', $result['image_field'] ?? '');
         $this->assertTrue($result['status'] ?? false);
 
         // テーブルをクリーンアップ

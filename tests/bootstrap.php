@@ -28,6 +28,11 @@ require_once ROOT . '/vendor/autoload.php';
 require CORE_PATH . 'config' . DS . 'bootstrap.php';
 require CAKE . 'functions.php';
 
+// .env が存在しない場合は .env.example より複製する
+if (!file_exists(CONFIG . '.env') && file_exists(CONFIG . '.env.example')) {
+    copy(CONFIG . '.env.example', CONFIG . '.env');
+}
+
 if (!env('APP_NAME') && file_exists(CONFIG . '.env')) {
     $dotenv = new \josegonzalez\Dotenv\Loader([CONFIG . '.env']);
     $dotenv->parse()
